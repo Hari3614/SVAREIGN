@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:svareign/core/colors/app_theme_color.dart';
 
 class OtpScreen extends StatelessWidget {
   const OtpScreen({super.key});
