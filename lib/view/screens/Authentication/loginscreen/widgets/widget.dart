@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
+import 'package:svareign/view/screens/Authentication/signupscreen/signupscreen.dart';
 
 class Loginwidget extends StatelessWidget {
   const Loginwidget({super.key});
@@ -44,6 +45,7 @@ class Loginwidget extends StatelessWidget {
             hinttext: "Enter Password",
             obscuretext: true,
             preffixicon: Icons.fingerprint,
+            color: kblackcolor,
             suffixicon: Icons.remove_red_eye,
           ),
           SizedBox(height: 40),
@@ -61,7 +63,12 @@ class Loginwidget extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Signupscreen()),
+              );
+            },
             child: Text(
               'SignUp',
               style: TextStyle(
