@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
-import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
-import 'package:svareign/view/screens/Authentication/roleselectionpage/role_selection_page.dart';
 
 class OtpScreen extends StatelessWidget {
   const OtpScreen({super.key});
@@ -67,9 +65,7 @@ class OtpScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: () {
-                    showroleselectionpage(context);
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, height * 0.065),
                     backgroundColor: Colors.blue,
@@ -110,47 +106,6 @@ class OtpScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  void showroleselectionpage(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 20,
-            runSpacing: 20,
-            children: [
-              const Text(
-                'Select your Role',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  RoleSelectionPage(
-                    title: 'Service Provider',
-                    imagpath: 'assets/images/app icon1.png',
-                    ontap: () {},
-                  ),
-                  RoleSelectionPage(
-                    title: 'User',
-                    imagpath: 'assets/images/app icon1.png',
-                    ontap: () {},
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

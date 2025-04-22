@@ -98,7 +98,12 @@ class Signupwidget extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Loginscreen()),
+                  );
+                },
                 child: Text(
                   'Login',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
