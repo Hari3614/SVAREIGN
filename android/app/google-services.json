@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412848064485",
+    "project_id": "svareign-c8744",
+    "storage_bucket": "svareign-c8744.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412848064485:android:d7c12e0122511db8f7110c",
+        "android_client_info": {
+          "package_name": "com.example.svareign"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKPaMOLi981i1k0iOnySkn8BsEypTK6jE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
