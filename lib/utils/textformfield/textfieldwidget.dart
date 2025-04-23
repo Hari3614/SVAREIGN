@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class Textfieldwidget extends StatelessWidget {
   final TextEditingController controller;
   final IconData? suffixicon;
+  final String? Function(String?)? validator;
   final IconData? preffixicon;
   final String? hinttext;
   final String labeltext;
@@ -13,6 +14,7 @@ class Textfieldwidget extends StatelessWidget {
   const Textfieldwidget({
     super.key,
     required this.controller,
+    this.validator,
     this.suffixicon,
     this.preffixicon,
     this.hinttext,

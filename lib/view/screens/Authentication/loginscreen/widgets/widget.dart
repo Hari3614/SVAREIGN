@@ -23,13 +23,13 @@ class Loginwidget extends StatelessWidget {
             width: width * 10,
             child: Image.asset('assets/images/app icon1.png'),
           ),
-          // SizedBox(height: 10),
+
           Text(
             'Welcome Back!',
             style: TextStyle(fontSize: 35, fontWeight: FontWeight.w600),
           ),
           SizedBox(height: height * 0.06),
-          // Text("Log in to your account using\nmobile number"),
+
           Textfieldwidget(
             inputType: TextInputType.number,
             controller: phonenumbercontroller,
@@ -103,7 +103,7 @@ class Loginwidget extends StatelessWidget {
                     'Select your Role',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                   ),
-                  SizedBox(width: width * 0.44),
+                  const Spacer(),
                   GestureDetector(
                     onTap: () {
                       showDialog(

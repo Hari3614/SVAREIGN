@@ -1,117 +1,182 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:svareign/authprovider/authprovider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
-import 'package:svareign/view/screens/Authentication/otpscreen/otp_screen.dart';
 
 class Signupwidget extends StatelessWidget {
-  const Signupwidget({super.key});
+  Signupwidget({super.key});
+
+  final TextEditingController namecontroller = TextEditingController();
+  final TextEditingController emailcontroller = TextEditingController();
+  final TextEditingController phonecontroller = TextEditingController();
+  final TextEditingController passwordcontroller = TextEditingController();
+  final TextEditingController confirmcontroller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController namecontroller = TextEditingController();
-    final TextEditingController emailcontroller = TextEditingController();
-    final TextEditingController phonecontroller = TextEditingController();
-    final TextEditingController passwordcontroller = TextEditingController();
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          SizedBox(
-            height: height * 0.24,
-            width: width * 1,
-            child: Image.asset('assets/images/app icon1.png'),
-          ),
-          Text(
-            'Create New Account',
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
-          ),
-          SizedBox(height: 30),
-          Textfieldwidget(
-            controller: namecontroller,
-            labeltext: 'Name',
-            hinttext: 'Enter Name',
-            color: kblackcolor,
-            preffixicon: Icons.person,
 
-            obscuretext: false,
-          ),
-          SizedBox(height: 30),
-          Textfieldwidget(
-            controller: namecontroller,
-            color: kblackcolor,
-            labeltext: 'E-mail',
-            hinttext: 'Enter your e-mail address',
-            preffixicon: Icons.email,
-            obscuretext: false,
-          ),
-          SizedBox(height: 30),
-          Textfieldwidget(
-            controller: namecontroller,
-            color: kblackcolor,
-            labeltext: 'Mobile Number',
-            hinttext: 'Enter the Mobile Number',
-            preffixicon: Icons.phone,
-            obscuretext: false,
-          ),
-          SizedBox(height: 30),
-          Textfieldwidget(
-            controller: namecontroller,
-            labeltext: 'Password',
-            color: kblackcolor,
-            hinttext: 'Enter the Password',
-            preffixicon: Icons.password,
-            obscuretext: false,
-          ),
-          SizedBox(height: 30),
-          Textfieldwidget(
-            controller: namecontroller,
-            labeltext: 'Confirm Password',
-            hinttext: 'Re-enter the Password',
-            color: kblackcolor,
-            preffixicon: Icons.fingerprint,
-            obscuretext: false,
-          ),
-          SizedBox(height: 30),
-          Elevatedbuttonwidget(
-            onpressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => OtpScreen()),
-              );
-            },
-            widht: width * 0.4,
-            height: height * 0.054,
-            color: kgreycolor,
-            textsize: 16,
-            buttontext: 'Signup',
-          ),
-          SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Already have an account ?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            SizedBox(
+              height: height * 0.24,
+              width: width * 1,
+              child: Image.asset('assets/images/app icon1.png'),
+            ),
+            Text(
+              'Create New Account',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+            ),
+            SizedBox(height: 30),
+
+            // Name
+            Textfieldwidget(
+              controller: namecontroller,
+              labeltext: 'Name',
+              hinttext: 'Enter Name',
+              color: kblackcolor,
+              preffixicon: Icons.person,
+              obscuretext: false,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your name';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 30),
+
+            // Email
+            Textfieldwidget(
+              controller: emailcontroller,
+              labeltext: 'E-mail',
+              hinttext: 'Enter your e-mail address',
+              color: kblackcolor,
+              preffixicon: Icons.email,
+              obscuretext: false,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your email';
+                } else if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                  return 'Enter a valid email address';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 30),
+
+            // Phone
+            Textfieldwidget(
+              controller: phonecontroller,
+              labeltext: 'Mobile Number',
+              hinttext: 'Enter the Mobile Number',
+              color: kblackcolor,
+              preffixicon: Icons.phone,
+              obscuretext: false,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Enter your phone number';
+                } else if (value.length != 10) {
+                  return 'Phone number must be 10 digits';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 30),
+
+            // Password
+            Textfieldwidget(
+              controller: passwordcontroller,
+              labeltext: 'Password',
+              hinttext: 'Enter the Password',
+              color: kblackcolor,
+              preffixicon: Icons.password,
+              obscuretext: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Enter password';
+                } else if (value.length < 6) {
+                  return 'Password must be at least 6 characters';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 30),
+
+            // Confirm Password
+            Textfieldwidget(
+              controller: confirmcontroller,
+              labeltext: 'Confirm Password',
+              hinttext: 'Re-enter the Password',
+              color: kblackcolor,
+              preffixicon: Icons.fingerprint,
+              obscuretext: true,
+              validator: (value) {
+                if (value != passwordcontroller.text) {
+                  return 'Passwords do not match';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 30),
+
+            // Signup Button
+            Elevatedbuttonwidget(
+              onpressed: () {
+                if (_formKey.currentState!.validate()) {
+                  final authProvider = Provider.of<Authprovider>(
                     context,
-                    MaterialPageRoute(builder: (context) => Loginscreen()),
+                    listen: false,
                   );
-                },
-                child: Text(
-                  'Login',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  authProvider.sendotp(
+                    name: namecontroller.text.trim(),
+                    email: emailcontroller.text.trim(),
+                    phonenumber: phonecontroller.text.trim(),
+                    password: passwordcontroller.text.trim(),
+                    context: context,
+                  );
+                }
+              },
+              widht: width * 0.4,
+              height: height * 0.054,
+              color: kgreycolor,
+              textsize: 16,
+              buttontext: 'Signup',
+            ),
+            SizedBox(height: 10),
+
+            // Already have an account
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Already have an account ?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
-              ),
-            ],
-          ),
-        ],
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Loginscreen()),
+                    );
+                  },
+                  child: Text(
+                    'Login',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
