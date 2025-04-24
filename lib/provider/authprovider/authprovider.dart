@@ -2,9 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import '../services/location_services.dart';
-import '../view/screens/Authentication/otpscreen/otp_screen.dart';
-import '../view/screens/homescreen/homescreen.dart';
+import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
+import '../../services/location_services.dart';
+import '../../view/screens/Authentication/otpscreen/otp_screen.dart';
+import '../../view/screens/homescreen/homescreen.dart';
 
 class Authprovider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -131,7 +132,7 @@ class Authprovider with ChangeNotifier {
       if (userDoc.exists && userDoc['password'] == password) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Homescreen()),
+          MaterialPageRoute(builder: (context) => HomeContainer()),
         );
       } else {
         ScaffoldMessenger.of(

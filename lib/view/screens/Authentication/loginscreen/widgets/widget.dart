@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:svareign/provider/authprovider/authprovider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
@@ -51,7 +53,21 @@ class Loginwidget extends StatelessWidget {
           ),
           SizedBox(height: 40),
           Elevatedbuttonwidget(
-            onpressed: () {},
+            onpressed: () {
+              final phone = phonenumbercontroller.text.trim();
+              final password = passwordcontroller.text.trim();
+              if (phone.isEmpty || password.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Please fill all the fields")),
+                );
+              } else {
+                context.read<Authprovider>().loginwithphoneandpassword(
+                  phone: phone,
+                  password: password,
+                  context: context,
+                );
+              }
+            },
             widht: width * 0.4,
             height: height * 0.054,
             color: Colors.black26,

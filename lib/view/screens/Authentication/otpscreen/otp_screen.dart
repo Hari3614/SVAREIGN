@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/authprovider/authprovider.dart';
+import 'package:svareign/provider/authprovider/authprovider.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({
@@ -34,11 +34,10 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-    otpcontrollerr.dispose();
-  }
-
+  // void dispose() {
+  //   super.dispose();
+  //   otpcontrollerr.dispose();
+  // }
   // final String location;
   @override
   Widget build(BuildContext context) {
