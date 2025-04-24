@@ -1,20 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:svareign/services/location_services.dart';
-import 'package:svareign/view/screens/Authentication/otpscreen/otp_screen.dart';
-import 'package:svareign/view/screens/homescreen/homescreen.dart';
+import '../services/location_services.dart';
+import '../view/screens/Authentication/otpscreen/otp_screen.dart';
+import '../view/screens/homescreen/homescreen.dart';
 
 class Authprovider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final Locationservice locationservice = Locationservice();
-  // temporary storage during setup
-  String? _name, _email, _phone, _password;
+  final LocationService locationservice = LocationService();
 
+  String? _name, _email, _phone, _password;
   String _verificationId = "";
+
   Future<void> sendotp({
     required String name,
     required String email,
@@ -26,33 +25,52 @@ class Authprovider with ChangeNotifier {
     _email = email;
     _phone = phonenumber;
     _password = password;
+
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: '+91$phonenumber',
-        verificationCompleted: (PhoneAuthCredential credential) async {},
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          print('Autoverification completed');
+        },
         verificationFailed: (FirebaseAuthException e) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('OTP Failed ${e.message}')));
+          ).showSnackBar(SnackBar(content: Text('OTP Failed: ${e.message}')));
         },
-        codeSent: (String verificationId, int? resendtoken) {
+        codeSent: (String verificationId, int? resendToken) async {
           _verificationId = verificationId;
           Navigator.push(
             context,
             MaterialPageRoute(
               builder:
-                  (context) => OtpScreen(
-                    verificationId: verificationId,
-                    name: name,
-                    email: email,
-                    phoneNumber: phonenumber,
-                    location: locationservice.toString(),
+                  (context) => FutureBuilder<Position>(
+                    future: locationservice.getCurrentLocation(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Scaffold(
+                          body: Center(child: CircularProgressIndicator()),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Scaffold(
+                          body: Center(child: Text('Location error')),
+                        );
+                      } else {
+                        return OtpScreen(
+                          verificationId: verificationId,
+                          name: name,
+                          email: email,
+                          phoneNumber: phonenumber,
+                          // location: snapshot
+                        );
+                      }
+                    },
                   ),
             ),
           );
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
+          print('verificationid:${verificationId}');
         },
       );
     } catch (e) {
@@ -74,9 +92,9 @@ class Authprovider with ChangeNotifier {
       UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+
+      Position position = await locationservice.getCurrentLocation();
+
       await _firestore.collection("users").doc(_phone).set({
         'uid': userCredential.user!.uid,
         'name': _name,
@@ -89,17 +107,19 @@ class Authprovider with ChangeNotifier {
         },
         'createdAt': Timestamp.now(),
       });
-      ScaffoldMessenger.of(
+
+      Navigator.pushReplacement(
         context,
-      ).showSnackBar(SnackBar(content: Text('SignUp successfull')));
+        MaterialPageRoute(builder: (context) => Homescreen()),
+      );
     } catch (e) {
+      print('error :$e');
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Signup failed : $e')));
+      ).showSnackBar(SnackBar(content: Text('Signup failed: $e')));
     }
   }
 
-  //Login with password and phone
   Future<void> loginwithphoneandpassword({
     required String phone,
     required String password,
@@ -121,7 +141,7 @@ class Authprovider with ChangeNotifier {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Login failed :$e')));
+      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
     }
   }
 }

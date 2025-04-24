@@ -136,6 +136,7 @@ class Signupwidget extends StatelessWidget {
                     context,
                     listen: false,
                   );
+
                   authProvider.sendotp(
                     name: namecontroller.text.trim(),
                     email: emailcontroller.text.trim(),
