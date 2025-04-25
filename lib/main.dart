@@ -5,6 +5,7 @@ import 'package:svareign/provider/authprovider/authprovider.dart';
 import 'package:svareign/firebase_options.dart';
 import 'package:svareign/provider/bottomnavprovider/bottomnav_provider.dart';
 import 'package:svareign/view/screens/splashscreen/splashscreen.dart';
+import 'package:svareign/viewmodel/customer/profile_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => Authprovider()),
         ChangeNotifierProvider(create: (_) => BottomnavProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileViewModel()),
       ],
       child: const MyApp(),
     ),

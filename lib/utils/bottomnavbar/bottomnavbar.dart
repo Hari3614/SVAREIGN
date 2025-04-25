@@ -25,8 +25,9 @@ class Bottomnavbar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _navItem(context, icon: Icons.home, index: 0),
-                _navItem(context, icon: Icons.person, index: 1),
-                _navItem(context, icon: Icons.settings, index: 2),
+                _navItem(context, icon: Icons.add_task_outlined, index: 1),
+                _navItem(context, icon: Icons.campaign, index: 2),
+                _navItem(context, icon: Icons.person_2, index: 3),
               ],
             ),
           ),

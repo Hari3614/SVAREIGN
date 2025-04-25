@@ -181,12 +181,12 @@ class Loginwidget extends StatelessWidget {
                 children: [
                   RoleSelectionPage(
                     title: 'Service Provider',
-                    imagpath: 'assets/images/app icon1.png',
+                    imagpath: 'assets/lottie/Animation - 1745564171204.json',
                     ontap: () {},
                   ),
                   RoleSelectionPage(
                     title: 'Customer',
-                    imagpath: 'assets/images/app icon1.png',
+                    imagpath: 'assets/lottie/Animation - 1745564037098.json',
                     ontap: () {
                       Navigator.push(
                         context,

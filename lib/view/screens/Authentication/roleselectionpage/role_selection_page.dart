@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class RoleSelectionPage extends StatelessWidget {
   final String title;
@@ -21,7 +22,7 @@ class RoleSelectionPage extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
-            child: Image.asset(
+            child: Lottie.asset(
               imagpath,
               height: 100,
               width: 100,
