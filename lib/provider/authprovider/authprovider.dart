@@ -111,7 +111,7 @@ class Authprovider with ChangeNotifier {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Homescreen()),
+        MaterialPageRoute(builder: (context) => HomeContainer()),
       );
     } catch (e) {
       print('error :$e');

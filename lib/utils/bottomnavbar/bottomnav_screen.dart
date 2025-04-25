@@ -23,15 +23,6 @@ class HomeContainer extends StatelessWidget {
           body: IndexedStack(index: nav.currentIndex, children: _screens),
 
           bottomNavigationBar: const Bottomnavbar(),
-
-          //   floatingActionButton: FloatingActionButton(
-          //     onPressed: () {
-          //       /* ... */
-          //     },
-          //     child: const Icon(Icons.add),
-          //   ),
-          //   floatingActionButtonLocation:
-          //       FloatingActionButtonLocation.centerDocked,
         );
       },
     );
