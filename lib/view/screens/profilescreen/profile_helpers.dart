@@ -12,11 +12,12 @@ class ProfileWidget extends StatelessWidget {
     final ProfileviewModeldata = Provider.of<ProfileViewModel>(context);
     final user = ProfileviewModeldata.user;
     final currentuser = FirebaseAuth.instance.currentUser;
-    final phonenumber = currentuser?.phoneNumber;
-    if (phonenumber != null && ProfileviewModeldata.user == null) {
-      ProfileviewModeldata.fetchuser(phonenumber);
+    final fullphonenumber = currentuser?.phoneNumber;
+    // final phonenumber = fullphonenumber?.replaceAll('+91', '');
+    if (fullphonenumber != null && ProfileviewModeldata.user == null) {
+      Future.microtask(() => ProfileviewModeldata.fetchuser(fullphonenumber));
     }
-    if (ProfileviewModeldata.user != null) {
+    if (ProfileviewModeldata.user == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -35,13 +36,16 @@ class ProfileWidget extends StatelessWidget {
 
         // User Name
         Text(
-          'Svareign',
+          user?.name ?? "Unknown",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
 
         // User ID
         const SizedBox(height: 6),
-        Text('user@83005', style: TextStyle(fontSize: 14, color: Colors.grey)),
+        Text(
+          " User@${user?.uid}" ?? "1234",
+          style: TextStyle(fontSize: 14, color: Colors.grey),
+        ),
 
         const SizedBox(height: 32),
 

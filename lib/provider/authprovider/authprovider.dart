@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
+import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import '../../services/location_services.dart';
 import '../../view/screens/Authentication/otpscreen/otp_screen.dart';
 import '../../view/screens/homescreen/homescreen.dart';
@@ -24,12 +25,12 @@ class Authprovider with ChangeNotifier {
   }) async {
     _name = name;
     _email = email;
-    _phone = phonenumber;
+    _phone = normalisephonenumber(phonenumber);
     _password = password;
 
     try {
       await _auth.verifyPhoneNumber(
-        phoneNumber: '+91$phonenumber',
+        phoneNumber: _phone,
         verificationCompleted: (PhoneAuthCredential credential) async {
           print('Autoverification completed');
         },
@@ -40,6 +41,7 @@ class Authprovider with ChangeNotifier {
         },
         codeSent: (String verificationId, int? resendToken) async {
           _verificationId = verificationId;
+
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -48,20 +50,32 @@ class Authprovider with ChangeNotifier {
                     future: locationservice.getCurrentLocation(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Scaffold(
+                        return const Scaffold(
                           body: Center(child: CircularProgressIndicator()),
                         );
                       } else if (snapshot.hasError) {
-                        return Scaffold(
-                          body: Center(child: Text('Location error')),
-                        );
-                      } else {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: Colors.red,
+                              content: Text('Please allow location permission'),
+                            ),
+                          );
+                          Navigator.pop(context);
+                        });
+
+                        return const Scaffold(body: SizedBox());
+                      } else if (snapshot.hasData) {
                         return OtpScreen(
                           verificationId: verificationId,
                           name: name,
                           email: email,
                           phoneNumber: phonenumber,
-                          // location: snapshot
+                          location: snapshot.data!,
+                        );
+                      } else {
+                        return const Scaffold(
+                          body: Center(child: Text('Unexpected error')),
                         );
                       }
                     },
@@ -71,7 +85,7 @@ class Authprovider with ChangeNotifier {
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
-          print('verificationid:${verificationId}');
+          print('verificationid: $verificationId');
         },
       );
     } catch (e) {
@@ -95,12 +109,13 @@ class Authprovider with ChangeNotifier {
       );
 
       Position position = await locationservice.getCurrentLocation();
+      final normalisedphone = normalisephonenumber(_phone!);
 
-      await _firestore.collection("users").doc(_phone).set({
+      await _firestore.collection("users").doc(normalisedphone).set({
         'uid': userCredential.user!.uid,
         'name': _name,
         'email': _email,
-        'phone': _phone,
+        'phone': normalisedphone,
         'password': _password,
         'location': {
           'latitude': position.latitude,
@@ -127,8 +142,9 @@ class Authprovider with ChangeNotifier {
     required BuildContext context,
   }) async {
     try {
+      final normalisedphone = normalisephonenumber("+91${phone}");
       DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(phone).get();
+          await _firestore.collection('users').doc(normalisedphone).get();
       if (userDoc.exists && userDoc['password'] == password) {
         Navigator.push(
           context,

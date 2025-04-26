@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/provider/authprovider/authprovider.dart';
+import 'package:svareign/services/location_services.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({
@@ -13,14 +15,14 @@ class OtpScreen extends StatefulWidget {
     required this.name,
     required this.email,
     required this.phoneNumber,
-    //  required this.location,
+    required this.location,
   });
 
   final String verificationId;
   final String name;
   final String email;
   final String phoneNumber;
-
+  final Position location;
   @override
   State<OtpScreen> createState() => _OtpScreenState();
 }

@@ -21,9 +21,9 @@ class Signupwidget extends StatelessWidget {
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
 
-    return SingleChildScrollView(
-      child: Form(
-        key: _formKey,
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(
@@ -62,6 +62,7 @@ class Signupwidget extends StatelessWidget {
               color: kblackcolor,
               preffixicon: Icons.email,
               obscuretext: false,
+              // errortext: "please",
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your email';
@@ -131,7 +132,15 @@ class Signupwidget extends StatelessWidget {
             // Signup Button
             Elevatedbuttonwidget(
               onpressed: () {
-                if (_formKey.currentState!.validate()) {
+                if (namecontroller.text.isEmpty ||
+                    emailcontroller.text.isEmpty ||
+                    phonecontroller.text.isEmpty ||
+                    passwordcontroller.text.isEmpty ||
+                    confirmcontroller.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('All fields are required')),
+                  );
+                } else if (_formKey.currentState!.validate()) {
                   final authProvider = Provider.of<Authprovider>(
                     context,
                     listen: false,

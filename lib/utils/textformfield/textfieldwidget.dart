@@ -11,6 +11,7 @@ class Textfieldwidget extends StatelessWidget {
   final bool obscuretext;
   final Color? color;
   final bool? filled;
+  final String? errortext;
   const Textfieldwidget({
     super.key,
     required this.controller,
@@ -23,6 +24,7 @@ class Textfieldwidget extends StatelessWidget {
     required this.obscuretext,
     this.color,
     this.filled,
+    this.errortext,
   });
 
   @override
@@ -48,6 +50,7 @@ class Textfieldwidget extends StatelessWidget {
                     onPressed: () {},
                   )
                   : null,
+          errorText: errortext,
           floatingLabelBehavior: FloatingLabelBehavior.never,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20), // rounded corners
