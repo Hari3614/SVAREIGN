@@ -22,6 +22,7 @@ class HomeContainer extends StatelessWidget {
     return Consumer<BottomnavProvider>(
       builder: (context, nav, _) {
         return Scaffold(
+          backgroundColor: Colors.white,
           body: IndexedStack(index: nav.currentIndex, children: _screens),
 
           bottomNavigationBar: const Bottomnavbar(),

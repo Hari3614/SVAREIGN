@@ -9,6 +9,8 @@ class ProfileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+    final width = MediaQuery.sizeOf(context).width;
     final ProfileviewModeldata = Provider.of<ProfileViewModel>(context);
     final user = ProfileviewModeldata.user;
     final currentuser = FirebaseAuth.instance.currentUser;
@@ -23,31 +25,67 @@ class ProfileWidget extends StatelessWidget {
 
     return Column(
       children: [
-        const SizedBox(height: 30),
+        Stack(
+          children: [
+            Container(
+              width: width,
+              height: height * 0.26,
+              color: Colors.black87,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 35,
+                left: 10,
+                right: 10,
+                bottom: 30,
+              ),
+              child: Container(
+                height: height * 0.3,
+                width: width,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: Colors.white,
+                  boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 3)],
+                  border: Border.all(color: Colors.black87),
+                ),
+                child: Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      //mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: height * 0.04),
+                        CircleAvatar(
+                          radius: 60,
+                          child: Icon(Icons.person, size: 50),
+                        ), // User Name
+                        Spacer(),
+                        Text(
+                          user?.name ?? "Unknown",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Spacer(),
 
-        // Profile Icon
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: Colors.blue.shade100,
-          child: const Icon(Icons.person, size: 50, color: Colors.blue),
+                        // User ID
+                        const SizedBox(height: 6),
+                        Text(
+                          " User@${user?.uid}" ?? "1234",
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-
-        const SizedBox(height: 12),
-
-        // User Name
-        Text(
-          user?.name ?? "Unknown",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-
-        // User ID
-        const SizedBox(height: 6),
-        Text(
-          " User@${user?.uid}" ?? "1234",
-          style: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-
-        const SizedBox(height: 32),
 
         // Profile Options
         buildProfileTile(Icons.edit, 'Edit Profile'),
@@ -69,7 +107,7 @@ class ProfileWidget extends StatelessWidget {
           },
         ),
 
-        const SizedBox(height: 40),
+        const SizedBox(height: 30),
 
         // Add Another Account
         Padding(
