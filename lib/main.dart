@@ -6,6 +6,9 @@ import 'package:svareign/firebase_options.dart';
 import 'package:svareign/provider/bottomnavprovider/bottomnav_provider.dart';
 import 'package:svareign/view/screens/splashscreen/splashscreen.dart';
 import 'package:svareign/viewmodel/customer/profile_view_model.dart';
+import 'package:svareign/viewmodel/loginformprovider/login_formprovider.dart';
+import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
+import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +19,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Authprovider()),
         ChangeNotifierProvider(create: (_) => BottomnavProvider()),
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
+        ChangeNotifierProvider(create: (_) => PasswordVisiblityProvider()),
+        ChangeNotifierProvider(create: (_) => Signupformprovide()),
+        ChangeNotifierProvider(create: (_) => LoginFormprovider()),
       ],
       child: const MyApp(),
     ),

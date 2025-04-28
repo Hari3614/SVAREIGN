@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class Textfieldwidget extends StatelessWidget {
   final TextEditingController controller;
-  final IconData? suffixicon;
+  final IconButton? suffixicon;
   final String? Function(String?)? validator;
+  final String? Function(String?)? onchanged;
   final IconData? preffixicon;
   final String? hinttext;
   final String labeltext;
@@ -22,6 +23,7 @@ class Textfieldwidget extends StatelessWidget {
     required this.labeltext,
     this.inputType,
     required this.obscuretext,
+    this.onchanged,
     this.color,
     this.filled,
     this.errortext,
@@ -34,6 +36,8 @@ class Textfieldwidget extends StatelessWidget {
     return SizedBox(
       width: widht * 0.9,
       child: TextField(
+        onChanged: onchanged,
+        obscureText: obscuretext,
         controller: controller,
         keyboardType: inputType ?? TextInputType.text,
         decoration: InputDecoration(
@@ -42,14 +46,7 @@ class Textfieldwidget extends StatelessWidget {
           hintStyle: TextStyle(color: color),
           prefixIcon:
               preffixicon != null ? Icon(preffixicon, color: color) : null,
-          suffixIcon:
-              suffixicon != null
-                  ? IconButton(
-                    icon: Icon(suffixicon),
-                    color: color,
-                    onPressed: () {},
-                  )
-                  : null,
+          suffixIcon: suffixicon,
           errorText: errortext,
           floatingLabelBehavior: FloatingLabelBehavior.never,
           enabledBorder: OutlineInputBorder(

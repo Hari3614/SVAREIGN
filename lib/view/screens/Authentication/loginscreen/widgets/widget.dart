@@ -6,6 +6,8 @@ import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
 import 'package:svareign/view/screens/Authentication/roleselectionpage/role_selection_page.dart';
 import 'package:svareign/view/screens/Authentication/signupscreen/signupscreen.dart';
+import 'package:svareign/viewmodel/loginformprovider/login_formprovider.dart';
+import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
 
 class Loginwidget extends StatelessWidget {
   const Loginwidget({super.key});
@@ -17,6 +19,7 @@ class Loginwidget extends StatelessWidget {
 
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
+    // final visiblityprovider = Provider.of<PasswordVisiblityProvider>(context);
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -40,39 +43,71 @@ class Loginwidget extends StatelessWidget {
             preffixicon: Icons.email,
             color: kblackcolor,
             hinttext: 'Enter Mobile Number',
-          ),
-          SizedBox(height: 40),
-          Textfieldwidget(
-            controller: passwordcontroller,
-            labeltext: "Password",
-            hinttext: "Enter Password",
-            obscuretext: true,
-            preffixicon: Icons.fingerprint,
-            color: kblackcolor,
-            suffixicon: Icons.remove_red_eye,
-          ),
-          SizedBox(height: 40),
-          Elevatedbuttonwidget(
-            onpressed: () {
-              final phone = phonenumbercontroller.text.trim();
-              final password = passwordcontroller.text.trim();
-              if (phone.isEmpty || password.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Please fill all the fields")),
-                );
-              } else {
-                context.read<Authprovider>().loginwithphoneandpassword(
-                  phone: phone,
-                  password: password,
-                  context: context,
-                );
-              }
+            onchanged: (value) {
+              Provider.of<LoginFormprovider>(
+                context,
+                listen: false,
+              ).updatefields("phone", value!);
             },
-            widht: width * 0.4,
-            height: height * 0.054,
-            color: Colors.black26,
-            buttontext: 'Login',
-            textsize: 16,
+          ),
+          SizedBox(height: 40),
+          Consumer<PasswordVisiblityProvider>(
+            builder: (context, visiblitprovider, child) {
+              return Textfieldwidget(
+                controller: passwordcontroller,
+                labeltext: "Password",
+                hinttext: "Enter Password",
+                obscuretext: visiblitprovider.isobscured,
+                preffixicon: Icons.fingerprint,
+                color: kblackcolor,
+                suffixicon: IconButton(
+                  onPressed: () {
+                    visiblitprovider.togglevisiblity();
+                  },
+                  icon: Icon(
+                    visiblitprovider.isobscured
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                  ),
+                ),
+                onchanged: (value) {
+                  Provider.of<LoginFormprovider>(
+                    context,
+                    listen: false,
+                  ).updatefields("password", value!);
+                },
+              );
+            },
+          ),
+          SizedBox(height: 40),
+          Consumer<LoginFormprovider>(
+            builder: (context, loginprovider, child) {
+              return Elevatedbuttonwidget(
+                onpressed: () {
+                  final phone = phonenumbercontroller.text.trim();
+                  final password = passwordcontroller.text.trim();
+                  if (phone.isEmpty || password.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Please fill all the fields")),
+                    );
+                  } else {
+                    context.read<Authprovider>().loginwithphoneandpassword(
+                      phone: phone,
+                      password: password,
+                      context: context,
+                    );
+                  }
+                },
+                widht: width * 0.4,
+                height: height * 0.054,
+                color:
+                    loginprovider.areallfiedlfilled
+                        ? Colors.black
+                        : Colors.grey,
+                buttontext: 'Login',
+                textsize: 16,
+              );
+            },
           ),
           SizedBox(height: 30),
           Text(
@@ -181,12 +216,12 @@ class Loginwidget extends StatelessWidget {
                 children: [
                   RoleSelectionPage(
                     title: 'Service Provider',
-                    imagpath: 'assets/lottie/Animation - 1745564171204.json',
+                    imagpath: 'assets/lottie/Animation - 1745834527053.json',
                     ontap: () {},
                   ),
                   RoleSelectionPage(
                     title: 'Customer',
-                    imagpath: 'assets/lottie/Animation - 1745564037098.json',
+                    imagpath: 'assets/lottie/Animation - 1745835170727.json',
                     ontap: () {
                       Navigator.push(
                         context,
