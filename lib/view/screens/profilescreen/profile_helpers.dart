@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/viewmodel/customer/profile_view_model.dart';
@@ -48,36 +52,63 @@ class ProfileWidget extends StatelessWidget {
                   boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 3)],
                   border: Border.all(color: Colors.black87),
                 ),
-                child: Stack(
-                  alignment: Alignment.topCenter,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      //mainAxisAlignment: MainAxisAlignment.center,
+                    SizedBox(height: height * 0.04),
+                    GestureDetector(
+                      onTap: () async {
+                        final picker = ImagePicker();
+                        final pickedFile = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 70,
+                        );
+                        if (pickedFile != null && fullphonenumber != null) {
+                          final imageFile = File(pickedFile.path);
+                          await ProfileviewModeldata.updateProfileImage(
+                            fullphonenumber,
+                            imageFile,
+                          );
+                        }
+                      },
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundImage:
+                            user?.imageUrl != null
+                                ? NetworkImage(user!.imageUrl!)
+                                : null,
+                        child:
+                            user?.imageUrl == null
+                                ? const Icon(Icons.person, size: 50)
+                                : null,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      user?.name ?? "Unknown",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(height: height * 0.04),
-                        CircleAvatar(
-                          radius: 60,
-                          child: Icon(Icons.person, size: 50),
-                        ), // User Name
-                        Spacer(),
-                        Text(
-                          user?.name ?? "Unknown",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        IconButton(
+                          icon: Icon(Icons.copy, size: 18, color: Colors.grey),
+                          onPressed: () {
+                            final uidText = "User@${user?.uid ?? '1234'}";
+                            Clipboard.setData(ClipboardData(text: uidText));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Copied to clipboard')),
+                            );
+                          },
                         ),
-                        Spacer(),
-
-                        // User ID
-                        const SizedBox(height: 6),
                         Text(
-                          " User@${user?.uid}" ?? "1234",
+                          "User@${user?.uid ?? '1234'}",
                           style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
-
-                        const SizedBox(height: 32),
                       ],
                     ),
                   ],

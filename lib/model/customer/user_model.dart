@@ -19,4 +19,6 @@ class UserModel {
       phone: data['phone'] ?? '',
     );
   }
+
+  get imageUrl => null;
 }
