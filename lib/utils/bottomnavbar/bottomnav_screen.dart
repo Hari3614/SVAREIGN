@@ -11,7 +11,7 @@ class HomeContainer extends StatelessWidget {
   const HomeContainer({super.key});
 
   static final List<Widget> _screens = [
-    Homescreen(),
+    HomeScreen(),
     AddWorkUserScreen(),
     AdsPostingScreen(),
     ProfileScreen(),
