@@ -5,7 +5,7 @@ import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
 import 'package:svareign/view/screens/Authentication/roleselectionpage/role_selection_page.dart';
-import 'package:svareign/view/screens/Authentication/signupscreen/signupscreen.dart';
+import 'package:svareign/view/screens/Authentication/customer_signup_screen/signupscreen.dart';
 import 'package:svareign/viewmodel/loginformprovider/login_formprovider.dart';
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
 
@@ -173,18 +173,18 @@ class Loginwidget extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '🛠 Service Provider: Offers services like plumbing, electrical work, etc.',
+                                    'Service Provider: Offers services like plumbing, electrical work, etc.',
                                     style: TextStyle(
                                       fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.normal,
                                     ),
                                   ),
                                   SizedBox(height: 10),
                                   Text(
-                                    '👤 Customer: Can browse and book service providers.',
+                                    ' Customer : Can browse and book service providers.',
                                     style: TextStyle(
                                       fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.normal,
                                     ),
                                   ),
                                 ],
@@ -216,12 +216,12 @@ class Loginwidget extends StatelessWidget {
                 children: [
                   RoleSelectionPage(
                     title: 'Service Provider',
-                    imagpath: 'assets/lottie/Animation - 1745834527053.json',
+                    imagpath: 'assets/lottie/Animation - 1745910686886.json',
                     ontap: () {},
                   ),
                   RoleSelectionPage(
                     title: 'Customer',
-                    imagpath: 'assets/lottie/Animation - 1745835170727.json',
+                    imagpath: 'assets/lottie/Animation - 1745917229976.json',
                     ontap: () {
                       Navigator.push(
                         context,
