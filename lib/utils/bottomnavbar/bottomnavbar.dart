@@ -8,8 +8,8 @@ class Bottomnavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<BottomnavProvider>(context);
-    final height = MediaQuery.sizeOf(context).height;
+    // final provider = Provider.of<BottomnavProvider>(context);
+    //final height = MediaQuery.sizeOf(context).height;
     return Padding(
       padding: const EdgeInsets.all(20),
       child: ClipRRect(

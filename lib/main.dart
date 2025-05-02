@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/provider/authprovider/authprovider.dart';
+import 'package:svareign/provider/authprovider/customer/authprovider.dart';
 import 'package:svareign/firebase_options.dart';
 import 'package:svareign/provider/bottomnavprovider/bottomnav_provider.dart';
 import 'package:svareign/view/screens/splashscreen/splashscreen.dart';

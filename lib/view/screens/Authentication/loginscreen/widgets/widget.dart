@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/provider/authprovider/authprovider.dart';
+import 'package:svareign/provider/authprovider/customer/authprovider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
 import 'package:svareign/view/screens/Authentication/roleselectionpage/role_selection_page.dart';
 import 'package:svareign/view/screens/Authentication/customer_signup_screen/signupscreen.dart';
+import 'package:svareign/view/screens/Authentication/serivice_provider/service_signup_screen.dart';
 import 'package:svareign/viewmodel/loginformprovider/login_formprovider.dart';
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
 
@@ -133,7 +134,7 @@ class Loginwidget extends StatelessWidget {
   }
 
   void showroleselectionpage(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
+    //   final width = MediaQuery.sizeOf(context).width;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -217,7 +218,17 @@ class Loginwidget extends StatelessWidget {
                   RoleSelectionPage(
                     title: 'Service Provider',
                     imagpath: 'assets/lottie/Animation - 1745910686886.json',
-                    ontap: () {},
+                    ontap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => ServiceSignupScreen(
+                                usertype: "serviceprovider",
+                              ),
+                        ),
+                      );
+                    },
                   ),
                   RoleSelectionPage(
                     title: 'Customer',
@@ -225,7 +236,9 @@ class Loginwidget extends StatelessWidget {
                     ontap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Signupscreen()),
+                        MaterialPageRoute(
+                          builder: (context) => Signupscreen(usertype: "user"),
+                        ),
                       );
                     },
                   ),
