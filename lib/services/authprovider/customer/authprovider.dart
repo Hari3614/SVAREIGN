@@ -2,21 +2,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:svareign/services/location_services.dart';
+import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
-import 'package:svareign/view/screens/Authentication/otp_service_screen/otp_service_screen.dart';
-import 'package:svareign/view/screens/Authentication/otpscreen/otp_screen.dart';
-import 'package:svareign/view/screens/dummy_screen.dart';
+import '../../location_services/location_services.dart';
+import '../../../view/screens/Authentication/customer_signup_screen/otpscreen/otp_screen.dart';
 
-class ServiceAuthprovider extends ChangeNotifier {
+class Authprovider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-  final LocationService _locationService = LocationService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LocationService locationservice = LocationService();
 
-  String? _name, _email, _phonenumber, _password;
+  String? _name, _email, _phone, _password;
   String _verificationId = "";
 
-  Future<void> sendServiceOtp({
+  Future<void> sendotp({
     required String name,
     required String email,
     required String phonenumber,
@@ -25,29 +24,29 @@ class ServiceAuthprovider extends ChangeNotifier {
   }) async {
     _name = name;
     _email = email;
-    _phonenumber = normalisephonenumber(phonenumber);
+    _phone = normalisephonenumber(phonenumber);
     _password = password;
 
     try {
       await _auth.verifyPhoneNumber(
-        phoneNumber: _phonenumber!,
+        phoneNumber: _phone,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          print('Auto verification completed');
+          print('Autoverification completed');
         },
         verificationFailed: (FirebaseAuthException e) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text("OTP FAILED: $e")));
+          ).showSnackBar(SnackBar(content: Text('OTP Failed: ${e.message}')));
         },
-        codeSent: (String verificationID, int? resendToken) {
-          _verificationId = verificationID;
+        codeSent: (String verificationId, int? resendToken) async {
+          _verificationId = verificationId;
 
           Navigator.push(
             context,
             MaterialPageRoute(
               builder:
                   (context) => FutureBuilder<Position>(
-                    future: _locationService.getCurrentLocation(),
+                    future: locationservice.getCurrentLocation(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Scaffold(
@@ -57,19 +56,20 @@ class ServiceAuthprovider extends ChangeNotifier {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Please allow location access"),
                               backgroundColor: Colors.red,
+                              content: Text('Please allow location permission'),
                             ),
                           );
                           Navigator.pop(context);
                         });
+
                         return const Scaffold(body: SizedBox());
                       } else if (snapshot.hasData) {
-                        return OtpServiceScreen(
-                          verificationId: verificationID,
+                        return OtpScreen(
+                          verificationId: verificationId,
                           name: name,
                           email: email,
-                          phoneNumber: _phonenumber!,
+                          phoneNumber: phonenumber,
                           location: snapshot.data!,
                         );
                       } else {
@@ -84,49 +84,51 @@ class ServiceAuthprovider extends ChangeNotifier {
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
+          print('verificationid: $verificationId');
         },
       );
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Error sending OTP ")));
+      ).showSnackBar(SnackBar(content: Text("Error sending OTP: $e")));
     }
   }
 
-  Future<void> verifyandsignUp({
-    required String Otp,
+  Future<void> verifyotpandsignup({
+    required String otp,
     required BuildContext context,
   }) async {
     try {
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
-        smsCode: Otp,
+        smsCode: otp,
       );
       UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
-      Position position = await _locationService.getCurrentLocation();
-      final normalisedphonenumber = normalisephonenumber(_phonenumber!);
-      await _firebaseFirestore
-          .collection("services")
-          .doc(normalisedphonenumber)
-          .set({
-            'uid': userCredential.user!.uid,
-            'name': _name,
-            'email': _email,
-            'phone': normalisedphonenumber,
-            'password': _password,
-            'location': {
-              'latitude': position.latitude,
-              'longitude': position.longitude,
-            },
-            'createdAt': Timestamp.now(),
-          });
-      Navigator.push(
+
+      Position position = await locationservice.getCurrentLocation();
+      final normalisedphone = normalisephonenumber(_phone!);
+
+      await _firestore.collection("users").doc(normalisedphone).set({
+        'uid': userCredential.user!.uid,
+        'name': _name,
+        'email': _email,
+        'phone': normalisedphone,
+        'password': _password,
+        'location': {
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+        },
+        'createdAt': Timestamp.now(),
+      });
+
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => DummyScreen()),
+        MaterialPageRoute(builder: (context) => HomeContainer()),
       );
     } catch (e) {
+      print('error :$e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Signup failed: $e')));
@@ -134,21 +136,18 @@ class ServiceAuthprovider extends ChangeNotifier {
   }
 
   Future<void> loginwithphoneandpassword({
-    required String phonenumber,
+    required String phone,
     required String password,
     required BuildContext context,
   }) async {
     try {
-      final normalisedphone = normalisephonenumber("+91${phonenumber}");
+      final normalisedphone = normalisephonenumber("+91${phone}");
       DocumentSnapshot userDoc =
-          await _firebaseFirestore
-              .collection("services")
-              .doc(normalisedphone)
-              .get();
+          await _firestore.collection('users').doc(normalisedphone).get();
       if (userDoc.exists && userDoc['password'] == password) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DummyScreen()),
+          MaterialPageRoute(builder: (context) => HomeContainer()),
         );
       } else {
         ScaffoldMessenger.of(

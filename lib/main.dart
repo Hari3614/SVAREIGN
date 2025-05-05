@@ -1,9 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/provider/authprovider/customer/authprovider.dart';
+import 'package:svareign/services/authprovider/customer/authprovider.dart';
 import 'package:svareign/firebase_options.dart';
-import 'package:svareign/provider/bottomnavprovider/bottomnav_provider.dart';
+import 'package:svareign/services/authprovider/serviceprovider/service_authprovider.dart';
+import 'package:svareign/viewmodel/bottomnavprovider/bottomnav_provider.dart';
 import 'package:svareign/view/screens/splashscreen/splashscreen.dart';
 import 'package:svareign/viewmodel/customer/profile_view_model.dart';
 import 'package:svareign/viewmodel/loginformprovider/login_formprovider.dart';
@@ -22,6 +23,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PasswordVisiblityProvider()),
         ChangeNotifierProvider(create: (_) => Signupformprovide()),
         ChangeNotifierProvider(create: (_) => LoginFormprovider()),
+        ChangeNotifierProvider(create: (_) => ServiceAuthprovider()),
       ],
       child: const MyApp(),
     ),

@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/provider/authprovider/customer/authprovider.dart';
 
-class OtpScreen extends StatefulWidget {
-  const OtpScreen({
+import 'package:svareign/services/authprovider/serviceprovider/service_authprovider.dart';
+
+class OtpServiceScreen extends StatefulWidget {
+  const OtpServiceScreen({
     super.key,
     required this.verificationId,
     required this.name,
@@ -23,10 +24,10 @@ class OtpScreen extends StatefulWidget {
   final Position location;
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  State<OtpServiceScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
+class _OtpScreenState extends State<OtpServiceScreen> {
   late TextEditingController otpcontrollerr;
   @override
   void initState() {
@@ -104,7 +105,11 @@ class _OtpScreenState extends State<OtpScreen> {
                     print("otp :${otpcontrollerr.text}");
                     if (otpcontrollerr.text.length == 6) {
                       print('otp send :${otpcontrollerr.text}');
-                      context.read<Authprovider>().verifyotpandsignup(
+                      // context.read<Authprovider>().verifyotpandsignup(
+                      //   otp: otpcontrollerr.text,
+                      //   context: context,
+                      // );
+                      context.read<ServiceAuthprovider>().verifyandsignUp(
                         otp: otpcontrollerr.text,
                         context: context,
                       );
@@ -143,7 +148,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     TextButton(
                       onPressed: () {
                         // Resend OTP functionality
-                        context.read<Authprovider>().sendotp(
+                        context.read<ServiceAuthprovider>().sendServiceOtp(
                           name: widget.name,
                           email: widget.email,
                           phonenumber: widget.phoneNumber,

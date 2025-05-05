@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:svareign/services/location_services/fetchingaddress/fetching_address.dart';
+import 'package:svareign/services/location_services/location_services.dart';
 
 class HomeHelpersScreen extends StatelessWidget {
   const HomeHelpersScreen({super.key});
@@ -22,12 +24,30 @@ class HomeHelpersScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  children: const [
+                  children: [
                     Icon(Icons.location_on_outlined, color: Colors.green),
                     SizedBox(width: 5),
-                    Text(
-                      "2118 Kurukkamoola",
-                      style: TextStyle(color: Colors.black),
+                    FutureBuilder<String?>(
+                      future: userservice.getuseraddress(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Text(
+                            "Loading ...",
+                            style: TextStyle(color: Colors.black54),
+                          );
+                        } else if (snapshot.hasError || snapshot.data == null) {
+                          return const Text(
+                            "Unknown error",
+                            style: TextStyle(color: Colors.black54),
+                          );
+                        } else {
+                          return Text(
+                            snapshot.data!,
+                            style: const TextStyle(color: Colors.black),
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),
