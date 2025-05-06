@@ -9,14 +9,18 @@ class AddWorkUserScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.black87,
         automaticallyImplyLeading: false,
         centerTitle: true,
-        title: Text(
-          "Add Your Work",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w500,
-            color: Colors.blue,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: Text(
+            "Active Tasks",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ),
       ),

@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:flutter_spinner_time_picker/flutter_spinner_time_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:svareign/model/customer/addwork._model.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
+import 'package:svareign/viewmodel/addworkprovider/addworkprovider.dart';
 
 class FloatingActionWidget extends StatefulWidget {
   const FloatingActionWidget({super.key});
@@ -14,13 +20,17 @@ class FloatingActionWidget extends StatefulWidget {
 class _FloatingActionWidgetState extends State<FloatingActionWidget> {
   final TextEditingController worknamecontroller = TextEditingController();
   final TextEditingController _description = TextEditingController();
+  final TextEditingController _minbudgetcontroller = TextEditingController();
+  final TextEditingController _maxbudgetcontroller = TextEditingController();
   int _currentcharacter = 0;
   final _maxcharacter = 500;
   String _selectedcategory = "";
   DateTime? _selecteddate;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
-
+  File? _pickedimage;
+  String? _imagename;
+  final ImagePicker imagePicker = ImagePicker();
   final List<String> categories = [
     'Plumber',
     'Electician',
@@ -65,53 +75,87 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
     );
   }
 
-  Future<TimeOfDay?> showTimePickerDialog(
-    BuildContext context,
-    TimeOfDay initialTime,
-  ) async {
-    TimeOfDay? selectedTime = initialTime;
-
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Select Time"),
-          content: SizedBox(
-            height: 180,
-            child: SpinnerTimePicker(
-              initTime: initialTime,
-              is24HourFormat: false,
-              spinnerHeight: 150,
-              spinnerWidth: 60,
-              elementsSpace: 8,
-              digitHeight: 40,
-              spinnerBgColor: Colors.grey.shade200,
-              selectedTextStyle: TextStyle(
-                color: Colors.blueAccent,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              nonSelectedTextStyle: TextStyle(color: Colors.grey, fontSize: 16),
-              onChangedSelectedTime: (TimeOfDay time) {
-                selectedTime = time;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Cancel
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(), // Confirm
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
+  Future<void> pickimage() async {
+    final XFile? image = await imagePicker.pickImage(
+      source: ImageSource.gallery,
     );
+    if (image != null) {
+      setState(() {
+        _pickedimage = File(image.path);
+        _imagename = image.name;
+      });
+    }
+  }
 
-    return selectedTime;
+  Future<void> _postwork() async {
+    if (worknamecontroller.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: SnackBar(content: Text('Please enter a work Tittle')),
+        ),
+      );
+      return;
+    }
+    if (_description.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please Enter the description")));
+      return;
+    }
+    if (_selectedcategory.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please select a category")));
+      return;
+    }
+    if (_selecteddate == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please select a date")));
+      return;
+    }
+    final min = int.tryParse(_minbudgetcontroller.text);
+    final max = int.tryParse(_maxbudgetcontroller.text);
+    if (min == null || max == null) {
+      _showmsg('Budget must be numeric');
+      return;
+    }
+    if (min > max) {
+      _showmsg('Min budget cannot exceed Max budget');
+      return;
+    }
+
+    final work = Addworkmodel(
+      worktittle: worknamecontroller.text,
+      description: _description.text,
+      date: DateFormat('dd/MM/yyyy').format(_selecteddate!),
+      providername: _selectedcategory,
+      minbudget: min,
+      maxbudget: max,
+    );
+    try {
+      await context.read<Workprovider>().addwork(work);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Work Posted Completely"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('failed to post work :$e')));
+    }
+  }
+
+  void _showmsg(String msg, {bool success = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: success ? Colors.green : null,
+      ),
+    );
   }
 
   @override
@@ -167,6 +211,34 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                   ),
                 ),
                 SizedBox(height: 10),
+                Text("Upload Work image ", style: TextStyle(fontSize: 16)),
+                SizedBox(height: 8),
+                GestureDetector(
+                  onTap: pickimage,
+                  child: Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.upload_file, color: Colors.blueAccent),
+                        SizedBox(width: 10),
+                        Text(
+                          _imagename ?? "Tap to upload an Image",
+                          style: TextStyle(
+                            fontSize: 16,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (_pickedimage != null)
+                          Icon(Icons.check_circle, color: Colors.green),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
                 Wrap(
                   spacing: 8.0,
                   runSpacing: 8.0,
@@ -182,6 +254,30 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                           },
                         );
                       }).toList(),
+                ),
+                const SizedBox(height: 10),
+                Text("Budget (₹)", style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Textfieldwidget(
+                        controller: _minbudgetcontroller,
+                        labeltext: 'Min',
+                        obscuretext: false,
+                        inputType: TextInputType.number,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Textfieldwidget(
+                        controller: _maxbudgetcontroller,
+                        labeltext: "Max",
+                        obscuretext: false,
+                        inputType: TextInputType.number,
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 10),
                 Text("Preferred Date", style: TextStyle(fontSize: 16)),
@@ -211,74 +307,7 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
-                Text("Select Time Range", style: TextStyle(fontSize: 16)),
-                SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("From: ", style: TextStyle(fontSize: 16)),
-                    InkWell(
-                      onTap: () async {
-                        final result = await showTimePickerDialog(
-                          context,
-                          _startTime ?? TimeOfDay(hour: 11, minute: 0),
-                        );
-                        if (result != null) {
-                          setState(() {
-                            _startTime = result;
-                          });
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(border: Border.all()),
-                        child: Text(
-                          _startTime != null
-                              ? _startTime!.format(context)
-                              : "From time",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("To: ", style: TextStyle(fontSize: 16)),
-                    InkWell(
-                      onTap: () async {
-                        final result = await showTimePickerDialog(
-                          context,
-                          _endTime ?? TimeOfDay(hour: 12, minute: 0),
-                        );
-                        if (result != null) {
-                          setState(() {
-                            _endTime = result;
-                          });
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(border: Border.all()),
-                        child: Text(
-                          _endTime != null
-                              ? _endTime!.format(context)
-                              : "To time",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+
                 SizedBox(height: 40),
                 Center(
                   child: SizedBox(
@@ -291,7 +320,7 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: _postwork,
                       child: Text(
                         "Post",
                         style: TextStyle(

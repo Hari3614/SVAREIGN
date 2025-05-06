@@ -92,24 +92,30 @@ class ProfileWidget extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.copy, size: 18, color: Colors.grey),
-                          onPressed: () {
-                            final uidText = "User@${user?.uid ?? '1234'}";
-                            Clipboard.setData(ClipboardData(text: uidText));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Copied to clipboard')),
-                            );
-                          },
-                        ),
-                        Text(
-                          "User@${user?.uid ?? '1234'}",
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                      ],
+                    Flexible(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.copy,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () {
+                              final uidText = "user@${user?.uid ?? '1234'}";
+                              Clipboard.setData(ClipboardData(text: uidText));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Copied to clipboard')),
+                              );
+                            },
+                          ),
+                          Text(
+                            "user@${user?.uid ?? '1234'}",
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

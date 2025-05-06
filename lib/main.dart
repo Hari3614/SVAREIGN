@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:svareign/services/authprovider/customer/authprovider.dart';
 import 'package:svareign/firebase_options.dart';
 import 'package:svareign/services/authprovider/serviceprovider/service_authprovider.dart';
+import 'package:svareign/viewmodel/addworkprovider/addworkprovider.dart';
 import 'package:svareign/viewmodel/bottomnavprovider/bottomnav_provider.dart';
 import 'package:svareign/view/screens/splashscreen/splashscreen.dart';
 import 'package:svareign/viewmodel/customer/profile_view_model.dart';
@@ -24,6 +25,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Signupformprovide()),
         ChangeNotifierProvider(create: (_) => LoginFormprovider()),
         ChangeNotifierProvider(create: (_) => ServiceAuthprovider()),
+        ChangeNotifierProvider(create: (_) => Workprovider()),
       ],
       child: const MyApp(),
     ),
