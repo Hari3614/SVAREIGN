@@ -19,6 +19,7 @@ class Bottomnavbar extends StatelessWidget {
           elevation: 10,
           shape: const CircularNotchedRectangle(),
           notchMargin: 6.0,
+          height: 60,
           child: SizedBox(
             height: 30,
             child: Row(

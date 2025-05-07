@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
-import 'package:flutter_spinner_time_picker/flutter_spinner_time_picker.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/customer/addwork._model.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
@@ -20,28 +17,14 @@ class FloatingActionWidget extends StatefulWidget {
 class _FloatingActionWidgetState extends State<FloatingActionWidget> {
   final TextEditingController worknamecontroller = TextEditingController();
   final TextEditingController _description = TextEditingController();
-  final TextEditingController _minbudgetcontroller = TextEditingController();
-  final TextEditingController _maxbudgetcontroller = TextEditingController();
+  final TextEditingController _budgetController = TextEditingController();
+  final TextEditingController _durationController = TextEditingController();
   int _currentcharacter = 0;
   final _maxcharacter = 500;
-  String _selectedcategory = "";
-  DateTime? _selecteddate;
-  TimeOfDay? _startTime;
-  TimeOfDay? _endTime;
+
   File? _pickedimage;
   String? _imagename;
   final ImagePicker imagePicker = ImagePicker();
-  final List<String> categories = [
-    'Plumber',
-    'Electician',
-    'Painter',
-    'Carpenter',
-    'AC mechanic',
-    'Cleaner',
-    'Gardener',
-    'Techinican',
-    'Other',
-  ];
 
   @override
   void initState() {
@@ -56,23 +39,9 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
   @override
   void dispose() {
     _description.dispose();
+    _budgetController.dispose();
+    _durationController.dispose();
     super.dispose();
-  }
-
-  void pickdate() {
-    DatePicker.showDatePicker(
-      context,
-      showTitleActions: true,
-      minTime: DateTime.now(),
-      maxTime: DateTime.now().add(Duration(days: 365)),
-      onConfirm: (date) {
-        setState(() {
-          _selecteddate = date;
-        });
-      },
-      currentTime: DateTime.now(),
-      locale: LocaleType.en,
-    );
   }
 
   Future<void> pickimage() async {
@@ -89,63 +58,38 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
 
   Future<void> _postwork() async {
     if (worknamecontroller.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: SnackBar(content: Text('Please enter a work Tittle')),
-        ),
-      );
+      _showmsg('Please enter a work title');
       return;
     }
     if (_description.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Please Enter the description")));
+      _showmsg("Please enter the description");
       return;
     }
-    if (_selectedcategory.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Please select a category")));
+    if (_budgetController.text.trim().isEmpty ||
+        double.tryParse(_budgetController.text.trim()) == null) {
+      _showmsg("Please enter a valid budget");
       return;
     }
-    if (_selecteddate == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Please select a date")));
-      return;
-    }
-    final min = int.tryParse(_minbudgetcontroller.text);
-    final max = int.tryParse(_maxbudgetcontroller.text);
-    if (min == null || max == null) {
-      _showmsg('Budget must be numeric');
-      return;
-    }
-    if (min > max) {
-      _showmsg('Min budget cannot exceed Max budget');
+    if (_durationController.text.trim().isEmpty) {
+      _showmsg("Please enter the duration");
       return;
     }
 
     final work = Addworkmodel(
-      worktittle: worknamecontroller.text,
-      description: _description.text,
-      date: DateFormat('dd/MM/yyyy').format(_selecteddate!),
-      providername: _selectedcategory,
-      minbudget: min,
-      maxbudget: max,
+      worktittle: worknamecontroller.text.trim(),
+      description: _description.text.trim(),
+      duration: _durationController.text.trim(),
+      budget: double.parse(_budgetController.text.trim()),
+      postedtime: DateTime.now(),
+      // imagepath: _pickedimage?.path,
     );
+
     try {
       await context.read<Workprovider>().addwork(work);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Work Posted Completely"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      _showmsg("Work posted successfully", success: true);
       Navigator.of(context).pop();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('failed to post work :$e')));
+      _showmsg('Failed to post work: $e');
     }
   }
 
@@ -169,10 +113,10 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
         backgroundColor: Colors.white,
         centerTitle: true,
         title: Text(
-          "Post a Work",
+          "Post a work",
           style: TextStyle(
-            color: Colors.blueAccent,
-            fontSize: 19,
+            color: Colors.black,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -211,7 +155,7 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                   ),
                 ),
                 SizedBox(height: 10),
-                Text("Upload Work image ", style: TextStyle(fontSize: 16)),
+                Text("Upload Work Image", style: TextStyle(fontSize: 16)),
                 SizedBox(height: 8),
                 GestureDetector(
                   onTap: pickimage,
@@ -225,11 +169,13 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                       children: [
                         Icon(Icons.upload_file, color: Colors.blueAccent),
                         SizedBox(width: 10),
-                        Text(
-                          _imagename ?? "Tap to upload an Image",
-                          style: TextStyle(
-                            fontSize: 16,
-                            overflow: TextOverflow.ellipsis,
+                        Expanded(
+                          child: Text(
+                            _imagename ?? "Tap to upload an Image",
+                            style: TextStyle(
+                              fontSize: 16,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                         if (_pickedimage != null)
@@ -238,83 +184,31 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                     ),
                   ),
                 ),
-                SizedBox(height: 10),
-                Wrap(
-                  spacing: 8.0,
-                  runSpacing: 8.0,
-                  children:
-                      categories.map((category) {
-                        return ChoiceChip(
-                          label: Text(category),
-                          selected: _selectedcategory == category,
-                          onSelected: (value) {
-                            setState(() {
-                              _selectedcategory = value ? category : "";
-                            });
-                          },
-                        );
-                      }).toList(),
-                ),
-                const SizedBox(height: 10),
+                SizedBox(height: 20),
                 Text("Budget (₹)", style: TextStyle(fontSize: 16)),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Textfieldwidget(
-                        controller: _minbudgetcontroller,
-                        labeltext: 'Min',
-                        obscuretext: false,
-                        inputType: TextInputType.number,
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: Textfieldwidget(
-                        controller: _maxbudgetcontroller,
-                        labeltext: "Max",
-                        obscuretext: false,
-                        inputType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10),
-                Text("Preferred Date", style: TextStyle(fontSize: 16)),
                 SizedBox(height: 8),
-                GestureDetector(
-                  onTap: pickdate,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _selecteddate != null
-                              ? DateFormat('dd/MM/yyyy').format(_selecteddate!)
-                              : "Select preferred date",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        Icon(
-                          Icons.calendar_today_rounded,
-                          color: Colors.blueAccent,
-                        ),
-                      ],
-                    ),
-                  ),
+                Textfieldwidget(
+                  controller: _budgetController,
+                  labeltext: "Enter budget",
+                  obscuretext: false,
+                  inputType: TextInputType.number,
                 ),
-
+                SizedBox(height: 20),
+                Text("Duration", style: TextStyle(fontSize: 16)),
+                SizedBox(height: 8),
+                Textfieldwidget(
+                  controller: _durationController,
+                  labeltext: "E.g. 3 days, 1 week / hours",
+                  obscuretext: false,
+                ),
                 SizedBox(height: 40),
                 Center(
                   child: SizedBox(
                     height: height * 0.06,
-                    width: width * 1,
+                    width: width,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
                         shadowColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -324,7 +218,8 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                       child: Text(
                         "Post",
                         style: TextStyle(
-                          fontSize: 18,
+                          color: Colors.white,
+                          fontSize: 20,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

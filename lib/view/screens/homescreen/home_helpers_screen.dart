@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:svareign/services/location_services/fetchingaddress/fetching_address.dart';
-import 'package:svareign/services/location_services/location_services.dart';
 
 class HomeHelpersScreen extends StatelessWidget {
-  const HomeHelpersScreen({super.key});
-
+  HomeHelpersScreen({super.key});
+  final Userservice userservice = Userservice();
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -36,9 +35,14 @@ class HomeHelpersScreen extends StatelessWidget {
                             "Loading ...",
                             style: TextStyle(color: Colors.black54),
                           );
-                        } else if (snapshot.hasError || snapshot.data == null) {
+                        } else if (snapshot.hasError) {
                           return const Text(
                             "Unknown error",
+                            style: TextStyle(color: Colors.black54),
+                          );
+                        } else if (snapshot.data == null) {
+                          return const Text(
+                            "Location Not availabel",
                             style: TextStyle(color: Colors.black54),
                           );
                         } else {
@@ -157,10 +161,13 @@ class HomeHelpersScreen extends StatelessWidget {
               width: size.width * 0.18,
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: size.width * 0.08,
-                    backgroundColor: Colors.grey.shade200,
-                    child: Icon(cat[1] as IconData, color: Colors.black),
+                  GestureDetector(
+                    onTap: () {},
+                    child: CircleAvatar(
+                      radius: size.width * 0.08,
+                      backgroundColor: Colors.grey.shade200,
+                      child: Icon(cat[1] as IconData, color: Colors.black),
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(
@@ -206,7 +213,6 @@ class HomeHelpersScreen extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

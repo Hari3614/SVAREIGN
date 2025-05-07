@@ -25,7 +25,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: const HomeHelpersScreen(),
+      body: HomeHelpersScreen(),
     );
   }
 }

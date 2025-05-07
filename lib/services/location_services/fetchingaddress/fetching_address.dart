@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:svareign/services/location_services/location_services.dart';
 
 class Userservice {
   Future<String?> getuseraddress() async {

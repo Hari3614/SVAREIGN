@@ -9,23 +9,22 @@ class AddWorkUserScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black87,
         automaticallyImplyLeading: false,
         centerTitle: true,
-        title: Padding(
-          padding: const EdgeInsets.only(top: 20),
-          child: Text(
-            "Active Tasks",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
+        title: Text(
+          "Active Tasks",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
       ),
       body: AddWorkWidget(),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        splashColor: Colors.blue,
         child: Icon(Icons.add),
         onPressed: () {
           Navigator.push(
