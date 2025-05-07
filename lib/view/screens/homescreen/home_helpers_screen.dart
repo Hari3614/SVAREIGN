@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:svareign/services/location_services/fetchingaddress/fetching_address.dart';
+import 'package:svareign/view/screens/serviceproviders/serviceproviders.dart';
 
 class HomeHelpersScreen extends StatelessWidget {
   HomeHelpersScreen({super.key});
@@ -86,7 +87,7 @@ class HomeHelpersScreen extends StatelessWidget {
 
             _sectionHeader("All Categories"),
             SizedBox(height: size.height * 0.015),
-            _buildCategoryRow(size),
+            _buildCategoryRow(size, context),
 
             SizedBox(height: size.height * 0.03),
             _sectionHeader("Best Services"),
@@ -140,7 +141,7 @@ class HomeHelpersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryRow(Size size) {
+  Widget _buildCategoryRow(Size size, BuildContext context) {
     final categories = [
       ["Carpenter", Icons.handyman],
       ["Cleaner", Icons.cleaning_services],
@@ -161,8 +162,15 @@ class HomeHelpersScreen extends StatelessWidget {
               width: size.width * 0.18,
               child: Column(
                 children: [
-                  GestureDetector(
-                    onTap: () {},
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Serviceproviders(),
+                        ),
+                      );
+                    },
                     child: CircleAvatar(
                       radius: size.width * 0.08,
                       backgroundColor: Colors.grey.shade200,
