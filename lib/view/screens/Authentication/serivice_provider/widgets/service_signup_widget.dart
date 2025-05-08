@@ -1,172 +1,113 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/provider/authprovider/authprovider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
+import 'package:svareign/services/authprovider/serviceprovider/service_authprovider.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
 
-class Signupwidget extends StatelessWidget {
-  Signupwidget({super.key});
-
-  final TextEditingController namecontroller = TextEditingController();
-  final TextEditingController emailcontroller = TextEditingController();
-  final TextEditingController phonecontroller = TextEditingController();
-  final TextEditingController passwordcontroller = TextEditingController();
-  final TextEditingController confirmcontroller = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+class ServiceSignupWidget extends StatelessWidget {
+  const ServiceSignupWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController namecontroller = TextEditingController();
+    final TextEditingController phonecontoller = TextEditingController();
+    final TextEditingController emailcontoller = TextEditingController();
+    final TextEditingController passwordcontroller = TextEditingController();
+    final TextEditingController confirmcontoller = TextEditingController();
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
+    final _formkey = GlobalKey<FormState>();
 
     return Form(
-      key: _formKey,
+      key: _formkey,
       child: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(
-              height: height * 0.24,
+              height: height * 0.25,
               width: width * 1,
-              child: Image.asset('assets/images/app icon1.png'),
+              child: Image.asset("assets/images/app icon1.png"),
             ),
             Text(
-              'Create New Account',
+              "Create a New Account",
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
             ),
             SizedBox(height: 30),
-
-            // Name
             Textfieldwidget(
               controller: namecontroller,
-              labeltext: 'Name',
-              hinttext: 'Enter Name',
-              color: kblackcolor,
+              labeltext: "Name",
+              obscuretext: false,
               preffixicon: Icons.person,
-              obscuretext: false,
-
+              color: kblackcolor,
+              hinttext: " Enter the name",
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your name';
+                  return "Please Enter a valid Name";
                 }
-                return null;
               },
               onchanged: (value) {
                 Provider.of<Signupformprovide>(
                   context,
                   listen: false,
-                ).updatefield('name', value!);
-                return null;
+                ).updatefield("name", value!);
               },
             ),
             SizedBox(height: 30),
-
-            // Email
             Textfieldwidget(
-              controller: emailcontroller,
-              labeltext: 'E-mail',
-              hinttext: 'Enter your e-mail address',
-              color: kblackcolor,
+              controller: emailcontoller,
+              labeltext: "E-mail",
+              obscuretext: false,
               preffixicon: Icons.email,
-              obscuretext: false,
-              // errortext: "please",
+              color: kblackcolor,
+              hinttext: "Enter the E-mail",
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your email';
+                  return "Please Enter the E-mail";
                 } else if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                  return 'Enter a valid email address';
+                  return 'Please Enter Valid E-mail';
                 }
-                return null;
               },
               onchanged: (value) {
                 Provider.of<Signupformprovide>(
-                  context,
                   listen: false,
-                ).updatefield('email', value!);
-                return null;
+                  context,
+                ).updatefield("email", value!);
               },
             ),
             SizedBox(height: 30),
-
-            // Phone
             Textfieldwidget(
-              controller: phonecontroller,
-              labeltext: 'Mobile Number',
-              hinttext: 'Enter the Mobile Number',
-              color: kblackcolor,
-              preffixicon: Icons.phone,
+              controller: phonecontoller,
+              labeltext: "Mobile Number",
               obscuretext: false,
+              preffixicon: Icons.phone,
+              color: kblackcolor,
+              hinttext: "Enter the phone Number",
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Enter your phone number';
-                } else if (value.length != 10) {
-                  return 'Phone number must be 10 digits';
+                  return "please Enter the number";
+                } else if (value.length < 10) {
+                  return "please Enter a valid Phone";
                 }
-                return null;
               },
               onchanged: (value) {
                 Provider.of<Signupformprovide>(
                   context,
                   listen: false,
                 ).updatefield("phone", value!);
-                return null;
               },
             ),
             SizedBox(height: 30),
-
-            // Password
-            Consumer<PasswordVisiblityProvider>(
-              builder: (context, visiblityprovider, child) {
-                return Textfieldwidget(
-                  controller: passwordcontroller,
-                  labeltext: 'Password',
-                  hinttext: 'Enter the Password',
-                  color: kblackcolor,
-                  preffixicon: Icons.password,
-                  obscuretext: visiblityprovider.isobscured,
-                  suffixicon: IconButton(
-                    onPressed: () {
-                      visiblityprovider.togglevisiblity();
-                    },
-                    icon: Icon(
-                      visiblityprovider.isobscured
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Enter password';
-                    } else if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                  onchanged: (value) {
-                    Provider.of<Signupformprovide>(
-                      context,
-                      listen: false,
-                    ).updatefield("password", value!);
-                    return null;
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 30),
-
-            // Confirm Password
             Consumer<PasswordVisiblityProvider>(
               builder: (context, visiblity, child) {
                 return Textfieldwidget(
-                  controller: confirmcontroller,
-                  labeltext: 'Confirm Password',
-                  hinttext: 'Re-enter the Password',
-                  color: kblackcolor,
-                  preffixicon: Icons.fingerprint,
+                  controller: passwordcontroller,
+                  labeltext: "Password",
                   obscuretext: visiblity.isobscured,
+                  color: kblackcolor,
                   suffixicon: IconButton(
                     onPressed: () {
                       visiblity.togglevisiblity();
@@ -177,72 +118,104 @@ class Signupwidget extends StatelessWidget {
                           : Icons.visibility_off,
                     ),
                   ),
+                  preffixicon: Icons.fingerprint,
+                  hinttext: "Enter the password",
                   validator: (value) {
-                    if (value != passwordcontroller.text) {
-                      return 'Passwords do not match';
+                    if (value == null || value.isEmpty) {
+                      return "please enter the phone number";
+                    } else if (value.length < 6) {
+                      return "Password must be atleast 6 characters";
                     }
-                    return null;
                   },
                   onchanged: (value) {
                     Provider.of<Signupformprovide>(
-                      listen: false,
                       context,
-                    ).updatefield("confirmpassword", value!);
-                    return null;
+                      listen: false,
+                    ).updatefield("password", value!);
                   },
                 );
               },
             ),
             SizedBox(height: 30),
-
-            // Signup Button
+            Consumer<PasswordVisiblityProvider>(
+              builder: (context, visiblity, child) {
+                return Textfieldwidget(
+                  controller: confirmcontoller,
+                  labeltext: "Confirm Password",
+                  obscuretext: visiblity.isobscured,
+                  preffixicon: Icons.security,
+                  suffixicon: IconButton(
+                    onPressed: () {
+                      visiblity.togglevisiblity();
+                    },
+                    icon: Icon(
+                      visiblity.isobscured
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    color: kblackcolor,
+                  ),
+                  hinttext: "Verify and confirm Password",
+                  validator: (value) {
+                    if (value != passwordcontroller.text) {
+                      return "Password does not match";
+                    }
+                  },
+                  onchanged: (value) {
+                    Provider.of<Signupformprovide>(
+                      listen: false,
+                      context,
+                    ).updatefield('confirmpassword', value!);
+                  },
+                );
+              },
+            ),
+            SizedBox(height: 30),
             Consumer<Signupformprovide>(
-              builder: (context, signupprovider, child) {
+              builder: (context, formrprovider, child) {
                 return Elevatedbuttonwidget(
                   onpressed: () {
                     if (namecontroller.text.isEmpty ||
-                        emailcontroller.text.isEmpty ||
-                        phonecontroller.text.isEmpty ||
+                        emailcontoller.text.isEmpty ||
+                        phonecontoller.text.isEmpty ||
                         passwordcontroller.text.isEmpty ||
-                        confirmcontroller.text.isEmpty) {
+                        confirmcontoller.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('All fields are required')),
+                        SnackBar(content: Text("All fields are required")),
                       );
-                    } else if (_formKey.currentState!.validate()) {
-                      final authProvider = Provider.of<Authprovider>(
-                        context,
-                        listen: false,
-                      );
-
-                      authProvider.sendotp(
+                    } else if (_formkey.currentState!.validate()) {
+                      final serviceauthprovider =
+                          Provider.of<ServiceAuthprovider>(
+                            context,
+                            listen: false,
+                          );
+                      serviceauthprovider.sendServiceOtp(
                         name: namecontroller.text.trim(),
-                        email: emailcontroller.text.trim(),
-                        phonenumber: phonecontroller.text.trim(),
+                        email: emailcontoller.text.trim(),
+                        phonenumber: phonecontoller.text.trim(),
                         password: passwordcontroller.text.trim(),
                         context: context,
                       );
                     }
                   },
-                  widht: width * 0.4,
-                  height: height * 0.054,
+                  widht: width * 0.35,
+                  height: height * 0.05,
+                  buttontext: "SignUp",
                   color:
-                      signupprovider.areAllFieldsFilled
+                      formrprovider.areAllFieldsFilled
                           ? Colors.black
                           : Colors.grey,
                   textsize: 16,
-                  buttontext: 'Signup',
                 );
               },
             ),
             SizedBox(height: 10),
-
-            // Already have an account
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Already have an account ?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  "Already have an account ?",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                 ),
                 TextButton(
                   onPressed: () {
@@ -253,7 +226,7 @@ class Signupwidget extends StatelessWidget {
                   },
                   child: Text(
                     'Login',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   ),
                 ),
               ],

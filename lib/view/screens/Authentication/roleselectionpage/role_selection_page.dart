@@ -14,8 +14,8 @@ class RoleSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.sizeOf(context).height;
-    final width = MediaQuery.sizeOf(context).width;
+    // final height = MediaQuery.sizeOf(context).height;
+    //final width = MediaQuery.sizeOf(context).width;
     return GestureDetector(
       onTap: ontap,
       child: Column(

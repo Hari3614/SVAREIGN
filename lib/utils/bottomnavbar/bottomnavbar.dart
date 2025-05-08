@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
-import 'package:svareign/provider/bottomnavprovider/bottomnav_provider.dart';
+import 'package:svareign/viewmodel/bottomnavprovider/bottomnav_provider.dart';
 
 class Bottomnavbar extends StatelessWidget {
   const Bottomnavbar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<BottomnavProvider>(context);
-    final height = MediaQuery.sizeOf(context).height;
+    // final provider = Provider.of<BottomnavProvider>(context);
+    //final height = MediaQuery.sizeOf(context).height;
     return Padding(
       padding: const EdgeInsets.all(20),
       child: ClipRRect(
@@ -19,6 +19,7 @@ class Bottomnavbar extends StatelessWidget {
           elevation: 10,
           shape: const CircularNotchedRectangle(),
           notchMargin: 6.0,
+          height: 60,
           child: SizedBox(
             height: 30,
             child: Row(

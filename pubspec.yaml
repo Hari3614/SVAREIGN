@@ -45,6 +45,13 @@ dependencies:
   firebase_auth: ^5.5.2
   image_picker: ^1.1.2
   firebase_storage: ^12.4.5
+  shared_preferences: ^2.5.3
+  geocoding: ^3.0.0
+  calendar_date_picker2: ^2.0.0
+  flutter_datetime_picker_plus: ^2.2.0
+  intl: ^0.20.2
+  flutter_spinner_time_picker: ^0.2.1
+  timeago: ^3.2.2
 
 dev_dependencies:
   flutter_test:

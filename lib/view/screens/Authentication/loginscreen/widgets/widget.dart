@@ -1,25 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/provider/authprovider/authprovider.dart';
+import 'package:svareign/services/authprovider/customer/authprovider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
+import 'package:svareign/services/authprovider/serviceprovider/service_authprovider.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
 import 'package:svareign/view/screens/Authentication/roleselectionpage/role_selection_page.dart';
-import 'package:svareign/view/screens/Authentication/signupscreen/signupscreen.dart';
+import 'package:svareign/view/screens/Authentication/customer_signup_screen/signupscreen.dart';
+import 'package:svareign/view/screens/Authentication/serivice_provider/service_signup_screen.dart';
 import 'package:svareign/viewmodel/loginformprovider/login_formprovider.dart';
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
 
-class Loginwidget extends StatelessWidget {
+class Loginwidget extends StatefulWidget {
   const Loginwidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController phonenumbercontroller = TextEditingController();
-    final TextEditingController passwordcontroller = TextEditingController();
+  State<Loginwidget> createState() => _LoginwidgetState();
+}
 
+class _LoginwidgetState extends State<Loginwidget> {
+  final TextEditingController phonenumbercontroller = TextEditingController();
+  final TextEditingController passwordcontroller = TextEditingController();
+  String selectedrole = "Customer";
+
+  @override
+  void dispose() {
+    phonenumbercontroller.dispose();
+    passwordcontroller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
-    // final visiblityprovider = Provider.of<PasswordVisiblityProvider>(context);
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -28,13 +43,40 @@ class Loginwidget extends StatelessWidget {
             width: width * 10,
             child: Image.asset('assets/images/app icon1.png'),
           ),
-
-          Text(
+          const Text(
             'Welcome Back!',
             style: TextStyle(fontSize: 35, fontWeight: FontWeight.w600),
           ),
-          SizedBox(height: height * 0.06),
+          SizedBox(height: height * 0.015),
 
+          /// ChoiceChips for role selection
+          Wrap(
+            spacing: 10,
+            children: [
+              ChoiceChip(
+                label: const Text("Customer"),
+                selected: selectedrole == "Customer",
+
+                onSelected: (_) {
+                  setState(() {
+                    selectedrole = "Customer";
+                  });
+                },
+              ),
+              ChoiceChip(
+                label: const Text("Service Provider"),
+                selected: selectedrole == "Service Provider",
+                onSelected: (_) {
+                  setState(() {
+                    selectedrole = "Service Provider";
+                  });
+                },
+              ),
+            ],
+          ),
+          SizedBox(height: height * 0.03),
+
+          /// Phone Number Field
           Textfieldwidget(
             inputType: TextInputType.number,
             controller: phonenumbercontroller,
@@ -47,10 +89,12 @@ class Loginwidget extends StatelessWidget {
               Provider.of<LoginFormprovider>(
                 context,
                 listen: false,
-              ).updatefields("phone", value!);
+              ).updatefields("phone", value ?? '');
             },
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
+
+          /// Password Field
           Consumer<PasswordVisiblityProvider>(
             builder: (context, visiblitprovider, child) {
               return Textfieldwidget(
@@ -61,9 +105,7 @@ class Loginwidget extends StatelessWidget {
                 preffixicon: Icons.fingerprint,
                 color: kblackcolor,
                 suffixicon: IconButton(
-                  onPressed: () {
-                    visiblitprovider.togglevisiblity();
-                  },
+                  onPressed: visiblitprovider.togglevisiblity,
                   icon: Icon(
                     visiblitprovider.isobscured
                         ? Icons.visibility_off
@@ -74,28 +116,41 @@ class Loginwidget extends StatelessWidget {
                   Provider.of<LoginFormprovider>(
                     context,
                     listen: false,
-                  ).updatefields("password", value!);
+                  ).updatefields("password", value ?? '');
                 },
               );
             },
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
+
+          /// Login Button
           Consumer<LoginFormprovider>(
             builder: (context, loginprovider, child) {
               return Elevatedbuttonwidget(
                 onpressed: () {
                   final phone = phonenumbercontroller.text.trim();
                   final password = passwordcontroller.text.trim();
+
                   if (phone.isEmpty || password.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Please fill all the fields")),
+                      const SnackBar(
+                        content: Text("Please fill all the fields"),
+                      ),
                     );
-                  } else {
+                  } else if (selectedrole == "Customer") {
                     context.read<Authprovider>().loginwithphoneandpassword(
                       phone: phone,
                       password: password,
                       context: context,
                     );
+                  } else {
+                    context
+                        .read<ServiceAuthprovider>()
+                        .loginwithphoneandpassword(
+                          phonenumber: phone,
+                          password: password,
+                          context: context,
+                        );
                   }
                 },
                 widht: width * 0.4,
@@ -109,16 +164,16 @@ class Loginwidget extends StatelessWidget {
               );
             },
           ),
-          SizedBox(height: 30),
-          Text(
-            "Did'nt have an account ?",
+          const SizedBox(height: 30),
+
+          /// Sign-up link
+          const Text(
+            "Don’t have an account?",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           TextButton(
-            onPressed: () {
-              showroleselectionpage(context);
-            },
-            child: Text(
+            onPressed: () => showroleselectionpage(context),
+            child: const Text(
               'SignUp',
               style: TextStyle(
                 fontSize: 18,
@@ -133,11 +188,10 @@ class Loginwidget extends StatelessWidget {
   }
 
   void showroleselectionpage(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
       builder: (context) {
@@ -171,30 +225,22 @@ class Loginwidget extends StatelessWidget {
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
+                                children: const [
                                   Text(
-                                    '🛠 Service Provider: Offers services like plumbing, electrical work, etc.',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    'Service Provider: Offers services like plumbing, electrical work, etc.',
+                                    style: TextStyle(fontSize: 18),
                                   ),
                                   SizedBox(height: 10),
                                   Text(
-                                    '👤 Customer: Can browse and book service providers.',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    'Customer: Can browse and book service providers.',
+                                    style: TextStyle(fontSize: 18),
                                   ),
                                 ],
                               ),
                               actions: [
                                 TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text(
                                     'OK',
                                     style: TextStyle(
                                       fontSize: 18,
@@ -206,7 +252,6 @@ class Loginwidget extends StatelessWidget {
                             ),
                       );
                     },
-
                     child: const Icon(Icons.info_outline, color: Colors.black),
                   ),
                 ],
@@ -216,16 +261,28 @@ class Loginwidget extends StatelessWidget {
                 children: [
                   RoleSelectionPage(
                     title: 'Service Provider',
-                    imagpath: 'assets/lottie/Animation - 1745834527053.json',
-                    ontap: () {},
-                  ),
-                  RoleSelectionPage(
-                    title: 'Customer',
-                    imagpath: 'assets/lottie/Animation - 1745835170727.json',
+                    imagpath: 'assets/lottie/Animation - 1745910686886.json',
                     ontap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Signupscreen()),
+                        MaterialPageRoute(
+                          builder:
+                              (context) => ServiceSignupScreen(
+                                usertype: "serviceprovider",
+                              ),
+                        ),
+                      );
+                    },
+                  ),
+                  RoleSelectionPage(
+                    title: 'Customer',
+                    imagpath: 'assets/lottie/Animation - 1745917229976.json',
+                    ontap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Signupscreen(usertype: "user"),
+                        ),
                       );
                     },
                   ),

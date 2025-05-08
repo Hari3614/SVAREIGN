@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:svareign/services/location_services/fetchingaddress/fetching_address.dart';
+import 'package:svareign/view/screens/serviceproviders/serviceproviders.dart';
 
 class HomeHelpersScreen extends StatelessWidget {
-  const HomeHelpersScreen({super.key});
-
+  HomeHelpersScreen({super.key});
+  final Userservice userservice = Userservice();
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -22,12 +24,35 @@ class HomeHelpersScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  children: const [
+                  children: [
                     Icon(Icons.location_on_outlined, color: Colors.green),
                     SizedBox(width: 5),
-                    Text(
-                      "2118 Kurukkamoola",
-                      style: TextStyle(color: Colors.black),
+                    FutureBuilder<String?>(
+                      future: userservice.getuseraddress(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Text(
+                            "Loading ...",
+                            style: TextStyle(color: Colors.black54),
+                          );
+                        } else if (snapshot.hasError) {
+                          return const Text(
+                            "Unknown error",
+                            style: TextStyle(color: Colors.black54),
+                          );
+                        } else if (snapshot.data == null) {
+                          return const Text(
+                            "Location Not availabel",
+                            style: TextStyle(color: Colors.black54),
+                          );
+                        } else {
+                          return Text(
+                            snapshot.data!,
+                            style: const TextStyle(color: Colors.black),
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -62,7 +87,7 @@ class HomeHelpersScreen extends StatelessWidget {
 
             _sectionHeader("All Categories"),
             SizedBox(height: size.height * 0.015),
-            _buildCategoryRow(size),
+            _buildCategoryRow(size, context),
 
             SizedBox(height: size.height * 0.03),
             _sectionHeader("Best Services"),
@@ -116,7 +141,7 @@ class HomeHelpersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryRow(Size size) {
+  Widget _buildCategoryRow(Size size, BuildContext context) {
     final categories = [
       ["Carpenter", Icons.handyman],
       ["Cleaner", Icons.cleaning_services],
@@ -137,10 +162,20 @@ class HomeHelpersScreen extends StatelessWidget {
               width: size.width * 0.18,
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: size.width * 0.08,
-                    backgroundColor: Colors.grey.shade200,
-                    child: Icon(cat[1] as IconData, color: Colors.black),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Serviceproviders(),
+                        ),
+                      );
+                    },
+                    child: CircleAvatar(
+                      radius: size.width * 0.08,
+                      backgroundColor: Colors.grey.shade200,
+                      child: Icon(cat[1] as IconData, color: Colors.black),
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(
@@ -186,7 +221,7 @@ class HomeHelpersScreen extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // Details section
+            // Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

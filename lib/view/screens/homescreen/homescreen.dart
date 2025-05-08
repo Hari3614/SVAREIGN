@@ -8,6 +8,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 1,
         foregroundColor: Colors.black,
@@ -24,7 +25,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: const HomeHelpersScreen(),
+      body: HomeHelpersScreen(),
     );
   }
 }

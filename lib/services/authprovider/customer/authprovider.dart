@@ -4,9 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
-import '../../services/location_services.dart';
-import '../../view/screens/Authentication/otpscreen/otp_screen.dart';
-import '../../view/screens/homescreen/homescreen.dart';
+import '../../location_services/location_services.dart';
+import '../../../view/screens/Authentication/customer_signup_screen/otpscreen/otp_screen.dart';
 
 class Authprovider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
