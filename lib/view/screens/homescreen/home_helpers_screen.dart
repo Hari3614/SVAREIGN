@@ -2,9 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:svareign/services/location_services/fetchingaddress/fetching_address.dart';
 import 'package:svareign/view/screens/serviceproviders/serviceproviders.dart';
 
-class HomeHelpersScreen extends StatelessWidget {
-  HomeHelpersScreen({super.key});
+class HomeHelpersScreen extends StatefulWidget {
+  const HomeHelpersScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeHelpersScreen> createState() => _HomeHelpersScreenState();
+}
+
+class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   final Userservice userservice = Userservice();
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoadingMore = false;
+  bool _showNoProvidersMessage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent &&
+        !_isLoadingMore &&
+        !_showNoProvidersMessage) {
+      setState(() {
+        _isLoadingMore = true;
+      });
+
+      Future.delayed(const Duration(seconds: 5)).then((_) {
+        setState(() {
+          _isLoadingMore = false;
+          _showNoProvidersMessage = true;
+        });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -12,6 +52,7 @@ class HomeHelpersScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
+        controller: _scrollController,
         padding: EdgeInsets.symmetric(
           horizontal: size.width * 0.04,
           vertical: size.height * 0.02,
@@ -26,7 +67,7 @@ class HomeHelpersScreen extends StatelessWidget {
                 Row(
                   children: [
                     Icon(Icons.location_on_outlined, color: Colors.green),
-                    SizedBox(width: 5),
+                    const SizedBox(width: 5),
                     FutureBuilder<String?>(
                       future: userservice.getuseraddress(),
                       builder: (context, snapshot) {
@@ -43,7 +84,7 @@ class HomeHelpersScreen extends StatelessWidget {
                           );
                         } else if (snapshot.data == null) {
                           return const Text(
-                            "Location Not availabel",
+                            "Location Not available",
                             style: TextStyle(color: Colors.black54),
                           );
                         } else {
@@ -115,6 +156,30 @@ class HomeHelpersScreen extends StatelessWidget {
               rating: 5,
               reviews: 240,
             ),
+            SizedBox(height: 500),
+            if (_isLoadingMore)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            if (_showNoProvidersMessage)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      Icon(Icons.location_off, size: 20, color: Colors.black38),
+                      SizedBox(height: 10),
+                      Text(
+                        "There is no Provider in Your location",
+                        style: TextStyle(fontSize: 16, color: Colors.black38),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -163,13 +228,18 @@ class HomeHelpersScreen extends StatelessWidget {
               child: Column(
                 children: [
                   InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Serviceproviders(),
-                        ),
+                    onTap: () async {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
                       );
+
+                      await Future.delayed(const Duration(seconds: 5));
+                      Navigator.pop(context);
+                      navigatescreen(context);
                     },
                     child: CircleAvatar(
                       radius: size.width * 0.08,
@@ -289,6 +359,13 @@ class HomeHelpersScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> navigatescreen(BuildContext context) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const Serviceproviders()),
     );
   }
 }

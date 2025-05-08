@@ -109,7 +109,7 @@ class ServiceAuthprovider extends ChangeNotifier {
       final normalisedphonenumber = normalisephonenumber(_phonenumber!);
       await _firebaseFirestore
           .collection("services")
-          .doc(normalisedphonenumber)
+          .doc(userCredential.user!.uid)
           .set({
             'uid': userCredential.user!.uid,
             'name': _name,
@@ -140,20 +140,27 @@ class ServiceAuthprovider extends ChangeNotifier {
   }) async {
     try {
       final normalisedphone = normalisephonenumber("+91${phonenumber}");
-      DocumentSnapshot userDoc =
+      QuerySnapshot snapshot =
           await _firebaseFirestore
-              .collection("services")
-              .doc(normalisedphone)
+              .collection('services')
+              .where('phone', isEqualTo: normalisedphone)
               .get();
-      if (userDoc.exists && userDoc['password'] == password) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DummyScreen()),
-        );
+      if (snapshot.docs.isNotEmpty) {
+        final userdoc = snapshot.docs.first;
+        if (userdoc['password'] == password) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DummyScreen()),
+          );
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
+        }
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
+        ).showSnackBar(SnackBar(content: Text('User not found')));
       }
     } catch (e) {
       ScaffoldMessenger.of(

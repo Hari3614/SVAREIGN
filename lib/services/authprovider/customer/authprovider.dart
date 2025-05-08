@@ -110,7 +110,7 @@ class Authprovider with ChangeNotifier {
       Position position = await locationservice.getCurrentLocation();
       final normalisedphone = normalisephonenumber(_phone!);
 
-      await _firestore.collection("users").doc(normalisedphone).set({
+      await _firestore.collection("users").doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         'name': _name,
         'email': _email,
@@ -142,17 +142,27 @@ class Authprovider with ChangeNotifier {
   }) async {
     try {
       final normalisedphone = normalisephonenumber("+91${phone}");
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(normalisedphone).get();
-      if (userDoc.exists && userDoc['password'] == password) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomeContainer()),
-        );
+      QuerySnapshot snapshot =
+          await _firestore
+              .collection('users')
+              .where('phone', isEqualTo: normalisedphone)
+              .get();
+      if (snapshot.docs.isNotEmpty) {
+        final userdoc = snapshot.docs.first;
+        if (userdoc['password'] == password) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HomeContainer()),
+          );
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
+        }
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
+        ).showSnackBar(SnackBar(content: Text('User not found')));
       }
     } catch (e) {
       ScaffoldMessenger.of(

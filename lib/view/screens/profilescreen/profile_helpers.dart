@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
+import 'package:svareign/view/screens/editscreen/edit_screen.dart';
 import 'package:svareign/viewmodel/customer/profile_view_model.dart';
 
 class ProfileWidget extends StatelessWidget {
@@ -15,15 +17,16 @@ class ProfileWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
-    final ProfileviewModeldata = Provider.of<ProfileViewModel>(context);
-    final user = ProfileviewModeldata.user;
-    final currentuser = FirebaseAuth.instance.currentUser;
-    final fullphonenumber = currentuser?.phoneNumber;
-    // final phonenumber = fullphonenumber?.replaceAll('+91', '');
-    if (fullphonenumber != null && ProfileviewModeldata.user == null) {
-      Future.microtask(() => ProfileviewModeldata.fetchuser(fullphonenumber));
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
+    final user = profileViewModel.user;
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    final uid = currentUser?.uid;
+    if (uid != null && profileViewModel.user == null) {
+      Future.microtask(() => profileViewModel.fetchUserByUid(uid));
     }
-    if (ProfileviewModeldata.user == null) {
+
+    if (profileViewModel.user == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -63,13 +66,8 @@ class ProfileWidget extends StatelessWidget {
                           source: ImageSource.gallery,
                           imageQuality: 70,
                         );
-                        if (pickedFile != null && fullphonenumber != null) {
-                          final imageFile = File(pickedFile.path);
-                          await ProfileviewModeldata.updateProfileImage(
-                            fullphonenumber,
-                            imageFile,
-                          );
-                        }
+
+                        // Handle image update logic here if needed
                       },
                       child: CircleAvatar(
                         radius: 60,
@@ -83,21 +81,21 @@ class ProfileWidget extends StatelessWidget {
                                 : null,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Text(
                       user?.name ?? "Unknown",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Flexible(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.copy,
                               size: 18,
                               color: Colors.grey,
@@ -106,13 +104,18 @@ class ProfileWidget extends StatelessWidget {
                               final uidText = "user@${user?.uid ?? '1234'}";
                               Clipboard.setData(ClipboardData(text: uidText));
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Copied to clipboard')),
+                                const SnackBar(
+                                  content: Text('Copied to clipboard'),
+                                ),
                               );
                             },
                           ),
                           Text(
                             "user@${user?.uid ?? '1234'}",
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
                           ),
                         ],
                       ),
@@ -125,8 +128,8 @@ class ProfileWidget extends StatelessWidget {
         ),
 
         // Profile Options
-        buildProfileTile(Icons.edit, 'Edit Profile'),
-        buildProfileTile(Icons.settings, 'Settings'),
+        buildProfileTile(Icons.edit, 'Edit Profile', context),
+        buildProfileTile(Icons.settings, 'Settings', context),
 
         // Logout Button
         ListTile(
@@ -137,9 +140,9 @@ class ProfileWidget extends StatelessWidget {
           ),
           onTap: () async {
             await FirebaseAuth.instance.signOut();
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => Loginscreen()),
+              MaterialPageRoute(builder: (context) => const Loginscreen()),
             );
           },
         ),
@@ -187,12 +190,21 @@ class ProfileWidget extends StatelessWidget {
     );
   }
 
-  Widget buildProfileTile(IconData icon, String title) {
+  Widget buildProfileTile(IconData icon, String title, BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: Colors.black87),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {},
+      onTap: () {
+        if (title == "Edit Profile") {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return EditProfileDialog(user: FirebaseAuth.instance.currentUser);
+            },
+          );
+        }
+      },
     );
   }
 }
