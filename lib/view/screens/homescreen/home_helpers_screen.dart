@@ -186,7 +186,7 @@ class HomeHelpersScreen extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // Details
+            // Details section
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
