@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:svareign/services/location_services/location_services.dart';
+import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import 'package:svareign/view/screens/Authentication/serivice_provider/otp_service_screen/otp_service_screen.dart';
 
@@ -107,6 +108,7 @@ class ServiceAuthprovider extends ChangeNotifier {
       );
       Position position = await _locationService.getCurrentLocation();
       final normalisedphonenumber = normalisephonenumber(_phonenumber!);
+      final String role = "service provider";
       await _firebaseFirestore
           .collection("services")
           .doc(userCredential.user!.uid)
@@ -116,12 +118,17 @@ class ServiceAuthprovider extends ChangeNotifier {
             'email': _email,
             'phone': normalisedphonenumber,
             'password': _password,
+            'role': role,
             'location': {
               'latitude': position.latitude,
               'longitude': position.longitude,
             },
             'createdAt': Timestamp.now(),
           });
+      await SessionManager.Saveusersession(
+        uid: userCredential.user!.uid,
+        role: role,
+      );
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => DummyScreen()),
@@ -148,6 +155,10 @@ class ServiceAuthprovider extends ChangeNotifier {
       if (snapshot.docs.isNotEmpty) {
         final userdoc = snapshot.docs.first;
         if (userdoc['password'] == password) {
+          await SessionManager.Saveusersession(
+            uid: userdoc['uid'],
+            role: userdoc['role'],
+          );
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => DummyScreen()),

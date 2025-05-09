@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import '../../location_services/location_services.dart';
@@ -109,19 +110,24 @@ class Authprovider with ChangeNotifier {
 
       Position position = await locationservice.getCurrentLocation();
       final normalisedphone = normalisephonenumber(_phone!);
-
+      final String role = "customer";
       await _firestore.collection("users").doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         'name': _name,
         'email': _email,
         'phone': normalisedphone,
         'password': _password,
+        'role': role,
         'location': {
           'latitude': position.latitude,
           'longitude': position.longitude,
         },
         'createdAt': Timestamp.now(),
       });
+      await SessionManager.Saveusersession(
+        uid: userCredential.user!.uid,
+        role: role,
+      );
 
       Navigator.pushReplacement(
         context,
@@ -150,6 +156,10 @@ class Authprovider with ChangeNotifier {
       if (snapshot.docs.isNotEmpty) {
         final userdoc = snapshot.docs.first;
         if (userdoc['password'] == password) {
+          await SessionManager.Saveusersession(
+            uid: userdoc['uid'],
+            role: userdoc['role'],
+          );
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => HomeContainer()),
