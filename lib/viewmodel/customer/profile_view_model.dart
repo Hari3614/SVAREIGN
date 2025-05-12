@@ -52,11 +52,11 @@ class ProfileViewModel with ChangeNotifier {
 
   // Fetch current user data if logged in
   Future<void> fetchCurrentUser() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      await fetchUserByUid(currentUser.uid);
-    } else {
-      print("No user currently logged in.");
+    User? currentuser;
+    while (currentuser == null) {
+      currentuser = FirebaseAuth.instance.currentUser;
+      await Future.delayed(Duration(milliseconds: 100));
     }
+    await fetchUserByUid(currentuser.uid);
   }
 }
