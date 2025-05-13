@@ -1,49 +1,48 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:svareign/model/customer/addwork._model.dart';
 
 class Workprovider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  //get users data
-  Stream<List<Addworkmodel>> getworks() async* {
-    // final user = _auth.currentUser;
-    User? user;
-    int retrycount = 0;
-    while ((user = _auth.currentUser) == null && retrycount < 50) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      retrycount++;
-    }
-    if (user == null) {
-      yield [];
-      return;
-    }
-    yield* _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('works')
-        .orderBy('postedtime', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((docs) => Addworkmodel.fromMap(docs.data()))
-                  .toList(),
-        );
+
+  // Stream: Get works of current authenticated user
+  Stream<List<Addworkmodel>> getworks() {
+    return _auth.authStateChanges().asyncExpand((user) {
+      if (user == null) {
+        // No user is signed in
+        return Stream.value([]);
+      }
+
+      return _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('works')
+          .orderBy('postedtime', descending: true)
+          .snapshots()
+          .map(
+            (snapshot) =>
+                snapshot.docs
+                    .map((doc) => Addworkmodel.fromMap(doc.data()))
+                    .toList(),
+          );
+    });
   }
 
-  // add users data
+  // Add work for the current user
   Future<void> addwork(Addworkmodel work) async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception("No Authenticated User");
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) {
+      throw Exception("No authenticated user found.");
     }
+
     await _firestore
         .collection('users')
-        .doc(user.uid)
+        .doc(userId)
         .collection('works')
         .add(work.tomap());
+
     notifyListeners();
   }
 }

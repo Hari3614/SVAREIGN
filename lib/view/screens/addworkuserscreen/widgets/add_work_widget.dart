@@ -24,8 +24,9 @@ class AddWorkWidget extends StatelessWidget {
         if (snapshot.hasError) {
           return Center(child: Text('Something went wrong: ${snapshot.error}'));
         }
-
+        print("snapshot : $snapshot");
         final works = snapshot.data ?? [];
+        print("work is :$works");
         if (works.isEmpty) {
           return const Center(child: Text("No tasks found"));
         }

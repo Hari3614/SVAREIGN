@@ -116,7 +116,7 @@ class Authprovider with ChangeNotifier {
         'name': _name,
         'email': _email,
         'phone': normalisedphone,
-        'password': _password,
+        //  'password': _password,
         'role': role,
         'location': {
           'latitude': position.latitude,

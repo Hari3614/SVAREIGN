@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/view/screens/dummy_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
@@ -20,32 +21,34 @@ class _SplashscreenState extends State<Splashscreen> {
   }
 
   Future<void> navigateToNext() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2)); // Splash effect delay
+
+    User? user = FirebaseAuth.instance.currentUser;
+
+    user ??= await FirebaseAuth.instance.authStateChanges().first;
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isLoggedIn = prefs.getBool('IsloggedIn') ?? false;
     String? role = prefs.getString('role');
 
-    if (isLoggedIn && role != null) {
+    Widget nextScreen;
+
+    if (user != null && role != null) {
       if (role == 'customer') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeContainer()),
-        );
+        nextScreen = const HomeContainer();
       } else if (role == 'service provider') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const DummyScreen()),
-        );
+        nextScreen = const DummyScreen();
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const Loginscreen()),
-        );
+        nextScreen = const Loginscreen();
       }
     } else {
+      nextScreen = const Loginscreen();
+    }
+
+    // Ensure context is still valid before navigating
+    if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const Loginscreen()),
+        MaterialPageRoute(builder: (_) => nextScreen),
       );
     }
   }
