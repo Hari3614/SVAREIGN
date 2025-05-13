@@ -291,6 +291,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
             ),
             const SizedBox(width: 12),
 
+            // Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
