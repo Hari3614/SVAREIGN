@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/services/authprovider/customer/authprovider.dart';
+import 'package:svareign/viewmodel/authprovider/customer/authprovider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';

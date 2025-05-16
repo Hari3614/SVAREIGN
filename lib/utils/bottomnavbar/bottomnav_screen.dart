@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/bottomnavprovider/bottomnav_provider.dart';
 import 'package:svareign/utils/bottomnavbar/bottomnavbar.dart';
-import 'package:svareign/view/screens/addworkuserscreen/add_work_user_screen.dart';
-import 'package:svareign/view/screens/adspostinscreen/ads_posting_screen.dart';
-import 'package:svareign/view/screens/homescreen/homescreen.dart';
-import 'package:svareign/view/screens/profilescreen/profile_screen.dart';
+import 'package:svareign/view/screens/customerscreen/addworkuserscreen/add_work_user_screen.dart';
+import 'package:svareign/view/screens/customerscreen/adspostinscreen/ads_posting_screen.dart';
+import 'package:svareign/view/screens/customerscreen/homescreen/homescreen.dart';
+import 'package:svareign/view/screens/customerscreen/profilescreen/profile_screen.dart';
 
 class HomeContainer extends StatelessWidget {
   const HomeContainer({super.key});

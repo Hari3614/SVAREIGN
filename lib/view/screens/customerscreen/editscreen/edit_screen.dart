@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/viewmodel/customer/profile_view_model.dart';
+import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
 
 class EditProfileDialog extends StatelessWidget {
   final User? user;

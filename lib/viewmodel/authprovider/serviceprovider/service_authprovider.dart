@@ -7,7 +7,8 @@ import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import 'package:svareign/view/screens/Authentication/serivice_provider/otp_service_screen/otp_service_screen.dart';
 
-import 'package:svareign/view/screens/dummy_screen.dart';
+import 'package:svareign/view/screens/providerscreen/homescreen/dummy_screen.dart';
+import 'package:svareign/view/screens/providerscreen/serviceaddprofile/serviceaddprofie.dart';
 
 class ServiceAuthprovider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -106,6 +107,12 @@ class ServiceAuthprovider extends ChangeNotifier {
       UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
+      User? user = userCredential.user;
+      final emailcredential = EmailAuthProvider.credential(
+        email: _email!,
+        password: _password!,
+      );
+      await user!.linkWithCredential(emailcredential);
       Position position = await _locationService.getCurrentLocation();
       final normalisedphonenumber = normalisephonenumber(_phonenumber!);
       final String role = "service provider";
@@ -131,7 +138,7 @@ class ServiceAuthprovider extends ChangeNotifier {
       );
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => DummyScreen()),
+        MaterialPageRoute(builder: (context) => Serviceaddprofie()),
       );
     } catch (e) {
       ScaffoldMessenger.of(
@@ -140,43 +147,74 @@ class ServiceAuthprovider extends ChangeNotifier {
     }
   }
 
-  Future<void> loginwithphoneandpassword({
-    required String phonenumber,
+  // Future<void> loginwithphoneandpassword({
+  //   required String phonenumber,
+  //   required String password,
+  //   required BuildContext context,
+  // }) async {
+  //   try {
+  //     final normalisedphone = normalisephonenumber("+91${phonenumber}");
+  //     QuerySnapshot snapshot =
+  //         await _firebaseFirestore
+  //             .collection('services')
+  //             .where('phone', isEqualTo: normalisedphone)
+  //             .get();
+  //     if (snapshot.docs.isNotEmpty) {
+  //       final userdoc = snapshot.docs.first;
+  //       if (userdoc['password'] == password) {
+  //         await SessionManager.Saveusersession(
+  //           uid: userdoc['uid'],
+  //           role: userdoc['role'],
+  //         );
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => DummyScreen()),
+  //         );
+  //       } else {
+  //         ScaffoldMessenger.of(
+  //           context,
+  //         ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
+  //       }
+  //     } else {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('User not found')));
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+  //   }
+  // }
+  Future<void> loginwithemailandpassword({
+    required String emial,
     required String password,
     required BuildContext context,
   }) async {
     try {
-      final normalisedphone = normalisephonenumber("+91${phonenumber}");
-      QuerySnapshot snapshot =
-          await _firebaseFirestore
-              .collection('services')
-              .where('phone', isEqualTo: normalisedphone)
-              .get();
-      if (snapshot.docs.isNotEmpty) {
-        final userdoc = snapshot.docs.first;
-        if (userdoc['password'] == password) {
-          await SessionManager.Saveusersession(
-            uid: userdoc['uid'],
-            role: userdoc['role'],
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => DummyScreen()),
-          );
-        } else {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
-        }
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('User not found')));
+      UserCredential credential = await _auth.signInWithEmailAndPassword(
+        email: emial,
+        password: password,
+      );
+      final uid = credential.user!.uid;
+      final userdoc =
+          await _firebaseFirestore.collection('services').doc(uid).get();
+      if (!userdoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("No account Found With this e-mail")),
+        );
+        return;
       }
+      final role = userdoc['role'];
+      await SessionManager.Saveusersession(uid: uid, role: role);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => DummyScreen()),
+      );
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+      ).showSnackBar(SnackBar(content: Text("Login Failed :$e")));
     }
   }
 }

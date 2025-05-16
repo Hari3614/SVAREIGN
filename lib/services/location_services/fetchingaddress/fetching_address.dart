@@ -8,7 +8,7 @@ class Userservice {
     if (uid == null) return null;
     final snapshot =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (snapshot.exists) return null;
+    if (!snapshot.exists) return null;
     final data = snapshot.data() as Map<String, dynamic>;
     final lat = data['location']['latitude'];
     final long = data['location']['longitude'];

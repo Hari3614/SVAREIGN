@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:svareign/view/screens/addworkuserscreen/floatingaction/floating_action_widget.dart';
-import 'package:svareign/view/screens/addworkuserscreen/widgets/add_work_widget.dart';
+import 'package:svareign/view/screens/customerscreen/addworkuserscreen/floatingaction/floating_action_widget.dart';
+import 'package:svareign/view/screens/customerscreen/addworkuserscreen/widgets/add_work_widget.dart';
 
 class AddWorkUserScreen extends StatelessWidget {
   const AddWorkUserScreen({super.key});

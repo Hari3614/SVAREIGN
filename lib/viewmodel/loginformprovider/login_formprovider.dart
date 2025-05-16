@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 class LoginFormprovider extends ChangeNotifier {
-  final Map<String, String> _fields = {"phone": "", "password": ""};
+  final Map<String, String> _fields = {"email": "", "password": ""};
   bool get areallfiedlfilled {
     return _fields.values.every((value) => value.isNotEmpty);
   }

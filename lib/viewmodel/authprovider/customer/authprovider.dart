@@ -5,7 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
-import '../../location_services/location_services.dart';
+import '../../../services/location_services/location_services.dart';
 import '../../../view/screens/Authentication/customer_signup_screen/otpscreen/otp_screen.dart';
 
 class Authprovider with ChangeNotifier {
@@ -16,6 +16,7 @@ class Authprovider with ChangeNotifier {
   String? _name, _email, _phone, _password;
   String _verificationId = "";
 
+  // Send OTP to phone number
   Future<void> sendotp({
     required String name,
     required String email,
@@ -63,7 +64,6 @@ class Authprovider with ChangeNotifier {
                           );
                           Navigator.pop(context);
                         });
-
                         return const Scaffold(body: SizedBox());
                       } else if (snapshot.hasData) {
                         return OtpScreen(
@@ -95,6 +95,7 @@ class Authprovider with ChangeNotifier {
     }
   }
 
+  // Verify OTP and complete signup
   Future<void> verifyotpandsignup({
     required String otp,
     required BuildContext context,
@@ -107,16 +108,24 @@ class Authprovider with ChangeNotifier {
       UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
+      User? user = userCredential.user;
+
+      final emailCredential = EmailAuthProvider.credential(
+        email: _email!,
+        password: _password!,
+      );
+      await user!.linkWithCredential(emailCredential);
 
       Position position = await locationservice.getCurrentLocation();
       final normalisedphone = normalisephonenumber(_phone!);
       final String role = "customer";
-      await _firestore.collection("users").doc(userCredential.user!.uid).set({
-        'uid': userCredential.user!.uid,
+
+      // Save user data to Firestore
+      await _firestore.collection("users").doc(user.uid).set({
+        'uid': user.uid,
         'name': _name,
         'email': _email,
         'phone': normalisedphone,
-        //  'password': _password,
         'role': role,
         'location': {
           'latitude': position.latitude,
@@ -124,10 +133,8 @@ class Authprovider with ChangeNotifier {
         },
         'createdAt': Timestamp.now(),
       });
-      await SessionManager.Saveusersession(
-        uid: userCredential.user!.uid,
-        role: role,
-      );
+
+      await SessionManager.Saveusersession(uid: user.uid, role: role);
 
       Navigator.pushReplacement(
         context,
@@ -141,43 +148,80 @@ class Authprovider with ChangeNotifier {
     }
   }
 
-  Future<void> loginwithphoneandpassword({
-    required String phone,
+  // // Login using phone number and password
+  // Future<void> loginwithphoneandpassword({
+  //   required String phone,
+  //   required String password,
+  //   required BuildContext context,
+  // }) async {
+  //   try {
+  //     final normalisedphone = normalisephonenumber("+91$phone");
+  //     QuerySnapshot snapshot =
+  //         await _firestore
+  //             .collection('users')
+  //             .where('phone', isEqualTo: normalisedphone)
+  //             .get();
+  //     if (snapshot.docs.isNotEmpty) {
+  //       final userdoc = snapshot.docs.first;
+  //       if (userdoc['password'] == password) {
+  //         await SessionManager.Saveusersession(
+  //           uid: userdoc['uid'],
+  //           role: userdoc['role'],
+  //         );
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => HomeContainer()),
+  //         );
+  //       } else {
+  //         ScaffoldMessenger.of(
+  //           context,
+  //         ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
+  //       }
+  //     } else {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('User not found')));
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+  //   }
+  // }
+
+  // Login using email and password
+  Future<void> loginWithEmailAndPassword({
+    required String email,
     required String password,
     required BuildContext context,
   }) async {
     try {
-      final normalisedphone = normalisephonenumber("+91${phone}");
-      QuerySnapshot snapshot =
-          await _firestore
-              .collection('users')
-              .where('phone', isEqualTo: normalisedphone)
-              .get();
-      if (snapshot.docs.isNotEmpty) {
-        final userdoc = snapshot.docs.first;
-        if (userdoc['password'] == password) {
-          await SessionManager.Saveusersession(
-            uid: userdoc['uid'],
-            role: userdoc['role'],
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => HomeContainer()),
-          );
-        } else {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
-        }
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('User not found')));
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final uid = userCredential.user!.uid;
+      final userDoc = await _firestore.collection("users").doc(uid).get();
+
+      if (!userDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("No account found with this email")),
+        );
+        return;
       }
+
+      final role = userDoc['role'];
+      await SessionManager.Saveusersession(uid: uid, role: role);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeContainer()),
+      );
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+      ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
     }
   }
 }

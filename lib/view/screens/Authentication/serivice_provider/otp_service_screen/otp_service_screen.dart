@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,7 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 
-import 'package:svareign/services/authprovider/serviceprovider/service_authprovider.dart';
+import 'package:svareign/viewmodel/authprovider/serviceprovider/service_authprovider.dart';
 
 class OtpServiceScreen extends StatefulWidget {
   const OtpServiceScreen({
@@ -29,24 +30,48 @@ class OtpServiceScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpServiceScreen> {
   late TextEditingController otpcontrollerr;
+  int start = 30;
+  Timer? timer;
+  bool isresendenabled = false;
   @override
   void initState() {
     super.initState();
     otpcontrollerr = TextEditingController();
+    startimer();
   }
 
   @override
-  // void dispose() {
-  //   super.dispose();
-  //   otpcontrollerr.dispose();
-  // }
+  void dispose() {
+    super.dispose();
+    // otpcontrollerr.dispose();
+    timer?.cancel();
+  }
+
   // final String location;
+  void startimer() {
+    setState(() {
+      isresendenabled = false;
+      start = 30;
+    });
+    timer?.cancel();
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      if (start == 0) {
+        setState(() {
+          isresendenabled = true;
+        });
+        t.cancel();
+      } else {
+        setState(() {
+          start--;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-    // final TextEditingController otpcontroller = TextEditingController();
-
     return Scaffold(
       backgroundColor: Colors.grey,
       body: Center(
@@ -54,7 +79,7 @@ class _OtpScreenState extends State<OtpServiceScreen> {
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
             height: height * 0.45,
-            width: width * 0.9,
+            width: width * 0.93,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -71,7 +96,7 @@ class _OtpScreenState extends State<OtpServiceScreen> {
                 ),
                 SizedBox(height: height * 0.02),
                 Text(
-                  'A verification code has been \nsent to +91 ${widget.phoneNumber}',
+                  'A verification code has been \nsent to  ${widget.phoneNumber}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: width * 0.045,
@@ -141,7 +166,7 @@ class _OtpScreenState extends State<OtpServiceScreen> {
                     Text(
                       "Didn't receive the code?",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -157,9 +182,12 @@ class _OtpScreenState extends State<OtpServiceScreen> {
                         );
                       },
                       child: Text(
-                        'Resend code',
+                        isresendenabled
+                            ? 'Resend code'
+                            : "Resend in $start sec",
                         style: TextStyle(
-                          fontSize: 16,
+                          color: isresendenabled ? Colors.blue : Colors.black,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

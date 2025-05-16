@@ -7,8 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
-import 'package:svareign/view/screens/editscreen/edit_screen.dart';
-import 'package:svareign/viewmodel/customer/profile_view_model.dart';
+import 'package:svareign/view/screens/customerscreen/editscreen/edit_screen.dart';
+import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
 
 class ProfileWidget extends StatelessWidget {
   const ProfileWidget({super.key});

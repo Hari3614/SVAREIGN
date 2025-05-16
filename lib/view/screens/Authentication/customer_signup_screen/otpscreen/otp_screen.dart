@@ -1,10 +1,12 @@
 import 'dart:math';
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/services/authprovider/customer/authprovider.dart';
+import 'package:svareign/viewmodel/authprovider/customer/authprovider.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({
@@ -28,17 +30,44 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   late TextEditingController otpcontrollerr;
+  Timer? timer;
+  int start = 30;
+  bool _isResendenabled = false;
+
   @override
   void initState() {
     super.initState();
     otpcontrollerr = TextEditingController();
+    starttimer();
+  }
+
+  void starttimer() {
+    setState(() {
+      _isResendenabled = false;
+      start = 30;
+    });
+    timer?.cancel();
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      if (start == 0) {
+        setState(() {
+          _isResendenabled = true;
+        });
+        t.cancel();
+      } else {
+        setState(() {
+          start--;
+        });
+      }
+    });
   }
 
   @override
-  // void dispose() {
-  //   super.dispose();
-  //   otpcontrollerr.dispose();
-  // }
+  void dispose() {
+    super.dispose();
+    // otpcontrollerr.dispose();
+    timer?.cancel();
+  }
+
   // final String location;
   @override
   Widget build(BuildContext context) {
@@ -53,7 +82,7 @@ class _OtpScreenState extends State<OtpScreen> {
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
             height: height * 0.45,
-            width: width * 0.9,
+            width: width * 0.93,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -141,21 +170,28 @@ class _OtpScreenState extends State<OtpScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {
-                        // Resend OTP functionality
-                        context.read<Authprovider>().sendotp(
-                          name: widget.name,
-                          email: widget.email,
-                          phonenumber: widget.phoneNumber,
-                          password: '', // Handle password if needed
-                          context: context,
-                        );
-                      },
+                      onPressed:
+                          _isResendenabled
+                              ? () {
+                                // Resend OTP functionality
+                                context.read<Authprovider>().sendotp(
+                                  name: widget.name,
+                                  email: widget.email,
+                                  phonenumber: widget.phoneNumber,
+                                  password: '', // Handle password if needed
+                                  context: context,
+                                );
+                                starttimer();
+                              }
+                              : null,
                       child: Text(
-                        'Resend code',
+                        _isResendenabled
+                            ? 'Resend code'
+                            : "Resend in $start sec",
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
+                          color: _isResendenabled ? Colors.blue : Colors.black,
                         ),
                       ),
                     ),

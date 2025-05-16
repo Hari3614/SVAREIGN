@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svareign/services/authprovider/customer/authprovider.dart';
+import 'package:svareign/viewmodel/authprovider/customer/authprovider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
-import 'package:svareign/services/authprovider/serviceprovider/service_authprovider.dart';
+import 'package:svareign/viewmodel/authprovider/serviceprovider/service_authprovider.dart';
 import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
+import 'package:svareign/view/screens/Authentication/loginscreen/forgetpasswordscreen/forget_password.dart';
 import 'package:svareign/view/screens/Authentication/roleselectionpage/role_selection_page.dart';
 import 'package:svareign/view/screens/Authentication/customer_signup_screen/signupscreen.dart';
 import 'package:svareign/view/screens/Authentication/serivice_provider/service_signup_screen.dart';
@@ -19,13 +20,13 @@ class Loginwidget extends StatefulWidget {
 }
 
 class _LoginwidgetState extends State<Loginwidget> {
-  final TextEditingController phonenumbercontroller = TextEditingController();
+  final TextEditingController emailcontroller = TextEditingController();
   final TextEditingController passwordcontroller = TextEditingController();
   String selectedrole = "Customer";
 
   @override
   void dispose() {
-    phonenumbercontroller.dispose();
+    emailcontroller.dispose();
     passwordcontroller.dispose();
     super.dispose();
   }
@@ -78,18 +79,18 @@ class _LoginwidgetState extends State<Loginwidget> {
 
           /// Phone Number Field
           Textfieldwidget(
-            inputType: TextInputType.number,
-            controller: phonenumbercontroller,
-            labeltext: 'Mobile number',
+            inputType: TextInputType.emailAddress,
+            controller: emailcontroller,
+            labeltext: 'E-mail',
             obscuretext: false,
             preffixicon: Icons.email,
             color: kblackcolor,
-            hinttext: 'Enter Mobile Number',
+            hinttext: 'Enter your E-mail',
             onchanged: (value) {
               Provider.of<LoginFormprovider>(
                 context,
                 listen: false,
-              ).updatefields("phone", value ?? '');
+              ).updatefields("email", value ?? '');
             },
           ),
           const SizedBox(height: 40),
@@ -121,33 +122,51 @@ class _LoginwidgetState extends State<Loginwidget> {
               );
             },
           ),
-          const SizedBox(height: 40),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => ForgetPasswordscreen(role: selectedrole),
+                  ),
+                );
+              },
+              child: Text(
+                "Forget Password",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          //const SizedBox(height: 0),
 
           /// Login Button
           Consumer<LoginFormprovider>(
             builder: (context, loginprovider, child) {
               return Elevatedbuttonwidget(
                 onpressed: () {
-                  final phone = phonenumbercontroller.text.trim();
+                  final email = emailcontroller.text.trim();
                   final password = passwordcontroller.text.trim();
 
-                  if (phone.isEmpty || password.isEmpty) {
+                  if (email.isEmpty || password.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("Please fill all the fields"),
                       ),
                     );
                   } else if (selectedrole == "Customer") {
-                    context.read<Authprovider>().loginwithphoneandpassword(
-                      phone: phone,
+                    context.read<Authprovider>().loginWithEmailAndPassword(
+                      email: email,
                       password: password,
                       context: context,
                     );
                   } else {
                     context
                         .read<ServiceAuthprovider>()
-                        .loginwithphoneandpassword(
-                          phonenumber: phone,
+                        .loginwithemailandpassword(
+                          emial: email,
                           password: password,
                           context: context,
                         );

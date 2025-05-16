@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/customer/addwork._model.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
-import 'package:svareign/viewmodel/addworkprovider/addworkprovider.dart';
+import 'package:svareign/viewmodel/customerprovider/addworkprovider/addworkprovider.dart';
 
 class FloatingActionWidget extends StatefulWidget {
   const FloatingActionWidget({super.key});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:svareign/services/location_services/fetchingaddress/fetching_address.dart';
-import 'package:svareign/view/screens/serviceproviders/serviceproviders.dart';
+import 'package:svareign/view/screens/customerscreen/serviceproviders/serviceproviders.dart';
 
 class HomeHelpersScreen extends StatefulWidget {
   const HomeHelpersScreen({Key? key}) : super(key: key);
@@ -90,7 +90,11 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                         } else {
                           return Text(
                             snapshot.data!,
-                            style: const TextStyle(color: Colors.black),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                           );
                         }
                       },

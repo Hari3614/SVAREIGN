@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/customer/addwork._model.dart';
-import 'package:svareign/view/screens/customer_reqst_screen/customreqst_screen.dart';
-import 'package:svareign/viewmodel/addworkprovider/addworkprovider.dart';
+import 'package:svareign/view/screens/customerscreen/customer_reqst_screen/customreqst_screen.dart';
+import 'package:svareign/viewmodel/customerprovider/addworkprovider/addworkprovider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class AddWorkWidget extends StatelessWidget {
