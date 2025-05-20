@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:svareign/services/sharedpreferences/session_manager.dart';
-import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
+import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import '../../../services/location_services/location_services.dart';
 import '../../../view/screens/Authentication/customer_signup_screen/otpscreen/otp_screen.dart';

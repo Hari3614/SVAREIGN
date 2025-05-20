@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/setup_profilemodel.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
-import 'package:svareign/view/screens/providerscreen/homescreen/dummy_screen.dart';
+import 'package:svareign/view/screens/providerscreen/homescreen/home_screen.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 
 class Addprofilewidget extends StatefulWidget {
@@ -350,7 +350,9 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
                     (context) => Center(child: CircularProgressIndicator()),
               );
               String imageurl = await uploadimage(_pickedimage!);
+              final serviceId = FirebaseAuth.instance.currentUser!.uid;
               Profile profile = Profile(
+                id: serviceId,
                 fullname: name,
                 description: description,
                 experience: _selectedexperience!,

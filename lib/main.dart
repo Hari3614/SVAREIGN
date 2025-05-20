@@ -8,9 +8,12 @@ import 'package:svareign/viewmodel/customerprovider/addworkprovider/addworkprovi
 import 'package:svareign/viewmodel/bottomnavprovider/bottomnav_provider.dart';
 import 'package:svareign/view/screens/splashscreen/splashscreen.dart';
 import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
+import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
 import 'package:svareign/viewmodel/locationprovider/user_location_provider.dart';
 import 'package:svareign/viewmodel/loginformprovider/login_formprovider.dart';
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
+import 'package:svareign/viewmodel/service_provider/Serviceproivdereqst/servicereqsrprovider.dart';
+import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
 
@@ -30,6 +33,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Workprovider()),
         ChangeNotifierProvider(create: (_) => UserLocationProvider()),
         ChangeNotifierProvider(create: (_) => Profileprovider()),
+        ChangeNotifierProvider(create: (_) => Jobpostprovider()),
+        ChangeNotifierProvider(create: (_) => Servicereqsrprovider()),
+        ChangeNotifierProvider(create: (_) => Userrequestprovider()),
       ],
       child: const MyApp(),
     ),

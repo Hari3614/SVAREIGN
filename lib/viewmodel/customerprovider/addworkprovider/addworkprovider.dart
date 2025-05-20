@@ -32,17 +32,21 @@ class Workprovider extends ChangeNotifier {
 
   // Add work for the current user
   Future<void> addwork(Addworkmodel work) async {
-    final userId = _auth.currentUser?.uid;
-    if (userId == null) {
-      throw Exception("No authenticated user found.");
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception("No authenticated user found");
     }
-
+    final workmap = work.tomap();
     await _firestore
         .collection('users')
-        .doc(userId)
+        .doc(user.uid)
         .collection('works')
-        .add(work.tomap());
-
+        .add(workmap);
+    await _firestore.collection('works').add({
+      ...workmap,
+      'userId': user.uid,
+      'userphone': user.phoneNumber,
+    });
     notifyListeners();
   }
 }

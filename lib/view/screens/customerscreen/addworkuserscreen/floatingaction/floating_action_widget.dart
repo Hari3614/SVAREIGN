@@ -1,5 +1,6 @@
 import 'dart:io';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -56,6 +57,24 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
     }
   }
 
+  Future<String> uploadimage(File imagefile) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      String filename = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference storageref = FirebaseStorage.instance
+          .ref()
+          .child("workimage")
+          .child(uid)
+          .child("$filename.jpg");
+      UploadTask uploadTask = storageref.putFile(imagefile);
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadurl = await snapshot.ref.getDownloadURL();
+      return downloadurl;
+    } catch (e) {
+      throw Exception("image upload failed :$e");
+    }
+  }
+
   Future<void> _postwork() async {
     if (worknamecontroller.text.trim().isEmpty) {
       _showmsg('Please enter a work title');
@@ -74,8 +93,15 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
       _showmsg("Please enter the duration");
       return;
     }
-
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _showmsg("user not logged In");
+      return;
+    }
+    String imageurl = await uploadimage(_pickedimage!);
     final work = Addworkmodel(
+      userId: user.uid,
+      imagepath: imageurl,
       worktittle: worknamecontroller.text.trim(),
       description: _description.text.trim(),
       duration: _durationController.text.trim(),

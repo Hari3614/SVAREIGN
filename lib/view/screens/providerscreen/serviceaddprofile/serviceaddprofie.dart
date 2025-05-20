@@ -6,7 +6,6 @@ class Serviceaddprofie extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.sizeOf(context).height;
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 80,

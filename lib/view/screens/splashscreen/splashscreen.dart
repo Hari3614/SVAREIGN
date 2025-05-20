@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:svareign/utils/bottomnavbar/bottomnav_screen.dart';
+import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
-import 'package:svareign/view/screens/providerscreen/homescreen/dummy_screen.dart';
+import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
+import 'package:svareign/view/screens/providerscreen/homescreen/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Splashscreen extends StatefulWidget {
@@ -36,7 +37,7 @@ class _SplashscreenState extends State<Splashscreen> {
       if (role == 'customer') {
         nextScreen = const HomeContainer();
       } else if (role == 'service provider') {
-        nextScreen = const DummyScreen();
+        nextScreen = const Servicehomecontainer();
       } else {
         nextScreen = const Loginscreen();
       }
