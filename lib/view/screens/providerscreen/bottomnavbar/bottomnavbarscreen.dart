@@ -5,7 +5,7 @@ import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbar.d
 import 'package:svareign/view/screens/providerscreen/homescreen/home_screen.dart';
 import 'package:svareign/view/screens/providerscreen/profilescreen/profilescreen.dart';
 import 'package:svareign/view/screens/providerscreen/serviceworkscreen/serviceworkscreen.dart';
-import 'package:svareign/view/screens/providerscreen/temperory/temperoryscreen.dart';
+import 'package:svareign/view/screens/providerscreen/servicepostscreen/servicepostscreen.dart';
 import 'package:svareign/viewmodel/bottomnavprovider/bottomnav_provider.dart';
 
 class Servicehomecontainer extends StatelessWidget {
@@ -13,7 +13,7 @@ class Servicehomecontainer extends StatelessWidget {
   static final List<Widget> _screens = [
     DummyScreen(),
     ServiceProviderHome(),
-    Temperoryscreen(),
+    Serviceadscreen(),
     Serviceprofilesceen(),
   ];
 

@@ -61,10 +61,15 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.lightGreen,
         centerTitle: true,
         title: const Text(
           'Jobs Post',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
         ),
       ),
       body:

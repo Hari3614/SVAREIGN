@@ -6,7 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/setup_profilemodel.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
+import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
 import 'package:svareign/view/screens/providerscreen/homescreen/home_screen.dart';
+import 'package:svareign/view/screens/providerscreen/serviceworkscreen/serviceworkscreen.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 
 class Addprofilewidget extends StatefulWidget {
@@ -287,7 +289,9 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
 
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const DummyScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const Servicehomecontainer(),
+                      ),
                     );
 
                     _showMessage("Profile added successfully", success: true);
