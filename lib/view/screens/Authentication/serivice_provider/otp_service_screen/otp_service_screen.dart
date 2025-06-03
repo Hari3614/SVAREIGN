@@ -144,7 +144,7 @@ class _OtpScreenState extends State<OtpServiceScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("Please enter a valid OTP")),
                       );
-                      print('error :${e}');
+                      print('error :$e');
                     }
                   },
                   style: ElevatedButton.styleFrom(

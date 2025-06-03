@@ -143,7 +143,7 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
                                   children: [
                                     Text('Duration: ${job.duration}'),
                                     Text(
-                                      "Budget: ${job.budget}₹",
+                                      "Budget: ${job.minbudget}-${job.maxbudget}₹",
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),

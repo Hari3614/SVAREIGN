@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
-import 'package:svareign/view/screens/providerscreen/homescreen/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Splashscreen extends StatefulWidget {

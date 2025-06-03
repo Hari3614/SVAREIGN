@@ -20,10 +20,10 @@ class ServiceSignupWidget extends StatelessWidget {
     final TextEditingController confirmcontoller = TextEditingController();
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
-    final _formkey = GlobalKey<FormState>();
+    final formkey = GlobalKey<FormState>();
 
     return Form(
-      key: _formkey,
+      key: formkey,
       child: SingleChildScrollView(
         child: Column(
           children: [
@@ -48,12 +48,14 @@ class ServiceSignupWidget extends StatelessWidget {
                 if (value == null || value.isEmpty) {
                   return "Please Enter a valid Name";
                 }
+                return null;
               },
               onchanged: (value) {
                 Provider.of<Signupformprovide>(
                   context,
                   listen: false,
                 ).updatefield("name", value!);
+                return null;
               },
             ),
             SizedBox(height: 30),
@@ -70,12 +72,14 @@ class ServiceSignupWidget extends StatelessWidget {
                 } else if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
                   return 'Please Enter Valid E-mail';
                 }
+                return null;
               },
               onchanged: (value) {
                 Provider.of<Signupformprovide>(
                   listen: false,
                   context,
                 ).updatefield("email", value!);
+                return null;
               },
             ),
             SizedBox(height: 30),
@@ -92,12 +96,14 @@ class ServiceSignupWidget extends StatelessWidget {
                 } else if (value.length < 10) {
                   return "please Enter a valid Phone";
                 }
+                return null;
               },
               onchanged: (value) {
                 Provider.of<Signupformprovide>(
                   context,
                   listen: false,
                 ).updatefield("phone", value!);
+                return null;
               },
             ),
             SizedBox(height: 30),
@@ -126,12 +132,14 @@ class ServiceSignupWidget extends StatelessWidget {
                     } else if (value.length < 6) {
                       return "Password must be atleast 6 characters";
                     }
+                    return null;
                   },
                   onchanged: (value) {
                     Provider.of<Signupformprovide>(
                       context,
                       listen: false,
                     ).updatefield("password", value!);
+                    return null;
                   },
                 );
               },
@@ -160,12 +168,14 @@ class ServiceSignupWidget extends StatelessWidget {
                     if (value != passwordcontroller.text) {
                       return "Password does not match";
                     }
+                    return null;
                   },
                   onchanged: (value) {
                     Provider.of<Signupformprovide>(
                       listen: false,
                       context,
                     ).updatefield('confirmpassword', value!);
+                    return null;
                   },
                 );
               },
@@ -183,7 +193,7 @@ class ServiceSignupWidget extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("All fields are required")),
                       );
-                    } else if (_formkey.currentState!.validate()) {
+                    } else if (formkey.currentState!.validate()) {
                       final serviceauthprovider =
                           Provider.of<ServiceAuthprovider>(
                             context,

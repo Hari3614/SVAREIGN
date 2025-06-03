@@ -22,7 +22,7 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _paymentController = TextEditingController();
-  int _maxCharacter = 500;
+  final int _maxCharacter = 500;
   bool isloading = false;
 
   File? _pickedImage;
@@ -41,7 +41,7 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
     "Tank Cleaning",
     "Others",
   ];
-  List<String> _selectedCategories = [];
+  final List<String> _selectedCategories = [];
 
   final List<String> _experienceOptions = [
     "Less than 1 year",

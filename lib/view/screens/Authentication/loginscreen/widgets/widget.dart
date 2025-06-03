@@ -91,6 +91,7 @@ class _LoginwidgetState extends State<Loginwidget> {
                 context,
                 listen: false,
               ).updatefields("email", value ?? '');
+              return null;
             },
           ),
           const SizedBox(height: 40),
@@ -118,6 +119,7 @@ class _LoginwidgetState extends State<Loginwidget> {
                     context,
                     listen: false,
                   ).updatefields("password", value ?? '');
+                  return null;
                 },
               );
             },

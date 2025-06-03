@@ -48,7 +48,7 @@ class Authprovider with ChangeNotifier {
             MaterialPageRoute(
               builder:
                   (context) => FutureBuilder<Position>(
-                    future: locationservice.getCurrentLocation(),
+                    future: locationservice.getCurrentLocation(context),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Scaffold(
@@ -116,7 +116,7 @@ class Authprovider with ChangeNotifier {
       );
       await user!.linkWithCredential(emailCredential);
 
-      Position position = await locationservice.getCurrentLocation();
+      Position position = await locationservice.getCurrentLocation(context);
       final normalisedphone = normalisephonenumber(_phone!);
       final String role = "customer";
 

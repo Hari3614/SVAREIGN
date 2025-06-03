@@ -5,7 +5,8 @@ class Jobpost {
   final String userId;
   final String tittle;
   final String description;
-  final double budget;
+  final double minbudget;
+  final double maxbudget;
   final String duration;
   final String? imagepath;
   final DateTime postedtime;
@@ -13,12 +14,13 @@ class Jobpost {
   Jobpost({
     required this.tittle,
     required this.description,
-    required this.budget,
+    required this.minbudget,
     required this.duration,
     this.imagepath,
     required this.postedtime,
     required this.id,
     required this.userId,
+    required this.maxbudget,
   });
   factory Jobpost.fromfirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -27,7 +29,8 @@ class Jobpost {
       userId: data['userId'],
       tittle: data['worktittle'] ?? '',
       description: data['description'] ?? '',
-      budget: data['budget'] as double,
+      maxbudget: data['maxbudget'],
+      minbudget: data['minbudget'] as double,
       duration: data['duration'] ?? '',
       postedtime: (data['postedtime'] as Timestamp).toDate(),
       imagepath: data['imagepath'] ?? '',

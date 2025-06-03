@@ -21,6 +21,7 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           'Service Posts',
@@ -53,7 +54,7 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (post.imageurl != null && post.imageurl.isNotEmpty)
+                    if (post.imageurl.isNotEmpty)
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(15),

@@ -37,96 +37,112 @@ class AddWorkWidget extends StatelessWidget {
           itemBuilder: (context, index) {
             final work = works[index];
 
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            return Dismissible(
+              key: Key(work.id),
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.only(right: 20),
+                child: Icon(Icons.delete, color: Colors.white, size: 30),
               ),
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Posted ${timeago.format(work.postedtime)}",
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 12,
-                          ),
-                        ),
-                        Icon(
-                          Icons.pending_actions_outlined,
-                          color: const Color.fromARGB(255, 192, 31, 31),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    Text(
-                      work.worktittle,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text.rich(
-                      TextSpan(
+              direction: DismissDirection.endToStart,
+              onDismissed: (_) async {
+                await workprovider.deletework(work.id);
+                // ScaffoldMessenger.of(
+                //   context,
+                // ).showSnackBar(SnackBar(content: Text("work deleted")));
+              },
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const TextSpan(
-                            text: "Budget: ",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                          TextSpan(
-                            text: "₹${work.budget}",
+                          Text(
+                            "Posted ${timeago.format(work.postedtime)}",
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Colors.green,
+                              fontSize: 12,
                             ),
+                          ),
+                          Icon(
+                            Icons.pending_actions_outlined,
+                            color: const Color.fromARGB(255, 192, 31, 31),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 8),
 
-                    const SizedBox(height: 6),
-
-                    Text(
-                      work.description,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.black54),
-                    ),
-
-                    const Divider(height: 20),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.timer, size: 18),
-                          label: Text(work.duration),
+                      Text(
+                        work.worktittle,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
                         ),
-                        OutlinedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CustomreqstScreen(),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            const TextSpan(
+                              text: "Budget: ",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            TextSpan(
+                              text: "₹${work.minbudget}-${work.maxbudget}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
                               ),
-                            );
-                          },
-                          child: const Text("Requests"),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      Text(
+                        work.description,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.black54),
+                      ),
+
+                      const Divider(height: 20),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.timer, size: 18),
+                            label: Text(work.duration),
+                          ),
+                          OutlinedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CustomreqstScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text("Requests"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );

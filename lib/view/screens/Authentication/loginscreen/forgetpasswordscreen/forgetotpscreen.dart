@@ -9,11 +9,11 @@ class Forgetotpscreen extends StatefulWidget {
   final String role;
 
   const Forgetotpscreen({
-    Key? key,
+    super.key,
     required this.verificationId,
     required this.phone,
     required this.role,
-  }) : super(key: key);
+  });
 
   @override
   _ForgetotpscreenState createState() => _ForgetotpscreenState();

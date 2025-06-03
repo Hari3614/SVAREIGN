@@ -18,7 +18,8 @@ class FloatingActionWidget extends StatefulWidget {
 class _FloatingActionWidgetState extends State<FloatingActionWidget> {
   final TextEditingController worknamecontroller = TextEditingController();
   final TextEditingController _description = TextEditingController();
-  final TextEditingController _budgetController = TextEditingController();
+  final TextEditingController _minbudgetController = TextEditingController();
+  final TextEditingController _maxbudgetcontroller = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   int _currentcharacter = 0;
   final _maxcharacter = 500;
@@ -26,7 +27,7 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
   File? _pickedimage;
   String? _imagename;
   final ImagePicker imagePicker = ImagePicker();
-
+  bool isloading = false;
   @override
   void initState() {
     super.initState();
@@ -40,7 +41,8 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
   @override
   void dispose() {
     _description.dispose();
-    _budgetController.dispose();
+    _maxbudgetcontroller.dispose();
+    _minbudgetController.dispose();
     _durationController.dispose();
     super.dispose();
   }
@@ -84,11 +86,16 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
       _showmsg("Please enter the description");
       return;
     }
-    if (_budgetController.text.trim().isEmpty ||
-        double.tryParse(_budgetController.text.trim()) == null) {
+    if (_minbudgetController.text.trim().isEmpty ||
+        double.tryParse(_minbudgetController.text.trim()) == null) {
       _showmsg("Please enter a valid budget");
       return;
     }
+    // if (_maxbudgetcontroller.text.trim().isEmpty ||
+    //     double.parse(_minbudgetController.text.trim()) >
+    //         double.parse(_maxbudgetcontroller.text.trim())) {
+    //   _showmsg("Min budget should not be greater than the max budget");
+    // }
     if (_durationController.text.trim().isEmpty) {
       _showmsg("Please enter the duration");
       return;
@@ -98,18 +105,24 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
       _showmsg("user not logged In");
       return;
     }
+    setState(() {
+      isloading = true;
+    });
     String imageurl = await uploadimage(_pickedimage!);
     final work = Addworkmodel(
+      id: "",
       userId: user.uid,
       imagepath: imageurl,
       worktittle: worknamecontroller.text.trim(),
       description: _description.text.trim(),
       duration: _durationController.text.trim(),
-      budget: double.parse(_budgetController.text.trim()),
+      maxbudget: double.parse(_maxbudgetcontroller.text.trim()),
+      minbudget: double.parse(_minbudgetController.text.trim()),
       postedtime: DateTime.now(),
       // imagepath: _pickedimage?.path,
     );
 
+    print("here the workid${work.id}");
     try {
       await context.read<Workprovider>().addwork(work);
       _showmsg("Work posted successfully", success: true);
@@ -213,11 +226,26 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                 SizedBox(height: 20),
                 Text("Budget (₹)", style: TextStyle(fontSize: 16)),
                 SizedBox(height: 8),
-                Textfieldwidget(
-                  controller: _budgetController,
-                  labeltext: "Enter budget",
-                  obscuretext: false,
-                  inputType: TextInputType.number,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Textfieldwidget(
+                        controller: _minbudgetController,
+                        labeltext: "Min Budget",
+                        obscuretext: false,
+                        inputType: TextInputType.numberWithOptions(),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Flexible(
+                      child: Textfieldwidget(
+                        controller: _maxbudgetcontroller,
+                        labeltext: "Max Budget",
+                        obscuretext: false,
+                        inputType: TextInputType.numberWithOptions(),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 20),
                 Text("Duration", style: TextStyle(fontSize: 16)),
@@ -241,14 +269,23 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                         ),
                       ),
                       onPressed: _postwork,
-                      child: Text(
-                        "Post",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child:
+                          isloading
+                              ? SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              )
+                              : Text(
+                                "Post",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                     ),
                   ),
                 ),

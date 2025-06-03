@@ -24,7 +24,7 @@ class Workprovider extends ChangeNotifier {
           .map(
             (snapshot) =>
                 snapshot.docs
-                    .map((doc) => Addworkmodel.fromMap(doc.data()))
+                    .map((doc) => Addworkmodel.fromMap(doc.data(), doc.id))
                     .toList(),
           );
     });
@@ -37,16 +37,29 @@ class Workprovider extends ChangeNotifier {
       throw Exception("No authenticated user found");
     }
     final workmap = work.tomap();
-    await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('works')
-        .add(workmap);
-    await _firestore.collection('works').add({
+    final globaldoc = await _firestore.collection('works').add({
       ...workmap,
       'userId': user.uid,
       'userphone': user.phoneNumber,
     });
-    notifyListeners();
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('works')
+        .doc(globaldoc.id)
+        .set(workmap);
+  }
+
+  Future<void> deletework(String workid) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await _firestore
+        .collection("users")
+        .doc(user!.uid)
+        .collection("works")
+        .doc(workid)
+        .delete();
+
+    await _firestore.collection("works").doc(workid).delete();
   }
 }

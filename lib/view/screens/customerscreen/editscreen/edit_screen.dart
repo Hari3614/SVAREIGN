@@ -9,7 +9,7 @@ class EditProfileDialog extends StatelessWidget {
   final User? user;
   final _nameController = TextEditingController();
 
-  EditProfileDialog({required this.user, Key? key}) : super(key: key);
+  EditProfileDialog({required this.user, super.key});
 
   @override
   Widget build(BuildContext context) {

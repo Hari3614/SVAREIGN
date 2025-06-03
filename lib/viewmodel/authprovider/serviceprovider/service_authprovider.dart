@@ -48,7 +48,7 @@ class ServiceAuthprovider extends ChangeNotifier {
             MaterialPageRoute(
               builder:
                   (context) => FutureBuilder<Position>(
-                    future: _locationService.getCurrentLocation(),
+                    future: _locationService.getCurrentLocation(context),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Scaffold(
@@ -112,7 +112,7 @@ class ServiceAuthprovider extends ChangeNotifier {
         password: _password!,
       );
       await user!.linkWithCredential(emailcredential);
-      Position position = await _locationService.getCurrentLocation();
+      Position position = await _locationService.getCurrentLocation(context);
       final normalisedphonenumber = normalisephonenumber(_phonenumber!);
       final String role = "service provider";
       await _firebaseFirestore

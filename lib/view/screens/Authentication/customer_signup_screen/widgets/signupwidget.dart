@@ -59,6 +59,7 @@ class Signupwidget extends StatelessWidget {
                   context,
                   listen: false,
                 ).updatefield('name', value!);
+                return null;
               },
             ),
             SizedBox(height: 30),
@@ -104,12 +105,14 @@ class Signupwidget extends StatelessWidget {
                 } else if (value.length != 10) {
                   return 'Phone number must be 10 digits';
                 }
+                return null;
               },
               onchanged: (value) {
                 Provider.of<Signupformprovide>(
                   context,
                   listen: false,
                 ).updatefield("phone", value!);
+                return null;
               },
             ),
             SizedBox(height: 30),
@@ -140,12 +143,14 @@ class Signupwidget extends StatelessWidget {
                     } else if (value.length < 6) {
                       return 'Password must be at least 6 characters';
                     }
+                    return null;
                   },
                   onchanged: (value) {
                     Provider.of<Signupformprovide>(
                       context,
                       listen: false,
                     ).updatefield("password", value!);
+                    return null;
                   },
                 );
               },
@@ -176,12 +181,14 @@ class Signupwidget extends StatelessWidget {
                     if (value != passwordcontroller.text) {
                       return 'Passwords do not match';
                     }
+                    return null;
                   },
                   onchanged: (value) {
                     Provider.of<Signupformprovide>(
                       listen: false,
                       context,
                     ).updatefield("confirmpassword", value!);
+                    return null;
                   },
                 );
               },

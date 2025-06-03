@@ -1,9 +1,16 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:svareign/services/location_services/fetchingaddress/fetching_address.dart';
+import 'package:svareign/services/location_services/location_services.dart';
 import 'package:svareign/view/screens/customerscreen/serviceproviders/serviceproviders.dart';
+import 'package:http/http.dart' as http;
 
 class HomeHelpersScreen extends StatefulWidget {
-  const HomeHelpersScreen({Key? key}) : super(key: key);
+  const HomeHelpersScreen({super.key});
 
   @override
   State<HomeHelpersScreen> createState() => _HomeHelpersScreenState();
@@ -15,9 +22,11 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   bool _isLoadingMore = false;
   bool _showNoProvidersMessage = false;
 
+  bool isloading = true;
   @override
   void initState() {
     super.initState();
+    // futuredelay();
     _scrollController.addListener(_onScroll);
   }
 
@@ -45,6 +54,201 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     }
   }
 
+  Future<Map<String, double>?> _getlatlanfromaddress(String address) async {
+    final String apiKey = "AIzaSyDqpOdQdfhCp5iv-2TdmOCYJwEI0K_O8IY";
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$apiKey',
+    );
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final results = data['results'] as List;
+      if (results.isNotEmpty) {
+        final location = results[0]['geometry']['location'];
+        return {'lat': location['lat'], 'lng': location['lng']};
+      }
+    } else {
+      print('error fetching geocode');
+    }
+  }
+
+  // Future<void> futuredelay(BuildContext con) async {
+  //   await Future.delayed(Duration(milliseconds: 200));
+  //   await location;
+  //   setState(() {});
+  // }
+
+  void _manuallocationdialogue() {
+    String newlocation = "";
+    List<String> suggestions = [];
+    final TextEditingController searchcontroller = TextEditingController();
+    String selectedlocation = "";
+    Map<String, double>? selectedcoordinates;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, localSetState) {
+            Future<void> fetchSuggestions(String input) async {
+              final String apiKey = "AIzaSyDqpOdQdfhCp5iv-2TdmOCYJwEI0K_O8IY";
+              final url = Uri.parse(
+                'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+                '?input=$input&key=$apiKey&types=geocode&language=en',
+              );
+              final response = await http.get(url);
+              if (response.statusCode == 200) {
+                final data = jsonDecode(response.body);
+                final List predictions = data['predictions'];
+                localSetState(() {
+                  suggestions =
+                      predictions
+                          .map((p) => p['description'] as String)
+                          .toList();
+                });
+              } else {
+                print('Error fetching suggestions: ${response.body}');
+                localSetState(() => suggestions = []);
+              }
+            }
+
+            return AlertDialog(
+              title: const Text("Enter New Location"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: searchcontroller,
+                      onChanged: (value) {
+                        newlocation = value;
+                        if (value.length > 2) {
+                          fetchSuggestions(value);
+                        } else {
+                          localSetState(() => suggestions = []);
+                        }
+                      },
+                      decoration: const InputDecoration(
+                        hintText: "Search location",
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...suggestions.map(
+                      (location) => ListTile(
+                        title: Text(location),
+                        onTap: () async {
+                          searchcontroller.text = location;
+                          selectedlocation = location;
+                          final coordinates = await _getlatlanfromaddress(
+                            selectedlocation,
+                          );
+                          if (coordinates != null) {
+                            selectedcoordinates = coordinates;
+                            localSetState(() {
+                              suggestions = [];
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final uid = FirebaseAuth.instance.currentUser!.uid;
+                    if (selectedcoordinates != null) {
+                      double lat = selectedcoordinates!['lat']!;
+                      double lng = selectedcoordinates!['lng']!;
+                      await FirebaseFirestore.instance
+                          .collection("users")
+                          .doc(uid)
+                          .update({
+                            'location': {'latitude': lat, 'longitude': lng},
+                          });
+                      Navigator.of(context).pop();
+                      print("No location selected");
+                    }
+                  },
+                  child: Text("Save"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showlocationoption() {
+    showModalBottomSheet(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Choose location option",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 18),
+              ListTile(
+                leading: const Icon(Icons.my_location),
+                title: const Text(
+                  "Use my current location",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                onTap: () async {
+                  CircularProgressIndicator();
+                  Navigator.of(context).pop();
+                  setState(() {
+                    isloading = true;
+                  });
+                  Position? position = await LocationService()
+                      .getCurrentLocation(context);
+                  if (position != null) {
+                    double lat = position.latitude;
+                    double lng = position.longitude;
+                    String userId = FirebaseAuth.instance.currentUser!.uid;
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .update({
+                          'location': {'latitude': lat, 'longitude': lng},
+                        });
+                  } else {
+                    print("failed to get the location");
+                  }
+
+                  setState(() {
+                    isloading = false;
+                  });
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.location_city),
+                title: const Text(
+                  "Change Location",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                onTap: () => _manuallocationdialogue(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -61,48 +265,51 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Location and Cart
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.location_on_outlined, color: Colors.green),
-                    const SizedBox(width: 5),
-                    FutureBuilder<String?>(
-                      future: userservice.getuseraddress(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Text(
-                            "Loading ...",
-                            style: TextStyle(color: Colors.black54),
-                          );
-                        } else if (snapshot.hasError) {
-                          return const Text(
-                            "Unknown error",
-                            style: TextStyle(color: Colors.black54),
-                          );
-                        } else if (snapshot.data == null) {
-                          return const Text(
-                            "Location Not available",
-                            style: TextStyle(color: Colors.black54),
-                          );
-                        } else {
-                          return Text(
-                            snapshot.data!,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
-                const Icon(Icons.shopping_cart_outlined, color: Colors.black),
-              ],
+            GestureDetector(
+              onTap: _showlocationoption,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, color: Colors.green),
+                      const SizedBox(width: 5),
+                      FutureBuilder<String?>(
+                        future: userservice.getuseraddress(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Text(
+                              "Loading ...",
+                              style: TextStyle(color: Colors.black54),
+                            );
+                          } else if (snapshot.hasError) {
+                            return const Text(
+                              "Unknown error",
+                              style: TextStyle(color: Colors.black54),
+                            );
+                          } else if (snapshot.data == null) {
+                            return const Text(
+                              "Location Not available",
+                              style: TextStyle(color: Colors.black54),
+                            );
+                          } else {
+                            return Text(
+                              snapshot.data!,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const Icon(Icons.shopping_cart_outlined, color: Colors.black),
+                ],
+              ),
             ),
             SizedBox(height: size.height * 0.02),
 

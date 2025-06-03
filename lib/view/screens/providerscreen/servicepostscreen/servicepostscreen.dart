@@ -54,7 +54,7 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (posts.imageurl != null && posts.imageurl.isNotEmpty)
+                    if (posts.imageurl.isNotEmpty)
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(15),
