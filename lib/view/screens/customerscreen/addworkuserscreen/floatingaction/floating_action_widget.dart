@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
   final TextEditingController _durationController = TextEditingController();
   int _currentcharacter = 0;
   final _maxcharacter = 500;
-
+  final AudioPlayer _audioPlayer = AudioPlayer();
   File? _pickedimage;
   String? _imagename;
   final ImagePicker imagePicker = ImagePicker();
@@ -125,6 +126,9 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
     print("here the workid${work.id}");
     try {
       await context.read<Workprovider>().addwork(work);
+      await _audioPlayer.play(
+        AssetSource("sounds/mixkit-hard-pop-click-2364.wav"),
+      );
       _showmsg("Work posted successfully", success: true);
       Navigator.of(context).pop();
     } catch (e) {

@@ -1,4 +1,5 @@
 class Reqstmodel {
+  final String id;
   final String jobId;
   final String providerid;
   final String? name;
@@ -6,19 +7,26 @@ class Reqstmodel {
   final String? hourlypayment;
   final String? experience;
   final List<String>? jobs;
-
+  final String status;
+  final String phonenumber;
   Reqstmodel({
+    required this.id,
     required this.providerid,
     required this.jobId,
+    required this.status,
     this.experience,
     this.hourlypayment,
     this.imagepath,
     this.jobs,
     this.name,
+    required this.phonenumber,
   });
 
-  factory Reqstmodel.fromMap(Map<String, dynamic> map) {
+  factory Reqstmodel.fromMap(String documentId, Map<String, dynamic> map) {
     return Reqstmodel(
+      phonenumber: map['phone'],
+      id: documentId,
+      status: map['status'],
       providerid: map['providerId'],
       jobId: map['jobId'],
       name: map['name'],
@@ -38,6 +46,8 @@ class Reqstmodel {
       'hourlypayment': hourlypayment,
       'experience': experience,
       'job': jobs,
+      'status': status,
+      "phone": phonenumber,
     };
   }
 }

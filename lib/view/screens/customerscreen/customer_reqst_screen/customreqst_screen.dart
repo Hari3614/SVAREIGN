@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CustomreqstScreen extends StatefulWidget {
   const CustomreqstScreen({super.key});
@@ -127,22 +128,124 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       ],
                     ),
                     const Divider(height: 20),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: Icon(Icons.close, color: Colors.red),
-                          label: Text("Decline"),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () {},
-                          label: Text("Accept"),
-                          icon: Icon(Icons.check, color: Colors.green),
-                        ),
-                      ],
-                    ),
+                    const SizedBox(height: 10),
+
+                    if (req.status == "Accepted")
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Work in Progress",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () async {
+                                  final cleanednumber =
+                                      req.phonenumber
+                                          .replaceAll("+", "")
+                                          .trim();
+                                  final url = Uri.parse('tel:$cleanednumber');
+                                  final launched = await launchUrl(
+                                    url,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                  if (!launched) {
+                                    print("Failed to launch whatsapp");
+                                  }
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Failed to call"),
+                                    ),
+                                  );
+                                },
+                                icon: Icon(Icons.phone),
+                                label: Text("Call"),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () async {
+                                  final cleanedNumber =
+                                      req.phonenumber
+                                          .replaceAll("+", "")
+                                          .trim();
+                                  final url = Uri.parse(
+                                    "https://wa.me/$cleanedNumber",
+                                  );
+                                  print(
+                                    "Trying to launch WhatsApp with URL: $url",
+                                  );
+
+                                  final launched = await launchUrl(
+                                    url,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                  if (!launched) {
+                                    print("Failed to launch WhatsApp");
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Failed to open WhatsApp",
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.chat),
+                                label: const Text("WhatsApp"),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+                    else
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              final userid =
+                                  FirebaseAuth.instance.currentUser!.uid;
+                              if (userid != null) {
+                                Provider.of<Userrequestprovider>(
+                                  context,
+                                  listen: false,
+                                ).updaterequeststatus(
+                                  userId: userid,
+                                  reqstId: req.id,
+                                  newstatus: "Rejected",
+                                );
+                              }
+                            },
+                            icon: Icon(Icons.close, color: Colors.red),
+                            label: Text("Reject"),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              print("onpressed");
+                              final userid =
+                                  FirebaseAuth.instance.currentUser!.uid;
+                              if (userid != null) {
+                                Provider.of<Userrequestprovider>(
+                                  context,
+                                  listen: false,
+                                ).updaterequeststatus(
+                                  userId: userid,
+                                  reqstId: req.id,
+                                  newstatus: "Accepted",
+                                );
+                              }
+                            },
+                            label: Text("Accept"),
+                            icon: Icon(Icons.check, color: Colors.green),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               );

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:svareign/model/serviceprovider/reqstmodel.dart';
 
@@ -27,6 +28,7 @@ class Userrequestprovider extends ChangeNotifier {
   // merge request and profile
   Future<void> loadrequest(String userId) async {
     final List<Reqstmodel> combinedlist = [];
+
     final requestsnapshot =
         await FirebaseFirestore.instance
             .collection('users')
@@ -38,9 +40,14 @@ class Userrequestprovider extends ChangeNotifier {
       final providerId = reqstdata['providerId'];
       final jobId = reqstdata['jobId'];
       final profiledata = await fetchproviderProfile(providerId);
+      final status = reqstdata['status'] ?? "pending";
+      final userphone = FirebaseAuth.instance.currentUser?.phoneNumber;
       if (profiledata != null) {
         combinedlist.add(
           Reqstmodel(
+            phonenumber: userphone!,
+            id: doc.id,
+            status: status,
             providerid: providerId,
             jobId: jobId,
             name: profiledata['fullname'],
@@ -57,5 +64,24 @@ class Userrequestprovider extends ChangeNotifier {
     }
     _requests = combinedlist;
     notifyListeners();
+  }
+
+  Future<void> updaterequeststatus({
+    required String userId,
+    required String reqstId,
+    required String newstatus,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('requests')
+          .doc(reqstId)
+          .update({'status': newstatus});
+
+      await loadrequest(userId);
+    } catch (e) {
+      debugPrint("Failed to update request status: $e");
+    }
   }
 }

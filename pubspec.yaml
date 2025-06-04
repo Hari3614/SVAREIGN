@@ -56,6 +56,8 @@ dependencies:
   carousel_slider: ^5.0.0
   flutter_google_places_sdk: ^0.4.2+1
   http: ^1.4.0
+  audioplayers: ^6.4.0
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +85,7 @@ flutter:
   assets:
     - assets/images/
     - assets/lottie/
+    - assets/sounds/mixkit-hard-pop-click-2364.wav
   
 
   # An image asset can refer to one or more resolution-specific "variants", see
