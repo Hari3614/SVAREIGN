@@ -9,6 +9,7 @@ class Reqstmodel {
   final List<String>? jobs;
   final String status;
   final String phonenumber;
+  final String userId;
   Reqstmodel({
     required this.id,
     required this.providerid,
@@ -20,10 +21,12 @@ class Reqstmodel {
     this.jobs,
     this.name,
     required this.phonenumber,
+    required this.userId,
   });
 
   factory Reqstmodel.fromMap(String documentId, Map<String, dynamic> map) {
     return Reqstmodel(
+      userId: map['userId'],
       phonenumber: map['phone'],
       id: documentId,
       status: map['status'],
@@ -48,6 +51,7 @@ class Reqstmodel {
       'job': jobs,
       'status': status,
       "phone": phonenumber,
+      "userId": userId,
     };
   }
 }

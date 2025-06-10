@@ -61,6 +61,13 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
 
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.notifications, color: Colors.black),
+          ),
+        ],
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.lightGreen,
         centerTitle: true,
         title: const Text(

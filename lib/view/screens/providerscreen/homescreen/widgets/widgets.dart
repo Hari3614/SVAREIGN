@@ -1,26 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Service Provider Home',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        textTheme: GoogleFonts.poppinsTextTheme(),
-      ),
-      home: const Homewidget(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+import 'package:svareign/view/screens/providerscreen/homescreen/subscreens/myjobsscreen/myjobsscreen.dart';
+import 'package:svareign/view/screens/providerscreen/homescreen/subscreens/notifications/completedjobs.dart';
+import 'package:svareign/viewmodel/service_provider/jobstatprovider/jobstatprovider.dart';
 
 class Homewidget extends StatefulWidget {
   const Homewidget({super.key});
@@ -31,9 +15,15 @@ class Homewidget extends StatefulWidget {
 
 class _HomewidgetState extends State<Homewidget> {
   bool isAvailable = true;
+  @override
+  void initState() {
+    Provider.of<Jobstatprovider>(context, listen: false).fetchjobstats();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final jobstats = Provider.of<Jobstatprovider>(context);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -84,11 +74,24 @@ class _HomewidgetState extends State<Homewidget> {
                 ),
               ),
               const SizedBox(height: 12),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: const [
-                  Statcard(label: "Jobs Today", value: "5"),
-                  Statcard(label: 'Completed', value: "3"),
+                children: [
+                  Statcard(
+                    label: "Jobs Today",
+                    value:
+                        jobstats.isloading
+                            ? "..."
+                            : jobstats.jobtodaycount.toString(),
+                  ),
+                  Statcard(
+                    label: 'Completed',
+                    value:
+                        jobstats.isloading
+                            ? "..."
+                            : jobstats.completedjobcount.toString(),
+                  ),
                 ],
               ),
               const Divider(height: 30),
@@ -115,7 +118,10 @@ class _HomewidgetState extends State<Homewidget> {
                       icon: Icons.notifications,
                       label: "Notifications",
                     ),
-                    Quickactionboard(icon: Icons.person, label: "Profile"),
+                    Quickactionboard(
+                      icon: Icons.assignment_turned_in,
+                      label: "Completed Jobs",
+                    ),
                     Quickactionboard(icon: Icons.settings, label: "Settings"),
                   ],
                 ),
@@ -267,16 +273,32 @@ class Quickactionboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 32),
-          const SizedBox(height: 8),
-          Text(label, overflow: TextOverflow.ellipsis),
-        ],
+    return InkWell(
+      onTap: () {
+        if (label == "My Jobs") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Myjobsscreen()),
+          );
+        }
+        if (label == "Completed Jobs") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Completedjobs()),
+          );
+        }
+      },
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 32),
+            const SizedBox(height: 8),
+            Text(label, overflow: TextOverflow.ellipsis),
+          ],
+        ),
       ),
     );
   }

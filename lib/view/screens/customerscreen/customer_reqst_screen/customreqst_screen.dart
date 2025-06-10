@@ -5,7 +5,8 @@ import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequ
 import 'package:url_launcher/url_launcher.dart';
 
 class CustomreqstScreen extends StatefulWidget {
-  const CustomreqstScreen({super.key});
+  final String workid;
+  const CustomreqstScreen({super.key, required this.workid});
 
   @override
   State<CustomreqstScreen> createState() => _CustomreqstScreenState();
@@ -16,16 +17,18 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
   void initState() {
     super.initState();
     final userid = FirebaseAuth.instance.currentUser?.uid;
+
     Provider.of<Userrequestprovider>(
       context,
       listen: false,
-    ).loadrequest(userid.toString());
+    ).loadrequest(userid.toString(), widget.workid);
   }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Requests")),
       body: Consumer<Userrequestprovider>(
@@ -70,7 +73,6 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,12 +92,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                                   ),
                                   Row(
                                     children: [
-                                      Text(
-                                        '4.2',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
+                                      const Text('4.2'),
                                       const SizedBox(width: 4),
                                       const Icon(
                                         Icons.star,
@@ -116,7 +113,6 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 12),
 
                     Row(
@@ -127,125 +123,141 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                         _infoColumn("Reviews", "140"),
                       ],
                     ),
+
                     const Divider(height: 20),
                     const SizedBox(height: 10),
 
-                    if (req.status == "Accepted")
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Work in Progress",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
+                    if (req.status == "Completed") ...[
+                      const Text(
+                        "Work Completed",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Redirecting to Payment Gateway"),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.payment, color: Colors.white),
+                          label: const Text(
+                            "Make Payment",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: () async {
-                                  final cleanednumber =
-                                      req.phonenumber
-                                          .replaceAll("+", "")
-                                          .trim();
-                                  final url = Uri.parse('tel:$cleanednumber');
-                                  final launched = await launchUrl(
-                                    url,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                  if (!launched) {
-                                    print("Failed to launch whatsapp");
-                                  }
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Failed to call"),
-                                    ),
-                                  );
-                                },
-                                icon: Icon(Icons.phone),
-                                label: Text("Call"),
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: () async {
-                                  final cleanedNumber =
-                                      req.phonenumber
-                                          .replaceAll("+", "")
-                                          .trim();
-                                  final url = Uri.parse(
-                                    "https://wa.me/$cleanedNumber",
-                                  );
-                                  print(
-                                    "Trying to launch WhatsApp with URL: $url",
-                                  );
-
-                                  final launched = await launchUrl(
-                                    url,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                  if (!launched) {
-                                    print("Failed to launch WhatsApp");
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Failed to open WhatsApp",
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                },
-                                icon: const Icon(Icons.chat),
-                                label: const Text("WhatsApp"),
-                              ),
-                            ],
+                        ),
+                      ),
+                    ] else if (req.status == "Accepted") ...[
+                      const Text(
+                        "Work in Progress",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              final cleanednumber =
+                                  req.phonenumber.replaceAll("+", "").trim();
+                              final url = Uri.parse('tel:$cleanednumber');
+                              if (!await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              )) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Failed to call"),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.phone),
+                            label: const Text("Call"),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              final cleanedNumber =
+                                  req.phonenumber.replaceAll("+", "").trim();
+                              final url = Uri.parse(
+                                "https://wa.me/$cleanedNumber",
+                              );
+                              if (!await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              )) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Failed to open WhatsApp"),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.chat),
+                            label: const Text("WhatsApp"),
                           ),
                         ],
-                      )
-                    else
+                      ),
+                    ] else ...[
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           OutlinedButton.icon(
                             onPressed: () {
                               final userid =
-                                  FirebaseAuth.instance.currentUser!.uid;
+                                  FirebaseAuth.instance.currentUser?.uid;
                               if (userid != null) {
                                 Provider.of<Userrequestprovider>(
                                   context,
                                   listen: false,
                                 ).updaterequeststatus(
+                                  workId: req.jobId,
                                   userId: userid,
                                   reqstId: req.id,
                                   newstatus: "Rejected",
                                 );
                               }
                             },
-                            icon: Icon(Icons.close, color: Colors.red),
-                            label: Text("Reject"),
+                            icon: const Icon(Icons.close, color: Colors.red),
+                            label: const Text("Reject"),
                           ),
                           OutlinedButton.icon(
                             onPressed: () {
-                              print("onpressed");
                               final userid =
-                                  FirebaseAuth.instance.currentUser!.uid;
+                                  FirebaseAuth.instance.currentUser?.uid;
                               if (userid != null) {
                                 Provider.of<Userrequestprovider>(
                                   context,
                                   listen: false,
                                 ).updaterequeststatus(
+                                  workId: req.jobId,
                                   userId: userid,
                                   reqstId: req.id,
                                   newstatus: "Accepted",
                                 );
                               }
                             },
-                            label: Text("Accept"),
-                            icon: Icon(Icons.check, color: Colors.green),
+                            label: const Text("Accept"),
+                            icon: const Icon(Icons.check, color: Colors.green),
                           ),
                         ],
                       ),
+                    ],
                   ],
                 ),
               );

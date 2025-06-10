@@ -7,6 +7,7 @@ import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import 'package:svareign/view/screens/Authentication/serivice_provider/otp_service_screen/otp_service_screen.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
+import 'package:svareign/services/firebasemessaging/savetoken.dart';
 import 'package:svareign/view/screens/providerscreen/serviceaddprofile/serviceaddprofie.dart';
 
 class ServiceAuthprovider extends ChangeNotifier {
@@ -135,6 +136,8 @@ class ServiceAuthprovider extends ChangeNotifier {
         uid: userCredential.user!.uid,
         role: role,
       );
+      //   await saveFcmtoken(userCredential.user!.uid);
+      // setupTokenRefreshListener(userCredential.user!.uid);
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Serviceaddprofie()),
@@ -206,6 +209,8 @@ class ServiceAuthprovider extends ChangeNotifier {
       }
       final role = userdoc['role'];
       await SessionManager.Saveusersession(uid: uid, role: role);
+      // await saveFcmtoken(uid);
+      //setupTokenRefreshListener(uid);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => Servicehomecontainer()),

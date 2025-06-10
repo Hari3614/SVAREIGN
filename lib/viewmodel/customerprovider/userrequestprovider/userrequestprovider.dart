@@ -26,7 +26,7 @@ class Userrequestprovider extends ChangeNotifier {
   }
 
   // merge request and profile
-  Future<void> loadrequest(String userId) async {
+  Future<void> loadrequest(String userId, String workId) async {
     final List<Reqstmodel> combinedlist = [];
 
     final requestsnapshot =
@@ -34,6 +34,7 @@ class Userrequestprovider extends ChangeNotifier {
             .collection('users')
             .doc(userId)
             .collection('requests')
+            .where('jobId', isEqualTo: workId)
             .get();
     for (var doc in requestsnapshot.docs) {
       final reqstdata = doc.data();
@@ -42,9 +43,10 @@ class Userrequestprovider extends ChangeNotifier {
       final profiledata = await fetchproviderProfile(providerId);
       final status = reqstdata['status'] ?? "pending";
       final userphone = FirebaseAuth.instance.currentUser?.phoneNumber;
-      if (profiledata != null) {
+      if (profiledata != null && status != "Rejected") {
         combinedlist.add(
           Reqstmodel(
+            userId: userId,
             phonenumber: userphone!,
             id: doc.id,
             status: status,
@@ -70,6 +72,7 @@ class Userrequestprovider extends ChangeNotifier {
     required String userId,
     required String reqstId,
     required String newstatus,
+    required String workId,
   }) async {
     try {
       await FirebaseFirestore.instance
@@ -78,8 +81,11 @@ class Userrequestprovider extends ChangeNotifier {
           .collection('requests')
           .doc(reqstId)
           .update({'status': newstatus});
-
-      await loadrequest(userId);
+      if (newstatus == "Rejected") {
+        _requests.removeWhere((req) => req.id == reqstId);
+        notifyListeners();
+      }
+      await loadrequest(userId, workId);
     } catch (e) {
       debugPrint("Failed to update request status: $e");
     }

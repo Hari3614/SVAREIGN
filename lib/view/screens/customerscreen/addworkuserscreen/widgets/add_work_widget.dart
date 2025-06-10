@@ -133,7 +133,9 @@ class AddWorkWidget extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => CustomreqstScreen(),
+                                  builder:
+                                      (context) =>
+                                          CustomreqstScreen(workid: work.id),
                                 ),
                               );
                             },
