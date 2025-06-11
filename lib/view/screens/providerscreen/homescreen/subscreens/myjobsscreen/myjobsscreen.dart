@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Myjobsscreen extends StatelessWidget {
@@ -28,14 +29,71 @@ class Myjobsscreen extends StatelessWidget {
     }
   }
 
+  Future<void> _showpaymentdialogue(
+    BuildContext context,
+    String requestDocId,
+    String parentDocpath,
+  ) async {
+    final amountcontroller = TextEditingController();
+    await showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text("Enter the final amount"),
+            content: TextField(
+              controller: amountcontroller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(hintText: "Enter Amount"),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("Cancel"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final amount = amountcontroller.text.trim();
+                  if (amount.isEmpty || double.tryParse(amount) == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Please Enter a valid amount"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  final finalamount = double.parse(amount);
+                  await _markWorkAsComplete(
+                    requestDocId,
+                    parentDocpath,
+                    finalamount,
+                  );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Job Marked as complete"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+                child: Text("Submit"),
+              ),
+            ],
+          ),
+    );
+  }
+
   Future<void> _markWorkAsComplete(
     String requestDocId,
     String parentDocPath,
+    double finalAmount,
   ) async {
     try {
       await FirebaseFirestore.instance
           .doc('$parentDocPath/requests/$requestDocId')
-          .update({'status': 'Completed'});
+          .update({'status': 'Completed', 'finalAmount': finalAmount});
     } catch (e) {
       print("Error updating work status: $e");
     }
@@ -209,7 +267,8 @@ class Myjobsscreen extends StatelessWidget {
                                 alignment: Alignment.center,
                                 child: ElevatedButton.icon(
                                   onPressed:
-                                      () => _markWorkAsComplete(
+                                      () => _showpaymentdialogue(
+                                        context,
                                         requestDocId,
                                         parentDocPath,
                                       ),

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -16,6 +17,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
   @override
   void initState() {
     super.initState();
+    _razorpay = Razorpay();
     final userid = FirebaseAuth.instance.currentUser?.uid;
 
     Provider.of<Userrequestprovider>(
