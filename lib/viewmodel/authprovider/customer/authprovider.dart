@@ -36,12 +36,16 @@ class Authprovider with ChangeNotifier {
           print('Autoverification completed');
         },
         verificationFailed: (FirebaseAuthException e) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('OTP Failed: ${e.message}')));
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('OTP Failed: ${e.message}')));
+          }
         },
         codeSent: (String verificationId, int? resendToken) async {
           _verificationId = verificationId;
+
+          if (!context.mounted) return;
 
           Navigator.push(
             context,
@@ -56,13 +60,17 @@ class Authprovider with ChangeNotifier {
                         );
                       } else if (snapshot.hasError) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: Colors.red,
-                              content: Text('Please allow location permission'),
-                            ),
-                          );
-                          Navigator.pop(context);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                backgroundColor: Colors.red,
+                                content: Text(
+                                  'Please allow location permission',
+                                ),
+                              ),
+                            );
+                            Navigator.pop(context);
+                          }
                         });
                         return const Scaffold(body: SizedBox());
                       } else if (snapshot.hasData) {
@@ -89,9 +97,11 @@ class Authprovider with ChangeNotifier {
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error sending OTP: $e")));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error sending OTP: $e")));
+      }
     }
   }
 
@@ -136,58 +146,21 @@ class Authprovider with ChangeNotifier {
 
       await SessionManager.Saveusersession(uid: user.uid, role: role);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeContainer()),
-      );
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeContainer()),
+        );
+      }
     } catch (e) {
       print('error :$e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Signup failed: $e')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Signup failed: $e')));
+      }
     }
   }
-
-  // // Login using phone number and password
-  // Future<void> loginwithphoneandpassword({
-  //   required String phone,
-  //   required String password,
-  //   required BuildContext context,
-  // }) async {
-  //   try {
-  //     final normalisedphone = normalisephonenumber("+91$phone");
-  //     QuerySnapshot snapshot =
-  //         await _firestore
-  //             .collection('users')
-  //             .where('phone', isEqualTo: normalisedphone)
-  //             .get();
-  //     if (snapshot.docs.isNotEmpty) {
-  //       final userdoc = snapshot.docs.first;
-  //       if (userdoc['password'] == password) {
-  //         await SessionManager.Saveusersession(
-  //           uid: userdoc['uid'],
-  //           role: userdoc['role'],
-  //         );
-  //         Navigator.pushReplacement(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => HomeContainer()),
-  //         );
-  //       } else {
-  //         ScaffoldMessenger.of(
-  //           context,
-  //         ).showSnackBar(SnackBar(content: Text('Invalid credentials')));
-  //       }
-  //     } else {
-  //       ScaffoldMessenger.of(
-  //         context,
-  //       ).showSnackBar(SnackBar(content: Text('User not found')));
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
-  //   }
-  // }
 
   // Login using email and password
   Future<void> loginWithEmailAndPassword({
@@ -205,23 +178,29 @@ class Authprovider with ChangeNotifier {
       final userDoc = await _firestore.collection("users").doc(uid).get();
 
       if (!userDoc.exists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("No account found with this email")),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("No account found with this email")),
+          );
+        }
         return;
       }
 
       final role = userDoc['role'];
       await SessionManager.Saveusersession(uid: uid, role: role);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeContainer()),
-      );
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeContainer()),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+      }
     }
   }
 }

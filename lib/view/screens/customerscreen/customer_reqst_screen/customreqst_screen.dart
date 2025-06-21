@@ -1,8 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:svareign/model/serviceprovider/reqstmodel.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
+import 'package:svareign/viewmodel/providerpayment/providerpayment.dart';
+import 'package:svareign/viewmodel/reviewprovider/reviewprovider.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
 class CustomreqstScreen extends StatefulWidget {
@@ -17,13 +21,111 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
-    final userid = FirebaseAuth.instance.currentUser?.uid;
 
-    Provider.of<Userrequestprovider>(
-      context,
-      listen: false,
-    ).loadrequest(userid.toString(), widget.workid);
+    Future.microtask(() {
+      final userid = FirebaseAuth.instance.currentUser?.uid;
+      if (userid != null) {
+        Provider.of<Userrequestprovider>(
+          context,
+          listen: false,
+        ).loadrequest(userid, widget.workid);
+      }
+    });
+  }
+
+  void _showbottomsheet(BuildContext context, Reqstmodel req) {
+    final height = MediaQuery.sizeOf(context).height;
+    final width = MediaQuery.sizeOf(context).width;
+    double _rating = 3.0;
+    final TextEditingController _reviewcontroller = TextEditingController();
+    showBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(top: 20, left: 20, right: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Leave a review",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 16),
+              StatefulBuilder(
+                builder: (context, setState) {
+                  return RatingBar.builder(
+                    initialRating: _rating,
+                    minRating: 1,
+                    direction: Axis.horizontal,
+                    allowHalfRating: true,
+                    itemCount: 5,
+                    itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    itemBuilder:
+                        (context, _) => const Icon(
+                          Icons.star,
+                          color: Color.fromARGB(255, 252, 208, 52),
+                        ),
+                    onRatingUpdate: (rating) {
+                      rating = _rating;
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _reviewcontroller,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  labelText: "Description",
+                  hintText: "Write a short note on your experience",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsetsDirectional.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                  backgroundColor: Colors.deepPurple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  fixedSize: Size(width * 0.9, height * 0.06),
+                ),
+                onPressed: () async {
+                  final provider = Provider.of<Reviewprovider>(
+                    context,
+                    listen: false,
+                  );
+                  final review = _reviewcontroller.text.trim();
+                  if (review.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("please give a review")),
+                    );
+                  }
+                  await provider.addreview(
+                    providerId: req.providerid,
+                    jobId: req.jobId,
+                    reviewtext: review,
+                    rating: _rating,
+                  );
+                  Navigator.pop(context);
+                },
+                child: Text("Submit", style: TextStyle(color: Colors.white)),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -93,10 +195,10 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                                     ),
                                   ),
                                   Row(
-                                    children: [
-                                      const Text('4.2'),
-                                      const SizedBox(width: 4),
-                                      const Icon(
+                                    children: const [
+                                      Text('4.2'),
+                                      SizedBox(width: 4),
+                                      Icon(
                                         Icons.star,
                                         size: 18,
                                         color: Color(0xFFF6C104),
@@ -116,7 +218,6 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -125,7 +226,6 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                         _infoColumn("Reviews", "140"),
                       ],
                     ),
-
                     const Divider(height: 20),
                     const SizedBox(height: 10),
 
@@ -138,28 +238,56 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Center(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Redirecting to Payment Gateway"),
+                      Row(
+                        children: [
+                          Center(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                final paymentprovider =
+                                    Provider.of<Providerpayment>(
+                                      context,
+                                      listen: false,
+                                    );
+                                print("payment :$paymentprovider");
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Redirecting to Payment Gateway",
+                                    ),
+                                  ),
+                                );
+                                paymentprovider.initializerazorpay(
+                                  ctz: context,
+                                  amount: req.finalamount,
+                                  reqstId: req.id,
+                                  jobId: req.jobId,
+                                  providerId: req.providerid,
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.payment,
+                                color: Colors.white,
                               ),
-                            );
-                          },
-                          icon: const Icon(Icons.payment, color: Colors.white),
-                          label: const Text(
-                            "Make Payment",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
+                              label: const Text(
+                                "Make Payment",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          ElevatedButton(
+                            onPressed: () {
+                              _showbottomsheet(context, req);
+                            },
+                            child: Text("Review"),
+                          ),
+                        ],
                       ),
                     ] else if (req.status == "Accepted") ...[
                       const Text(

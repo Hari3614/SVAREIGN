@@ -13,6 +13,9 @@ import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequ
 import 'package:svareign/viewmodel/locationprovider/user_location_provider.dart';
 import 'package:svareign/viewmodel/loginformprovider/login_formprovider.dart';
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
+import 'package:svareign/viewmodel/providerpayment/providerpayment.dart';
+import 'package:svareign/viewmodel/reviewprovider/reviewprovider.dart';
+
 import 'package:svareign/viewmodel/service_provider/Serviceproivdereqst/servicereqsrprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobads/jobadsprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
@@ -42,6 +45,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Userrequestprovider()),
         ChangeNotifierProvider(create: (_) => Jobadsprovider()),
         ChangeNotifierProvider(create: (_) => Jobstatprovider()),
+        ChangeNotifierProvider(create: (_) => Providerpayment()),
+        ChangeNotifierProvider(create: (_) => Reviewprovider()),
       ],
       child: const MyApp(),
     ),

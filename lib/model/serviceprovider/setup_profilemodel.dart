@@ -6,6 +6,7 @@ class Profile {
   final String experience;
   final String payment;
   final String? imageurl;
+  final String upiId;
   Profile({
     required this.id,
     required this.fullname,
@@ -14,6 +15,7 @@ class Profile {
     required this.categories,
     required this.imageurl,
     required this.payment,
+    required this.upiId,
   });
   Map<String, dynamic> tomap() {
     return {
@@ -24,6 +26,7 @@ class Profile {
       'experience': experience,
       'payment': payment,
       'imageurl': imageurl,
+      'upiId': upiId,
     };
   }
 
@@ -36,6 +39,7 @@ class Profile {
       categories: ['categories'],
       imageurl: map['imageurl'],
       payment: map['payment'],
+      upiId: map['upiId'],
     );
   }
 }

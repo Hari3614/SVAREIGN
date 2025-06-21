@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:svareign/services/location_services/fetchingaddress/fetching_address.dart';
+import 'package:svareign/services/location_services/fetchinguseraddress/fetching_address.dart';
 
 class UserLocationProvider extends ChangeNotifier {
   String? _address;

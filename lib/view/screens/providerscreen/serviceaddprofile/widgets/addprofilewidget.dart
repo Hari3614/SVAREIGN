@@ -7,8 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/setup_profilemodel.dart';
 import 'package:svareign/utils/textformfield/textfieldwidget.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
-import 'package:svareign/view/screens/providerscreen/homescreen/home_screen.dart';
-import 'package:svareign/view/screens/providerscreen/serviceworkscreen/serviceworkscreen.dart';
+
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 
 class Addprofilewidget extends StatefulWidget {
@@ -22,6 +21,7 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _paymentController = TextEditingController();
+  final TextEditingController _upicontroller = TextEditingController();
   final int _maxCharacter = 500;
   bool isloading = false;
 
@@ -80,6 +80,11 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
     }
   }
 
+  // bool _isvalidUpi(String upiId) {
+  //   final upiRegx = RegExp(r'^[\w.\-]{2,256}@[a-zA-Z]{2,64}$');
+  //   return upiRegx.hasMatch(upiId);
+  // }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
@@ -120,6 +125,14 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
           _buildExperienceSection(width),
           const SizedBox(height: 10),
           _buildPaymentField(),
+          const SizedBox(height: 10),
+          Textfieldwidget(
+            controller: _upicontroller,
+            labeltext: "Enter your UPI ID",
+            hinttext: "example@upi",
+            obscuretext: false,
+            preffixicon: Icons.payment,
+          ),
           const SizedBox(height: 30),
           _buildSubmitButton(context, width, height),
         ],
@@ -246,7 +259,7 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
                 final name = _nameController.text.trim();
                 final description = _descriptionController.text.trim();
                 final payment = _paymentController.text.trim();
-
+                final upiId = _upicontroller.text.trim();
                 if (_pickedImage == null) {
                   _showMessage("Please select a profile image");
                 } else if (name.isEmpty) {
@@ -260,6 +273,8 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
                 } else if (payment.isEmpty ||
                     double.tryParse(payment) == null) {
                   _showMessage("Valid hourly payment is required");
+                  // } else if (upiId.isEmpty || _isvalidUpi(upiId)) {
+                  //   _showMessage('please enter a valid upi Id');
                 } else {
                   try {
                     showDialog(
@@ -280,6 +295,7 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
                       categories: _selectedCategories,
                       imageurl: imageUrl,
                       payment: payment,
+                      upiId: upiId,
                     );
 
                     await Provider.of<Profileprovider>(
