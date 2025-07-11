@@ -320,7 +320,7 @@ class _ExpandableTextState extends State<ExpandableText> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Description: ${expanded || text.length <= cutoff ? text : text.substring(0, cutoff) + '...'}",
+          "Description: ${expanded || text.length <= cutoff ? text : '${text.substring(0, cutoff)}...'}",
           style: const TextStyle(height: 1.4, fontWeight: FontWeight.w500),
         ),
         if (text.length > cutoff)

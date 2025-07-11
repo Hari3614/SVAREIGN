@@ -6,9 +6,10 @@ class Jobpostprovider extends ChangeNotifier {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   List<Jobpost> _jobPost = [];
   List<Jobpost> get works => _jobPost;
-  void startlisteningTojobs() {
+  void startlisteningTojobs(String place) {
     _firebaseFirestore
         .collection('works')
+        .where('place', isEqualTo: place)
         .orderBy('postedtime', descending: true)
         .snapshots()
         .listen((quersnapshots) {

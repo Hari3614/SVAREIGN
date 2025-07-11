@@ -1,7 +1,10 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/service_provider/jobads/jobadsprovider.dart';
+import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
 
 class AdswatchingScreen extends StatefulWidget {
   const AdswatchingScreen({super.key});
@@ -14,7 +17,31 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<Jobadsprovider>(context, listen: false).fetchglobalposts();
+    _loadserviceproviderplaceandStartlistening();
+  }
+
+  Future<void> _loadserviceproviderplaceandStartlistening() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('services')
+              .doc(user.uid)
+              .get();
+      final place = doc.data()?['place'];
+      if (place != null && place is String) {
+        final jobpostProvider = Provider.of<Jobpostprovider>(
+          context,
+          listen: false,
+        );
+        jobpostProvider.startlisteningTojobs(place);
+      } else {
+        print("place is null");
+      }
+    } catch (e) {
+      print("error fetching place:$e");
+    }
   }
 
   @override

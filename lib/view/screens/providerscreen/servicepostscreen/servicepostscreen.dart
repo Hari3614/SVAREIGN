@@ -1,4 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/view/screens/providerscreen/servicepostscreen/widgets/servieaddwidgetscreen.dart';
@@ -15,7 +17,28 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<Jobadsprovider>(context, listen: false).fetchglobalposts();
+    _fetchplaceandPosts();
+  }
+
+  Future<void> _fetchplaceandPosts() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('services')
+              .doc(user.uid)
+              .get();
+      final place = doc.data()?['place'];
+      if (place != null && place is String) {
+        Provider.of<Jobadsprovider>(
+          context,
+          listen: false,
+        ).fetchglobalposts(place);
+      }
+    } catch (e) {
+      print("error fetching the place for provider :$e");
+    }
   }
 
   @override

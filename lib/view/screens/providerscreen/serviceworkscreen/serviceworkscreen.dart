@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,19 +21,35 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
   @override
   void initState() {
     super.initState();
-    final jobPostProvider = Provider.of<Jobpostprovider>(
-      context,
-      listen: false,
-    );
-    jobPostProvider.startlisteningTojobs();
+    _loadServiceProviderPlaceAndStartListening();
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final jobCount = jobPostProvider.works.length;
-      setState(() {
-        expandedStates = List<bool>.generate(jobCount, (_) => false);
-        requestStates = List<bool>.generate(jobCount, (_) => false);
+  Future<void> _loadServiceProviderPlaceAndStartListening() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('services')
+            .doc(user.uid)
+            .get();
+
+    final place = doc.data()?['place'];
+    if (place != null) {
+      final jobPostProvider = Provider.of<Jobpostprovider>(
+        context,
+        listen: false,
+      );
+      jobPostProvider.startlisteningTojobs(place);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final jobCount = jobPostProvider.works.length;
+        setState(() {
+          expandedStates = List<bool>.generate(jobCount, (_) => false);
+          requestStates = List<bool>.generate(jobCount, (_) => false);
+        });
       });
-    });
+    }
   }
 
   String _formatedtimestamp(DateTime timestamp) {

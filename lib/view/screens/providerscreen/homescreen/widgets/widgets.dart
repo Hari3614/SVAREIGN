@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,13 +6,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/services/fetchinserviceaddres/serviceaddress.dart';
-import 'package:svareign/services/location_services/fetchinguseraddress/fetching_address.dart';
 import 'package:svareign/services/location_services/location_services.dart';
-
+import 'package:svareign/view/screens/providerscreen/homescreen/subscreens/myactivities/myactivities.dart';
 import 'package:svareign/view/screens/providerscreen/homescreen/subscreens/myjobsscreen/myjobsscreen.dart';
 import 'package:svareign/view/screens/providerscreen/homescreen/subscreens/completedjobs/completedjobs.dart';
 import 'package:svareign/view/screens/providerscreen/homescreen/subscreens/reviewscreen/reviewscreen.dart';
 import 'package:http/http.dart' as http;
+import 'package:svareign/viewmodel/appstate/appstate.dart';
 import 'package:svareign/viewmodel/service_provider/jobstatprovider/jobstatprovider.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 
@@ -25,12 +24,13 @@ class Homewidget extends StatefulWidget {
 }
 
 class _HomewidgetState extends State<Homewidget> {
-  bool isAvailable = true;
+  bool isAvailable = false;
   bool isloading = true;
   @override
   void initState() {
     Provider.of<Jobstatprovider>(context, listen: false).fetchjobstats();
     Provider.of<Profileprovider>(context, listen: false).fetchprofile();
+    fetchavailabltystatus();
     // Provider.of<ServiceAuthprovider>(listen: false,context).
     super.initState();
   }
@@ -51,9 +51,10 @@ class _HomewidgetState extends State<Homewidget> {
     } else {
       print('error fetching geocode');
     }
+    return null;
   }
 
-  void _manuallocationdialogue() {
+  void _manuallocationdialogue(VoidCallback onlocatioupdate) {
     String newlocation = "";
     List<String> suggestions = [];
     final TextEditingController searchcontroller = TextEditingController();
@@ -140,14 +141,17 @@ class _HomewidgetState extends State<Homewidget> {
                     final uid = FirebaseAuth.instance.currentUser!.uid;
                     if (selectedcordinates != null) {
                       double lat = selectedcordinates!['lat']!;
-                      double long = selectedcordinates!['long']!;
+                      double long = selectedcordinates!['lng']!;
                       await FirebaseFirestore.instance
                           .collection('services')
                           .doc(uid)
                           .update({
                             'location': {'latitude': lat, 'longitude': long},
                           });
+                      Provider.of<Appstate>(context, listen: false).reloadapp();
                       Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                      onlocatioupdate();
                       print("No location selection");
                     }
                   },
@@ -192,20 +196,16 @@ class _HomewidgetState extends State<Homewidget> {
                   });
                   Position? position = await LocationService()
                       .getCurrentLocation(context);
-                  if (position != null) {
-                    double lat = position.latitude;
-                    double lng = position.longitude;
-                    String userId = FirebaseAuth.instance.currentUser!.uid;
-                    await FirebaseFirestore.instance
-                        .collection('services')
-                        .doc(userId)
-                        .update({
-                          'location': {'latitude': lat, 'longitude': lng},
-                        });
-                  } else {
-                    print("failed to get the location");
-                  }
-
+                  double lat = position.latitude;
+                  double lng = position.longitude;
+                  String userId = FirebaseAuth.instance.currentUser!.uid;
+                  await FirebaseFirestore.instance
+                      .collection('services')
+                      .doc(userId)
+                      .update({
+                        'location': {'latitude': lat, 'longitude': lng},
+                      });
+                  Provider.of<Appstate>(context, listen: false).reloadapp();
                   setState(() {
                     isloading = false;
                   });
@@ -217,13 +217,70 @@ class _HomewidgetState extends State<Homewidget> {
                   "Change Location",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                onTap: () => _manuallocationdialogue(),
+                onTap:
+                    () => _manuallocationdialogue(() {
+                      setState(() {});
+                    }),
               ),
             ],
           ),
         );
       },
     );
+  }
+
+  Future<void> fetchavailabltystatus() async {
+    final providerId = FirebaseAuth.instance.currentUser?.uid;
+    try {
+      final querysnapshot =
+          await FirebaseFirestore.instance
+              .collection('services')
+              .doc(providerId)
+              .collection('profile')
+              .where('serviceId', isEqualTo: providerId)
+              .get();
+      if (querysnapshot.docs.isNotEmpty) {
+        final data = querysnapshot.docs.first.data();
+        setState(() {
+          isAvailable = data['available'] ?? "false";
+          isloading = false;
+        });
+      } else {
+        setState(() {
+          isloading = false;
+        });
+      }
+    } catch (E) {
+      print('error fetching :$E');
+    }
+  }
+
+  void handleavailablitytoggle(bool value) async {
+    final provideruid = FirebaseAuth.instance.currentUser!.uid;
+
+    try {
+      final querysnapshot =
+          await FirebaseFirestore.instance
+              .collection('services')
+              .doc(provideruid)
+              .collection('profile')
+              .where('serviceId', isEqualTo: provideruid)
+              .get();
+      if (querysnapshot.docs.isNotEmpty) {
+        final docId = querysnapshot.docs.first.id;
+        final docref = FirebaseFirestore.instance
+            .collection('services')
+            .doc(provideruid)
+            .collection('profile')
+            .doc(docId);
+        await docref.update({'available': value});
+        print('availablit changed');
+      } else {
+        print("doc is empyt for $provideruid");
+      }
+    } catch (e) {
+      print('error updatinh value :$e ');
+    }
   }
 
   @override
@@ -267,6 +324,7 @@ class _HomewidgetState extends State<Homewidget> {
                   setState(() {
                     isAvailable = value;
                   });
+                  handleavailablitytoggle(value);
                 },
               ),
               const SizedBox(height: 10),
@@ -383,41 +441,46 @@ class JobStatsCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 InkWell(
                   onTap: onlocationtap,
-
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on, size: 19),
-                      FutureBuilder<String?>(
-                        future: serviceaddress.getserviceaddress(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Text(
-                              "Loading....",
-                              style: TextStyle(color: Colors.black),
-                            );
-                          } else if (snapshot.hasError) {
-                            return const Text(
-                              'Unknown error',
-                              style: TextStyle(color: Colors.black),
-                            );
-                          } else if (snapshot.data == null) {
-                            return const Text(
-                              "Location Not available",
-                              style: TextStyle(color: Colors.black),
-                            );
-                          } else {
-                            return Text(
-                              snapshot.data!,
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            );
-                          }
-                        },
+                      const Icon(Icons.location_on, size: 19),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        // 👈 This fixes the overflow
+                        child: FutureBuilder<String?>(
+                          future: serviceaddress.getserviceaddress(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Text(
+                                "Loading....",
+                                style: TextStyle(color: Colors.black),
+                              );
+                            } else if (snapshot.hasError) {
+                              return const Text(
+                                'Unknown error',
+                                style: TextStyle(color: Colors.black),
+                              );
+                            } else if (snapshot.data == null) {
+                              return const Text(
+                                "Location Not available",
+                                style: TextStyle(color: Colors.black),
+                              );
+                            } else {
+                              return Text(
+                                snapshot.data!,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            }
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -502,7 +565,14 @@ class Recentactivitycard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProviderBookingsScreen(),
+                ),
+              );
+            },
             child: Text(
               "See Details",
               style: TextStyle(fontWeight: FontWeight.w500),

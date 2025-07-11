@@ -10,13 +10,14 @@ class Jobadsprovider extends ChangeNotifier {
   List<Jobsadsmodel> get globalposts => _globalposts;
   bool isloading = false;
   bool get loading => isloading;
-  Future<void> fetchglobalposts() async {
+  Future<void> fetchglobalposts(String place) async {
     isloading = true;
     //notifyListeners();
     try {
       final snapshot =
           await _firebaseFirestore
               .collection('posts')
+              .where('place', isEqualTo: place)
               .orderBy('postedtime', descending: true)
               .get();
       _globalposts =
@@ -37,16 +38,24 @@ class Jobadsprovider extends ChangeNotifier {
       throw Exception("No authenticated User found");
     }
     final postmap = post.tomap();
-    await _firebaseFirestore
-        .collection('services')
-        .doc(user.uid)
-        .collection('posts')
-        .add(postmap);
-    await _firebaseFirestore.collection('posts').add({
-      ...postmap,
-      'providerId': user.uid,
-      'phonenumber': user.phoneNumber,
-    });
-    notifyListeners();
+    try {
+      final providerdoc =
+          await _firebaseFirestore.collection('services').doc(user.uid).get();
+      final place = providerdoc.data()?['place'] ?? 'unknknown';
+      await _firebaseFirestore
+          .collection('services')
+          .doc(user.uid)
+          .collection('posts')
+          .add(postmap);
+      await _firebaseFirestore.collection('posts').add({
+        ...postmap,
+        'providerId': user.uid,
+        'phonenumber': user.phoneNumber,
+        'place': place,
+      });
+      notifyListeners();
+    } catch (e) {
+      debugPrint('error adding post with place :$e');
+    }
   }
 }

@@ -4,10 +4,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 import 'package:svareign/services/location_services/fetchinguseraddress/fetching_address.dart';
 import 'package:svareign/services/location_services/location_services.dart';
+import 'package:svareign/view/screens/customerscreen/cartscreen/cartscreen.dart';
 import 'package:svareign/view/screens/customerscreen/serviceproviders/serviceproviders.dart';
 import 'package:http/http.dart' as http;
+import 'package:svareign/viewmodel/appstate/appstate.dart';
+import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
+import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
 
 class HomeHelpersScreen extends StatefulWidget {
   const HomeHelpersScreen({super.key});
@@ -28,6 +33,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     super.initState();
     // futuredelay();
     _scrollController.addListener(_onScroll);
+    fetshuserlocation();
   }
 
   @override
@@ -54,6 +60,35 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     }
   }
 
+  Future<void> fetshuserlocation() async {
+    try {
+      final userid = FirebaseAuth.instance.currentUser!.uid;
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userid)
+              .get();
+      if (!snapshot.exists) return print('doc not exits');
+      final data = snapshot.data();
+      final selectedplace = data?['place'];
+      final lat = data?['location']?['latitude'];
+      final long = data?['location']?['longitude'];
+      if (lat != null && long != null && selectedplace != null) {
+        await Provider.of<Availablityservice>(
+          context,
+          listen: false,
+        ).fetchavailableProvider(
+          selectedplace: selectedplace,
+          userLat: lat,
+          userlng: long,
+          radiusinKm: 10,
+        );
+      }
+    } catch (E) {
+      debugPrint('error locationn fetching :$E');
+    }
+  }
+
   Future<Map<String, double>?> _getlatlanfromaddress(String address) async {
     final String apiKey = "AIzaSyDqpOdQdfhCp5iv-2TdmOCYJwEI0K_O8IY";
     final url = Uri.parse(
@@ -70,6 +105,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     } else {
       print('error fetching geocode');
     }
+    return null;
   }
 
   // Future<void> futuredelay(BuildContext con) async {
@@ -170,6 +206,14 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                           .update({
                             'location': {'latitude': lat, 'longitude': lng},
                           });
+                      Provider.of<Availablityservice>(
+                        context,
+                      ).fetchavailableProvider(
+                        selectedplace: selectedlocation,
+                        userLat: lat,
+                        userlng: lng,
+                      );
+                      Provider.of<Appstate>(context, listen: false).reloadapp();
                       Navigator.of(context).pop();
                       print("No location selected");
                     }
@@ -215,20 +259,16 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                   });
                   Position? position = await LocationService()
                       .getCurrentLocation(context);
-                  if (position != null) {
-                    double lat = position.latitude;
-                    double lng = position.longitude;
-                    String userId = FirebaseAuth.instance.currentUser!.uid;
-                    await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(userId)
-                        .update({
-                          'location': {'latitude': lat, 'longitude': lng},
-                        });
-                  } else {
-                    print("failed to get the location");
-                  }
-
+                  double lat = position.latitude;
+                  double lng = position.longitude;
+                  String userId = FirebaseAuth.instance.currentUser!.uid;
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(userId)
+                      .update({
+                        'location': {'latitude': lat, 'longitude': lng},
+                      });
+                  Provider.of<Appstate>(context, listen: false).reloadapp();
                   setState(() {
                     isloading = false;
                   });
@@ -259,7 +299,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
         controller: _scrollController,
         padding: EdgeInsets.symmetric(
           horizontal: size.width * 0.04,
-          vertical: size.height * 0.02,
+          vertical: size.height * 0.00,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,7 +347,16 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                       ),
                     ],
                   ),
-                  const Icon(Icons.shopping_cart_outlined, color: Colors.black),
+                  IconButton(
+                    icon: Icon(Icons.shopping_cart_outlined),
+                    color: Colors.black,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Cartscreen()),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -366,6 +415,152 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
               providerName: "Ronald Mark",
               rating: 5,
               reviews: 240,
+            ),
+            SizedBox(height: 20),
+            _sectionHeader('Available Providers'),
+            SizedBox(height: 10),
+            SizedBox(
+              height: 400,
+              child: Consumer<Availablityservice>(
+                builder: (context, provider, _) {
+                  if (provider.isloading) {
+                    return const Text("No Service Provider Available");
+                  }
+                  return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: provider.availableProvider.length,
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final providermodel = provider.availableProvider[index];
+                      return Container(
+                        width: 200,
+                        margin: EdgeInsets.only(right: 16),
+                        child: Card(
+                          elevation: 6,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(16),
+                                  bottom: Radius.circular(16),
+                                ),
+                                child: Image.network(
+                                  providermodel.imagepath,
+                                  height: 150,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      providermodel.name,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      providermodel.description,
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      "Jobs:${providermodel.role.join(',')}",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      "Payment/hour: ${providermodel.hourlypayment}",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        foregroundColor: Colors.white,
+                                        backgroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        final cartprovider =
+                                            Provider.of<Cartprovider>(
+                                              context,
+                                              listen: false,
+                                            );
+                                        final isalreadycart = cartprovider
+                                            .cartitems
+                                            .any(
+                                              (e) =>
+                                                  e.serviceId ==
+                                                  providermodel.serviceId,
+                                            );
+                                        if (isalreadycart) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "Already added to the cart",
+                                              ),
+                                              backgroundColor: Colors.orange,
+                                            ),
+                                          );
+                                        } else {
+                                          cartprovider.addtocart(providermodel);
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "${providermodel.name} added to the cart",
+                                              ),
+                                              backgroundColor:
+                                                  Colors.lightGreen,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      icon: Icon(Icons.shopping_cart),
+                                      label: Text("Add to cart"),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
             SizedBox(height: 500),
             if (_isLoadingMore)

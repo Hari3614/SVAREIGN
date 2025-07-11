@@ -7,7 +7,7 @@ import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import 'package:svareign/view/screens/Authentication/serivice_provider/otp_service_screen/otp_service_screen.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
-import 'package:svareign/services/firebasemessaging/savetoken.dart';
+
 import 'package:svareign/view/screens/providerscreen/serviceaddprofile/serviceaddprofie.dart';
 
 class ServiceAuthprovider extends ChangeNotifier {

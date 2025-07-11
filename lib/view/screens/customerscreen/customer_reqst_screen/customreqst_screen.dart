@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/reqstmodel.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
 import 'package:svareign/viewmodel/providerpayment/providerpayment.dart';
-import 'package:svareign/viewmodel/reviewprovider/reviewprovider.dart';
+import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovider/reviewprovider.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -36,8 +36,8 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
   void _showbottomsheet(BuildContext context, Reqstmodel req) {
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
-    double _rating = 3.0;
-    final TextEditingController _reviewcontroller = TextEditingController();
+    double rating = 3.0;
+    final TextEditingController reviewcontroller = TextEditingController();
     showBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -57,7 +57,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
               StatefulBuilder(
                 builder: (context, setState) {
                   return RatingBar.builder(
-                    initialRating: _rating,
+                    initialRating: rating,
                     minRating: 1,
                     direction: Axis.horizontal,
                     allowHalfRating: true,
@@ -69,14 +69,14 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                           color: Color.fromARGB(255, 252, 208, 52),
                         ),
                     onRatingUpdate: (rating) {
-                      rating = _rating;
+                      rating = rating;
                     },
                   );
                 },
               ),
               const SizedBox(height: 16),
               TextField(
-                controller: _reviewcontroller,
+                controller: reviewcontroller,
                 maxLines: 4,
                 decoration: InputDecoration(
                   labelText: "Description",
@@ -104,7 +104,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                     context,
                     listen: false,
                   );
-                  final review = _reviewcontroller.text.trim();
+                  final review = reviewcontroller.text.trim();
                   if (review.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("please give a review")),
@@ -114,7 +114,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                     providerId: req.providerid,
                     jobId: req.jobId,
                     reviewtext: review,
-                    rating: _rating,
+                    rating: rating,
                   );
                   Navigator.pop(context);
                 },

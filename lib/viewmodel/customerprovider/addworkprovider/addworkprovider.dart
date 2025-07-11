@@ -36,18 +36,24 @@ class Workprovider extends ChangeNotifier {
     if (user == null) {
       throw Exception("No authenticated user found");
     }
-    final workmap = work.tomap();
-    final globaldoc = await _firestore.collection('works').add({
-      ...workmap,
+    final userDoc = await _firestore.collection('users').doc(user.uid).get();
+    final userplace = userDoc.data()?['place'];
+    if (userplace == null) {
+      throw Exception('Users place is not available in profile');
+    }
+    final workmap = {
+      ...work.tomap(),
+      'place': userplace,
       'userId': user.uid,
-      'userphone': user.phoneNumber,
-    });
+      "userphone": user.phoneNumber,
+    };
+    final globaldoc = await _firestore.collection('works').add(workmap);
     await _firestore
         .collection('users')
         .doc(user.uid)
         .collection('works')
         .doc(globaldoc.id)
-        .set(workmap);
+        .set({...work.tomap(), 'place': userplace});
   }
 
   Future<void> deletework(String workid) async {
@@ -55,7 +61,7 @@ class Workprovider extends ChangeNotifier {
     if (user == null) return;
     await _firestore
         .collection("users")
-        .doc(user!.uid)
+        .doc(user.uid)
         .collection("works")
         .doc(workid)
         .delete();

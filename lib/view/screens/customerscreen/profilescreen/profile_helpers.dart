@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/view/screens/customerscreen/editscreen/edit_screen.dart';
+import 'package:svareign/view/screens/customerscreen/myordersscreen/myorders.dart';
 import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
 
 class ProfileWidget extends StatelessWidget {
@@ -127,7 +128,7 @@ class ProfileWidget extends StatelessWidget {
         // Profile Options
         buildProfileTile(Icons.edit, 'Edit Profile', context),
         buildProfileTile(Icons.settings, 'Settings', context),
-
+        buildProfileTile(Icons.shopping_bag, 'My orders', context),
         // Logout Button
         ListTile(
           leading: const Icon(Icons.logout, color: Colors.red),
@@ -199,6 +200,11 @@ class ProfileWidget extends StatelessWidget {
             builder: (context) {
               return EditProfileDialog(user: FirebaseAuth.instance.currentUser);
             },
+          );
+        } else if (title == "My orders") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MyOrders()),
           );
         }
       },
