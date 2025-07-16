@@ -12,6 +12,7 @@ import 'package:svareign/view/screens/splashscreen/splashscreen.dart';
 import 'package:svareign/viewmodel/customerprovider/bookingprovider/bookingprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
+import 'package:svareign/viewmodel/customerprovider/searchprovider/searchprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
 import 'package:svareign/viewmodel/locationprovider/user_location_provider.dart';
@@ -24,6 +25,7 @@ import 'package:svareign/viewmodel/service_provider/booknndfetchprovider/ordersf
 import 'package:svareign/viewmodel/service_provider/jobads/jobadsprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
 import 'package:svareign/viewmodel/service_provider/jobstatprovider/jobstatprovider.dart';
+import 'package:svareign/viewmodel/service_provider/serviceprofileprovider/serviceprofileprovider.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
 
@@ -55,7 +57,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Cartprovider()),
         ChangeNotifierProvider(create: (_) => Bookingprovider()),
         ChangeNotifierProvider(create: (_) => Ordersfromuserprovider()),
-        ChangeNotifierProvider(create: (_) => Appstate()),
+        ChangeNotifierProvider(create: (_) => Serviceprofileprovider()),
+        //ChangeNotifierProvider(create: (_) => Appstate()),
+        ChangeNotifierProvider(create: (_) => Searchprovider()),
       ],
       child: const MyApp(),
     ),
@@ -67,13 +71,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<Appstate>(
-      builder: (context, appstate, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: Splashscreen(),
-        );
-      },
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false, home: Splashscreen());
   }
 }

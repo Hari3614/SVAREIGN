@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/view/screens/addcommonscreen/addcommonscreen.dart';
 import 'package:svareign/viewmodel/bottomnavprovider/bottomnav_provider.dart';
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnavbar.dart';
 import 'package:svareign/view/screens/customerscreen/addworkuserscreen/add_work_user_screen.dart';
@@ -14,6 +15,7 @@ class HomeContainer extends StatelessWidget {
     HomeScreen(),
     AddWorkUserScreen(),
     AdswatchingScreen(),
+    Addcommonscreen(),
     ProfileScreen(),
   ];
 

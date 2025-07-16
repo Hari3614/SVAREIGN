@@ -148,7 +148,7 @@ class _HomewidgetState extends State<Homewidget> {
                           .update({
                             'location': {'latitude': lat, 'longitude': long},
                           });
-                      Provider.of<Appstate>(context, listen: false).reloadapp();
+                      // Provider.of<Appstate>(context, listen: false).reloadapp();
                       Navigator.of(context).pop();
                       Navigator.of(context).pop();
                       onlocatioupdate();
@@ -205,7 +205,7 @@ class _HomewidgetState extends State<Homewidget> {
                       .update({
                         'location': {'latitude': lat, 'longitude': lng},
                       });
-                  Provider.of<Appstate>(context, listen: false).reloadapp();
+                  // Provider.of<Appstate>(context, listen: false).reloadapp();
                   setState(() {
                     isloading = false;
                   });

@@ -26,8 +26,9 @@ class Custombottomnavbar extends StatelessWidget {
               children: [
                 _navitem(context, icon: Icons.home, index: 0),
                 _navitem(context, icon: Icons.add_task_outlined, index: 1),
-                _navitem(context, icon: Icons.campaign, index: 2),
-                _navitem(context, icon: Icons.person, index: 3),
+                _navitem(context, icon: Icons.feed, index: 2),
+                _navitem(context, icon: Icons.campaign, index: 3),
+                _navitem(context, icon: Icons.person, index: 4),
               ],
             ),
           ),

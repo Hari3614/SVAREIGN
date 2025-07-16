@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
@@ -10,9 +9,11 @@ import 'package:svareign/services/location_services/location_services.dart';
 import 'package:svareign/view/screens/customerscreen/cartscreen/cartscreen.dart';
 import 'package:svareign/view/screens/customerscreen/serviceproviders/serviceproviders.dart';
 import 'package:http/http.dart' as http;
-import 'package:svareign/viewmodel/appstate/appstate.dart';
+
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
+import 'package:svareign/viewmodel/customerprovider/searchprovider/searchprovider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeHelpersScreen extends StatefulWidget {
   const HomeHelpersScreen({super.key});
@@ -24,6 +25,7 @@ class HomeHelpersScreen extends StatefulWidget {
 class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   final Userservice userservice = Userservice();
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController serarchcontroller = TextEditingController();
   bool _isLoadingMore = false;
   bool _showNoProvidersMessage = false;
 
@@ -34,6 +36,14 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     // futuredelay();
     _scrollController.addListener(_onScroll);
     fetshuserlocation();
+    // final searchprovider = Provider.of<Searchprovider>(context, listen: false);
+    // searchprovider.fetchUserPlace();
+    final searchprovider = Provider.of<Searchprovider>(context, listen: false);
+    searchprovider.fetchUserPlace().then((place) {
+      if (place != null) {
+        searchprovider.setUserPlace(place); // use setter
+      }
+    });
   }
 
   @override
@@ -213,7 +223,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                         userLat: lat,
                         userlng: lng,
                       );
-                      Provider.of<Appstate>(context, listen: false).reloadapp();
+                      // Provider.of<Appstate>(context, listen: false).reloadapp();
                       Navigator.of(context).pop();
                       print("No location selected");
                     }
@@ -268,7 +278,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                       .update({
                         'location': {'latitude': lat, 'longitude': lng},
                       });
-                  Provider.of<Appstate>(context, listen: false).reloadapp();
+                  //  Provider.of<Appstate>(context, listen: false).reloadapp();
                   setState(() {
                     isloading = false;
                   });
@@ -292,7 +302,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
+    final searchprovider = Provider.of<Searchprovider>(context);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -364,6 +374,15 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
 
             // Search Bar
             TextField(
+              keyboardType: TextInputType.emailAddress,
+              controller: serarchcontroller,
+              onChanged: (value) {
+                final userplace = searchprovider.userPlace;
+                if (value.trim().isNotEmpty &&
+                    searchprovider.userPlace != null) {
+                  searchprovider.debouncesearch(value.trim(), userplace!);
+                }
+              },
               decoration: InputDecoration(
                 hintText: "Search for services...",
                 hintStyle: const TextStyle(color: Colors.black54),
@@ -384,6 +403,176 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                 fillColor: Colors.grey.shade100,
               ),
             ),
+            const SizedBox(height: 10),
+            Consumer<Searchprovider>(
+              builder: (context, provider, _) {
+                final results = provider.searchresults;
+
+                if (serarchcontroller.text.isNotEmpty && results.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 16.0),
+                    child: Center(child: Text("No service providers found.")),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: results.length,
+                  itemBuilder: (context, index) {
+                    final data = results[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      elevation: 5,
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage:
+                              data['imageurl'] != null
+                                  ? NetworkImage(data['imageurl'])
+                                  : null,
+                          backgroundColor: Colors.grey.shade300,
+                        ),
+                        title: Text(data['name'] ?? ''),
+                        subtitle: Text(
+                          "Jobs: ${data['Jobs'].join(', ')}",
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        trailing: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Text(data['phonenumber'] ?? ''),
+                            // if (data['experience'] != null)
+                            //   Text("${data['experience']} yrs"),
+                          ],
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                title: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 25,
+                                      backgroundImage:
+                                          data['imageurl'] != null
+                                              ? NetworkImage(data['imageurl'])
+                                              : null,
+                                      backgroundColor: Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      child: Text(
+                                        data['name'] ?? "",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (data['description'] != null)
+                                      Text(
+                                        data['description'],
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 8),
+                                    if (data['experience'] != null)
+                                      Text(
+                                        "Experience: ${data['experience']}",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        ElevatedButton.icon(
+                                          onPressed: () async {
+                                            final phone = data['phonenumber'];
+                                            final Uri phoneUri = Uri(
+                                              scheme: 'tel',
+                                              path: phone,
+                                            );
+                                            if (await canLaunchUrl(phoneUri)) {
+                                              await launchUrl(phoneUri);
+                                            }
+                                          },
+                                          icon: Icon(
+                                            Icons.call,
+                                            color: Colors.white,
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blue,
+                                          ),
+                                          label: const Text(
+                                            'Call',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 8),
+                                        ElevatedButton.icon(
+                                          onPressed: () async {
+                                            final phone = data['phonenumber'];
+                                            final Uri whatsappUri = Uri.parse(
+                                              "https://wa.me/$phone?text=Hello, I found your service on the app",
+                                            );
+                                            if (await canLaunchUrl(
+                                              whatsappUri,
+                                            )) {
+                                              await launchUrl(
+                                                whatsappUri,
+                                                mode:
+                                                    LaunchMode
+                                                        .externalApplication,
+                                              );
+                                            }
+                                          },
+                                          icon: Icon(
+                                            Icons.chat,
+                                            color: Colors.white,
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.green,
+                                          ),
+                                          label: const Text(
+                                            'Whatsapp',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+
             SizedBox(height: size.height * 0.03),
 
             _sectionHeader("All Categories"),

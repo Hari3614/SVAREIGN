@@ -152,7 +152,12 @@ class ProfileWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Loginscreen()),
+              );
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               decoration: BoxDecoration(

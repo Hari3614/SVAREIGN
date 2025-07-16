@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/view/screens/addcommonscreen/addcommonscreen.dart';
 
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbar.dart';
 import 'package:svareign/view/screens/providerscreen/homescreen/home_screen.dart';
@@ -14,6 +15,7 @@ class Servicehomecontainer extends StatelessWidget {
     DummyScreen(),
     ServiceProviderHome(),
     Serviceadscreen(),
+    Addcommonscreen(),
     Serviceprofilesceen(),
   ];
 
