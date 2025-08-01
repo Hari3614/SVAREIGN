@@ -28,6 +28,7 @@ class Bookingprovider with ChangeNotifier {
       for (final doc in querySnapshot.docs) {
         final data = doc.data();
         final bookingUserId = data['userId'];
+        final providerId = data['serviceId'];
 
         final userDoc =
             await FirebaseFirestore.instance
@@ -36,13 +37,24 @@ class Bookingprovider with ChangeNotifier {
                 .get();
 
         final userData = userDoc.data() ?? {};
-
+        final providerProfileDoc =
+            await FirebaseFirestore.instance
+                .collection('services')
+                .doc(providerId)
+                .collection('profile')
+                .limit(1)
+                .get();
+        final providerdata =
+            providerProfileDoc.docs.isNotEmpty
+                ? providerProfileDoc.docs.first.data()
+                : {};
+        print("data ${providerProfileDoc.docs.length}");
         final booking = Bookingmodel.fromMap(
           data: data,
           bookingId: doc.id,
-          name: userData['name'] ?? 'Unknown',
-          imagePath: userData['image'] ?? '',
-          phoneNumber: userData['phone'] ?? '',
+          name: providerdata['fullname'] ?? 'Unknown',
+          imagePath: providerdata['imageurl'] ?? '',
+          //phoneNumber: providerdata['phone'] ?? '',
         );
 
         tempList.add(booking);

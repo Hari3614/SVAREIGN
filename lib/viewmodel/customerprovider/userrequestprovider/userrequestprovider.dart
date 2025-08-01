@@ -44,9 +44,11 @@ class Userrequestprovider extends ChangeNotifier {
       final status = reqstdata['status'] ?? "pending";
       final userphone = FirebaseAuth.instance.currentUser?.phoneNumber;
       final finalamount = reqstdata['finalAmount'] ?? 0.0;
+      //  final upiId = reqstdata['upiId'] ?? "";
       if (profiledata != null && status != "Rejected") {
         combinedlist.add(
           Reqstmodel(
+            upiId: profiledata['upiId'],
             finalamount: finalamount,
             userId: userId,
             phonenumber: userphone!,

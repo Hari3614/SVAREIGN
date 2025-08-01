@@ -4,16 +4,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/model/customer/fetchserviceprovider.dart';
 import 'package:svareign/services/location_services/fetchinguseraddress/fetching_address.dart';
 import 'package:svareign/services/location_services/location_services.dart';
 import 'package:svareign/view/screens/customerscreen/cartscreen/cartscreen.dart';
 import 'package:svareign/view/screens/customerscreen/serviceproviders/serviceproviders.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/searchprovider/searchprovider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class HomeHelpersScreen extends StatefulWidget {
   const HomeHelpersScreen({super.key});
@@ -434,7 +433,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                         ),
                         title: Text(data['name'] ?? ''),
                         subtitle: Text(
-                          "Jobs: ${data['Jobs'].join(', ')}",
+                          "Jobs: ${data['Jobs'].join(',')}",
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                         trailing: Column(
@@ -502,61 +501,51 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
                                         ElevatedButton.icon(
-                                          onPressed: () async {
-                                            final phone = data['phonenumber'];
-                                            final Uri phoneUri = Uri(
-                                              scheme: 'tel',
-                                              path: phone,
+                                          onPressed: () {
+                                            final cartprovider =
+                                                Provider.of<Cartprovider>(
+                                                  context,
+                                                  listen: false,
+                                                );
+                                            final serviceModel =
+                                                Fetchserviceprovidermodel(
+                                                  serviceId: data['uid'] ?? '',
+
+                                                  name: data['name'] ?? '',
+                                                  imagepath:
+                                                      data['imageurl'] ?? '',
+                                                  role:
+                                                      data['Jobs'] is List
+                                                          ? List<dynamic>.from(
+                                                            data['categories'],
+                                                          )
+                                                          : [
+                                                            data['categories'],
+                                                          ],
+                                                  description:
+                                                      data['description'] ?? '',
+
+                                                  hourlypayment:
+                                                      data['payment'] ?? '',
+                                                );
+                                            print(
+                                              "servicemodel: $serviceModel",
                                             );
-                                            if (await canLaunchUrl(phoneUri)) {
-                                              await launchUrl(phoneUri);
-                                            }
-                                          },
-                                          icon: Icon(
-                                            Icons.call,
-                                            color: Colors.white,
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.blue,
-                                          ),
-                                          label: const Text(
-                                            'Call',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        ElevatedButton.icon(
-                                          onPressed: () async {
-                                            final phone = data['phonenumber'];
-                                            final Uri whatsappUri = Uri.parse(
-                                              "https://wa.me/$phone?text=Hello, I found your service on the app",
+                                            cartprovider.addtocart(
+                                              serviceModel,
                                             );
-                                            if (await canLaunchUrl(
-                                              whatsappUri,
-                                            )) {
-                                              await launchUrl(
-                                                whatsappUri,
-                                                mode:
-                                                    LaunchMode
-                                                        .externalApplication,
-                                              );
-                                            }
+                                            Navigator.of(context).pop();
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                backgroundColor: Colors.green,
+                                                content: Text('Added to cart'),
+                                              ),
+                                            );
                                           },
-                                          icon: Icon(
-                                            Icons.chat,
-                                            color: Colors.white,
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                          ),
-                                          label: const Text(
-                                            'Whatsapp',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
+                                          label: Text('Add to Cart'),
+                                          icon: Icon(Icons.shopping_cart),
                                         ),
                                       ],
                                     ),

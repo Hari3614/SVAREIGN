@@ -62,6 +62,9 @@ dependencies:
   razorpay_flutter: ^1.4.0
   flutter_rating_bar: ^4.0.1
   share_plus: ^7.2.1
+  upi_pay: ^1.1.0
+  uuid: ^4.5.1
+  
 
 dev_dependencies:
   flutter_test:

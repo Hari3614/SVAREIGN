@@ -1,6 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/view/screens/providerscreen/profilescreen/widget/profilehelpers.dart';
 
 class Serviceprofilesceen extends StatelessWidget {

@@ -144,7 +144,11 @@ class Authprovider with ChangeNotifier {
         'createdAt': Timestamp.now(),
       });
 
-      await SessionManager.Saveusersession(uid: user.uid, role: role);
+      await SessionManager.SaveUserSession(
+        uid: user.uid,
+        role: role,
+        name: _name!,
+      );
 
       if (context.mounted) {
         Navigator.pushReplacement(
@@ -187,7 +191,7 @@ class Authprovider with ChangeNotifier {
       }
 
       final role = userDoc['role'];
-      await SessionManager.Saveusersession(uid: uid, role: role);
+      await SessionManager.SaveUserSession(uid: uid, role: role, name: _name!);
 
       if (context.mounted) {
         Navigator.pushReplacement(

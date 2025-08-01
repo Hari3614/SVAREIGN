@@ -21,6 +21,7 @@ class _MyOrdersState extends State<MyOrders>
     _tabController = TabController(length: 3, vsync: this);
     Future.delayed(Duration.zero, () {
       Provider.of<Bookingprovider>(context, listen: false).fetchbookings();
+      // Provider.of<Bookingprovider>(context, listen: false).fetproviderforuser();
     });
   }
 
@@ -201,7 +202,7 @@ class _MyOrdersState extends State<MyOrders>
                   isCompleted ? () => showReviewDialog(context, booking) : null,
               child: Chip(
                 label: Text(
-                  isCompleted ? "REVIEW" : status.toUpperCase(),
+                  isCompleted ? "Payment" : status.toUpperCase(),
                   style: const TextStyle(color: Colors.white),
                 ),
                 backgroundColor: chipColor,

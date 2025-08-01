@@ -189,43 +189,6 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                         context,
                         listen: false,
                       ).updatebookings(booking.bookingId, "completed");
-
-                      showDialog(
-                        context: context,
-                        builder:
-                            (_) => AlertDialog(
-                              title: Text("Select Payment Method"),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text("COD selected")),
-                                      );
-                                    },
-                                    child: Text("Cash on Delivery"),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text("Razorpay selected"),
-                                        ),
-                                      );
-                                    },
-                                    child: Text("Pay with Razorpay"),
-                                  ),
-                                ],
-                              ),
-                            ),
-                      );
                     },
                     icon: Icon(Icons.check_circle_outline, color: Colors.white),
                     label: Text(

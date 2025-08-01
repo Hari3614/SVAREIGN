@@ -59,4 +59,17 @@ class ProfileViewModel with ChangeNotifier {
     }
     await fetchUserByUid(currentuser.uid);
   }
+
+  void updateImageUrl(String newImageUrl) {
+    if (_user != null) {
+      _user = UserModel(
+        uid: _user!.uid,
+        name: _user!.name,
+        email: _user!.email,
+        phone: _user!.phone,
+        imageurl: newImageUrl,
+      );
+      notifyListeners();
+    }
+  }
 }

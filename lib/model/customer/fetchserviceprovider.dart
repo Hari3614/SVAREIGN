@@ -18,7 +18,10 @@ class Fetchserviceprovidermodel {
     return Fetchserviceprovidermodel(
       name: data['fullname'] ?? 'unknown',
       imagepath: data['imageurl'] ?? 'unknown',
-      role: data['categories'] ?? "",
+      role:
+          data['categories'] != null
+              ? List<dynamic>.from(data['categories'])
+              : [],
       description: data['description'] ?? "",
       hourlypayment: data['payment'] ?? "",
       serviceId: data['serviceId'] ?? "",

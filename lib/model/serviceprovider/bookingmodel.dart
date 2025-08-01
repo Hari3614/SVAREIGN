@@ -28,7 +28,7 @@ class Bookingmodel {
     required String bookingId,
     required String name,
     required String imagePath,
-    required String phoneNumber,
+    String? phoneNumber,
   }) {
     return Bookingmodel(
       data['userId'] ?? '',
@@ -39,7 +39,7 @@ class Bookingmodel {
       data['status'] ?? 'pending',
       name,
       imagePath,
-      phoneNumber,
+      phoneNumber ?? "",
       bookingId: bookingId,
     );
   }

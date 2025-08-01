@@ -11,6 +11,7 @@ class Reqstmodel {
   final String phonenumber;
   final String userId;
   final double finalamount;
+  final String upiId;
   Reqstmodel({
     required this.id,
     required this.providerid,
@@ -24,10 +25,12 @@ class Reqstmodel {
     required this.phonenumber,
     required this.userId,
     required this.finalamount,
+    required this.upiId,
   });
 
   factory Reqstmodel.fromMap(String documentId, Map<String, dynamic> map) {
     return Reqstmodel(
+      upiId: map['upiId'],
       userId: map['userId'],
       phonenumber: map['phone'],
       id: documentId,
@@ -56,6 +59,7 @@ class Reqstmodel {
       "phone": phonenumber,
       "userId": userId,
       "finalAmount": finalamount,
+      'upiId': upiId,
     };
   }
 }

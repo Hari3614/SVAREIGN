@@ -132,9 +132,10 @@ class ServiceAuthprovider extends ChangeNotifier {
             },
             'createdAt': Timestamp.now(),
           });
-      await SessionManager.Saveusersession(
+      await SessionManager.SaveUserSession(
         uid: userCredential.user!.uid,
         role: role,
+        name: _name!,
       );
       //   await saveFcmtoken(userCredential.user!.uid);
       // setupTokenRefreshListener(userCredential.user!.uid);
@@ -208,7 +209,7 @@ class ServiceAuthprovider extends ChangeNotifier {
         return;
       }
       final role = userdoc['role'];
-      await SessionManager.Saveusersession(uid: uid, role: role);
+      await SessionManager.SaveUserSession(uid: uid, role: role, name: _name!);
       // await saveFcmtoken(uid);
       //setupTokenRefreshListener(uid);
       Navigator.pushReplacement(

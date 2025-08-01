@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/reqstmodel.dart';
+import 'package:svareign/viewmodel/customerprovider/paymentprovider/upiredirectprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
-import 'package:svareign/viewmodel/providerpayment/providerpayment.dart';
 import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovider/reviewprovider.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
 class CustomreqstScreen extends StatefulWidget {
@@ -128,6 +127,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
     );
   }
 
+  Future<void> fetchUpiId() async {}
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -241,44 +241,72 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       Row(
                         children: [
                           Center(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                final paymentprovider =
-                                    Provider.of<Providerpayment>(
-                                      context,
-                                      listen: false,
-                                    );
-                                print("payment :$paymentprovider");
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Redirecting to Payment Gateway",
+                            child: Consumer<Upiredirectprovider>(
+                              builder: (context, upiprovider, child) {
+                                return ElevatedButton.icon(
+                                  onPressed: () async {
+                                    try {
+                                      await upiprovider.launchupiapp(
+                                        providerId: req.providerid,
+                                        userId: req.userId,
+                                        context: context,
+                                        upiId: req.upiId,
+                                        name: req.name!,
+                                        amount: req.finalamount,
+
+                                        //  txnNote: "herbal",
+                                      );
+                                      print("upiID:${req.upiId}");
+                                    } catch (e) {
+                                      print("error :$e");
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Upi app launced failed :$e",
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    // final paymentprovider =
+                                    //     Provider.of<Providerpayment>(
+                                    //       context,
+                                    //       listen: false,
+                                    //     );
+                                    // print("payment :$paymentprovider");
+                                    // ScaffoldMessenger.of(context).showSnackBar(
+                                    //   const SnackBar(
+                                    //     content: Text(
+                                    //       "Redirecting to Payment Gateway",
+                                    //     ),
+                                    //   ),
+                                    // );
+                                    // paymentprovider.initializerazorpay(
+                                    //   ctz: context,
+                                    //   amount: req.finalamount,
+                                    //   reqstId: req.id,
+                                    //   jobId: req.jobId,
+                                    //   providerId: req.providerid,
+                                    // );
+                                  },
+                                  icon: const Icon(
+                                    Icons.payment,
+                                    color: Colors.white,
+                                  ),
+                                  label: const Text(
+                                    "Make Payment",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
                                     ),
                                   ),
                                 );
-                                paymentprovider.initializerazorpay(
-                                  ctz: context,
-                                  amount: req.finalamount,
-                                  reqstId: req.id,
-                                  jobId: req.jobId,
-                                  providerId: req.providerid,
-                                );
                               },
-                              icon: const Icon(
-                                Icons.payment,
-                                color: Colors.white,
-                              ),
-                              label: const Text(
-                                "Make Payment",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 12,
-                                ),
-                              ),
                             ),
                           ),
                           ElevatedButton(
