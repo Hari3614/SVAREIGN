@@ -10,11 +10,12 @@ class Jobpostprovider extends ChangeNotifier {
     _firebaseFirestore
         .collection('works')
         .where('place', isEqualTo: place)
+        .where('status', isEqualTo: 'active')
         .orderBy('postedtime', descending: true)
         .snapshots()
-        .listen((quersnapshots) {
+        .listen((querySnapshots) {
           _jobPost =
-              quersnapshots.docs
+              querySnapshots.docs
                   .map((doc) => Jobpost.fromfirestore(doc))
                   .toList();
           notifyListeners();

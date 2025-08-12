@@ -54,7 +54,7 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
           'Service Posts',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
         ),
-        backgroundColor: Colors.lightGreen,
+        backgroundColor: Colors.white,
       ),
       body: Consumer<Jobadsprovider>(
         builder: (context, provider, _) {

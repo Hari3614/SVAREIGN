@@ -10,7 +10,7 @@ class Addworkmodel {
   final DateTime postedtime;
   final String? imagepath;
   final String userId;
-
+  final String status;
   Addworkmodel({
     required this.id,
     required this.worktittle,
@@ -21,11 +21,13 @@ class Addworkmodel {
     this.imagepath,
     required this.userId,
     required this.maxbudget,
+    required this.status,
   });
 
   factory Addworkmodel.fromMap(Map<String, dynamic> map, String documentId) {
     return Addworkmodel(
       id: documentId,
+      status: map['status'] ?? "",
       userId: map['userId'] ?? "",
       worktittle: map['worktittle'] ?? '',
       minbudget: map['minbudget'] as double,
@@ -39,6 +41,7 @@ class Addworkmodel {
 
   Map<String, dynamic> tomap() {
     return {
+      'status': status,
       'userId': userId,
       'worktittle': worktittle,
       'minbudget': minbudget,

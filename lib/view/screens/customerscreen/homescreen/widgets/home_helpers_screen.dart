@@ -33,7 +33,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   void initState() {
     super.initState();
     // futuredelay();
-    _scrollController.addListener(_onScroll);
+    // _scrollController.addListener(_onScroll);
     fetshuserlocation();
     // final searchprovider = Provider.of<Searchprovider>(context, listen: false);
     // searchprovider.fetchUserPlace();
@@ -45,29 +45,29 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _scrollController.dispose();
+  //   super.dispose();
+  // }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent &&
-        !_isLoadingMore &&
-        !_showNoProvidersMessage) {
-      setState(() {
-        _isLoadingMore = true;
-      });
+  // void _onScroll() {
+  //   if (_scrollController.position.pixels ==
+  //           _scrollController.position.maxScrollExtent &&
+  //       !_isLoadingMore &&
+  //       !_showNoProvidersMessage) {
+  //     setState(() {
+  //       _isLoadingMore = true;
+  //     });
 
-      Future.delayed(const Duration(seconds: 5)).then((_) {
-        setState(() {
-          _isLoadingMore = false;
-          _showNoProvidersMessage = true;
-        });
-      });
-    }
-  }
+  //     Future.delayed(const Duration(seconds: 5)).then((_) {
+  //       setState(() {
+  //         _isLoadingMore = false;
+  //         _showNoProvidersMessage = true;
+  //       });
+  //     });
+  //   }
+  // }
 
   Future<void> fetshuserlocation() async {
     try {
@@ -740,30 +740,6 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                 },
               ),
             ),
-            SizedBox(height: 500),
-            if (_isLoadingMore)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-            if (_showNoProvidersMessage)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Column(
-                    children: [
-                      Icon(Icons.location_off, size: 20, color: Colors.black38),
-                      SizedBox(height: 10),
-                      Text(
-                        "There is no Provider in Your location",
-                        style: TextStyle(fontSize: 16, color: Colors.black38),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -813,17 +789,40 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                 children: [
                   InkWell(
                     onTap: () async {
+                      final selectedcategory = cat[0] as String;
                       showDialog(
                         context: context,
                         builder:
                             (context) => const Center(
                               child: CircularProgressIndicator(),
                             ),
+                        barrierDismissible: false,
                       );
-
-                      await Future.delayed(const Duration(seconds: 5));
+                      final place =
+                          Provider.of<Searchprovider>(
+                            context,
+                            listen: false,
+                          ).userPlace;
+                      if (place != null) {
+                        await Provider.of<Availablityservice>(
+                          context,
+                          listen: false,
+                        ).fetchproviderbycategoryandplace(
+                          place: place,
+                          category: selectedcategory,
+                        );
+                      }
                       Navigator.pop(context);
-                      navigatescreen(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => Serviceproviders(
+                                category: selectedcategory,
+                                place: place!,
+                              ),
+                        ),
+                      );
                     },
                     child: CircleAvatar(
                       radius: size.width * 0.08,
@@ -944,13 +943,6 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Future<void> navigatescreen(BuildContext context) async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const Serviceproviders()),
     );
   }
 }

@@ -14,7 +14,6 @@ import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_scre
 import 'package:svareign/view/screens/customerscreen/editscreen/edit_screen.dart';
 import 'package:svareign/view/screens/customerscreen/myordersscreen/myorders.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
-import 'package:svareign/viewmodel/authprovider/customer/authprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
 
 class ProfileWidget extends StatelessWidget {
@@ -182,11 +181,36 @@ class ProfileWidget extends StatelessWidget {
             'Logout',
             style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
           ),
-          onTap: () async {
-            await FirebaseAuth.instance.signOut();
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Loginscreen()),
+          onTap: () {
+            showDialog(
+              context: context,
+              builder:
+                  (context) => AlertDialog(
+                    title: const Text('Logout Confirmation'),
+                    content: Text("Are you sure want to logout ?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await FirebaseAuth.instance.signOut();
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Loginscreen(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          "Logout",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
             );
           },
         ),

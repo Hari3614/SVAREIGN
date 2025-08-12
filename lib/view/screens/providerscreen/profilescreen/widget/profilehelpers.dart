@@ -168,14 +168,38 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                onTap: () async {
-                  await FirebaseAuth.instance.signOut();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const Loginscreen(),
-                    ),
-                    (route) => false,
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text("Logout Confirmation"),
+                          content: const Text("Are you sure want to logout ?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                await FirebaseAuth.instance.signOut();
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Loginscreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Logout",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
                   );
                 },
               ),

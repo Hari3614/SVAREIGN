@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:svareign/model/customer/addwork._model.dart';
 import 'package:svareign/view/screens/customerscreen/customer_reqst_screen/customreqst_screen.dart';
 import 'package:svareign/viewmodel/customerprovider/addworkprovider/addworkprovider.dart';
-
 import 'package:timeago/timeago.dart' as timeago;
 
 class AddWorkWidget extends StatelessWidget {
@@ -23,13 +22,16 @@ class AddWorkWidget extends StatelessWidget {
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Something went wrong: ${snapshot.error}'));
+          return const Center(child: Text('Something went wrong'));
         }
-        print("snapshot : $snapshot");
-        final works = snapshot.data ?? [];
-        print("work is :$works");
+
+        final works =
+            (snapshot.data ?? [])
+                .where((work) => work.status != 'completed') // filter completed
+                .toList();
+
         if (works.isEmpty) {
-          return const Center(child: Text("No tasks found"));
+          return const Center(child: Text("No active tasks found"));
         }
 
         return ListView.builder(
@@ -41,17 +43,41 @@ class AddWorkWidget extends StatelessWidget {
             return Dismissible(
               key: Key(work.id),
               background: Container(
-                color: Colors.red,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.only(right: 20),
-                child: Icon(Icons.delete, color: Colors.white, size: 30),
+                color: Colors.green,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(left: 20),
+                child: const Icon(Icons.check, color: Colors.white, size: 30),
               ),
-              direction: DismissDirection.endToStart,
-              onDismissed: (_) async {
-                await workprovider.deletework(work.id);
-                // ScaffoldMessenger.of(
-                //   context,
-                // ).showSnackBar(SnackBar(content: Text("work deleted")));
+              secondaryBackground: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20),
+                child: const Icon(Icons.delete, color: Colors.white, size: 30),
+              ),
+              confirmDismiss: (direction) async {
+                if (direction == DismissDirection.startToEnd) {
+                  // Mark as completed
+                  final confirm = await _showConfirmDialog(
+                    context,
+                    "Mark as Completed?",
+                    "Are you sure you want to mark this work as completed?",
+                  );
+                  if (confirm) {
+                    await workprovider.completework(work.id);
+                  }
+                  return confirm;
+                } else {
+                  // Delete work
+                  final confirm = await _showConfirmDialog(
+                    context,
+                    "Delete Work?",
+                    "Are you sure you want to delete this work?",
+                  );
+                  if (confirm) {
+                    await workprovider.deletework(work.id);
+                  }
+                  return confirm;
+                }
               },
               child: Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -64,6 +90,7 @@ class AddWorkWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Posted time + status icon
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -74,14 +101,15 @@ class AddWorkWidget extends StatelessWidget {
                               fontSize: 12,
                             ),
                           ),
-                          Icon(
+                          const Icon(
                             Icons.pending_actions_outlined,
-                            color: const Color.fromARGB(255, 192, 31, 31),
+                            color: Color.fromARGB(255, 192, 31, 31),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
 
+                      // Work title
                       Text(
                         work.worktittle,
                         style: const TextStyle(
@@ -92,6 +120,7 @@ class AddWorkWidget extends StatelessWidget {
 
                       const SizedBox(height: 4),
 
+                      // Budget
                       Text.rich(
                         TextSpan(
                           children: [
@@ -112,6 +141,7 @@ class AddWorkWidget extends StatelessWidget {
 
                       const SizedBox(height: 6),
 
+                      // Description
                       Text(
                         work.description,
                         maxLines: 3,
@@ -121,6 +151,7 @@ class AddWorkWidget extends StatelessWidget {
 
                       const Divider(height: 20),
 
+                      // Duration & Requests Button
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -153,5 +184,31 @@ class AddWorkWidget extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<bool> _showConfirmDialog(
+    BuildContext context,
+    String title,
+    String message,
+  ) async {
+    return await showDialog<bool>(
+          context: context,
+          builder:
+              (ctx) => AlertDialog(
+                title: Text(title),
+                content: Text(message),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: const Text("Cancel"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    child: const Text("Yes"),
+                  ),
+                ],
+              ),
+        ) ??
+        false;
   }
 }

@@ -52,6 +52,7 @@ class Bookingprovider with ChangeNotifier {
         final booking = Bookingmodel.fromMap(
           data: data,
           bookingId: doc.id,
+
           name: providerdata['fullname'] ?? 'Unknown',
           imagePath: providerdata['imageurl'] ?? '',
           //phoneNumber: providerdata['phone'] ?? '',

@@ -209,7 +209,8 @@ class ServiceAuthprovider extends ChangeNotifier {
         return;
       }
       final role = userdoc['role'];
-      await SessionManager.SaveUserSession(uid: uid, role: role, name: _name!);
+      final name = userdoc['name'];
+      await SessionManager.SaveUserSession(uid: uid, role: role, name: name);
       // await saveFcmtoken(uid);
       //setupTokenRefreshListener(uid);
       Navigator.pushReplacement(

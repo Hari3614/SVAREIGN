@@ -74,4 +74,53 @@ class Availablityservice with ChangeNotifier {
     _isloading = false;
     notifyListeners();
   }
+
+  Future<void> fetchproviderbycategoryandplace({
+    required String? place,
+    required String category,
+  }) async {
+    if (place == null) return;
+
+    try {
+      _isloading = true;
+      notifyListeners();
+
+      final servicesnapshot =
+          await FirebaseFirestore.instance
+              .collection('services')
+              .where('place', isEqualTo: place)
+              .get();
+
+      List<Fetchserviceprovidermodel> providers = [];
+
+      for (var serviceDoc in servicesnapshot.docs) {
+        final servicedata = serviceDoc.data();
+
+        final profilesnapshot =
+            await serviceDoc.reference
+                .collection('profile')
+                .where('categories', arrayContains: category)
+                .get();
+
+        for (var profiledoc in profilesnapshot.docs) {
+          final profiledata = profiledoc.data();
+
+          final mergedata = {
+            ...profiledata,
+            'location': servicedata['location'],
+            'serviceId': serviceDoc.id,
+          };
+
+          providers.add(Fetchserviceprovidermodel.fromMap(mergedata));
+        }
+      }
+
+      _availableprovider = providers;
+    } catch (e) {
+      debugPrint(" Error Fetching providers by category and place: $e");
+    } finally {
+      _isloading = false;
+      notifyListeners();
+    }
+  }
 }

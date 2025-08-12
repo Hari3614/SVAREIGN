@@ -116,6 +116,7 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
     final docref = firebaseFirestore.collection('works').doc();
 
     final work = Addworkmodel(
+      status: 'pending',
       id: docref.id,
       userId: user.uid,
       imagepath: imageurl,

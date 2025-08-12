@@ -127,7 +127,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
     );
   }
 
-  Future<void> fetchUpiId() async {}
+  //Future<void> fetchUpiId() async {}
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -240,75 +240,75 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          Center(
-                            child: Consumer<Upiredirectprovider>(
-                              builder: (context, upiprovider, child) {
-                                return ElevatedButton.icon(
-                                  onPressed: () async {
-                                    try {
-                                      await upiprovider.launchupiapp(
-                                        providerId: req.providerid,
-                                        userId: req.userId,
-                                        context: context,
-                                        upiId: req.upiId,
-                                        name: req.name!,
-                                        amount: req.finalamount,
+                          // Center(
+                          //   child: Consumer<Upiredirectprovider>(
+                          //     builder: (context, upiprovider, child) {
+                          //       return ElevatedButton.icon(
+                          //         onPressed: () async {
+                          //           try {
+                          //             await upiprovider.launchupiapp(
+                          //               providerId: req.providerid,
+                          //               userId: req.userId,
+                          //               context: context,
+                          //               upiId: req.upiId,
+                          //               name: req.name!,
+                          //               amount: req.finalamount,
 
-                                        //  txnNote: "herbal",
-                                      );
-                                      print("upiID:${req.upiId}");
-                                    } catch (e) {
-                                      print("error :$e");
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            "Upi app launced failed :$e",
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                    // final paymentprovider =
-                                    //     Provider.of<Providerpayment>(
-                                    //       context,
-                                    //       listen: false,
-                                    //     );
-                                    // print("payment :$paymentprovider");
-                                    // ScaffoldMessenger.of(context).showSnackBar(
-                                    //   const SnackBar(
-                                    //     content: Text(
-                                    //       "Redirecting to Payment Gateway",
-                                    //     ),
-                                    //   ),
-                                    // );
-                                    // paymentprovider.initializerazorpay(
-                                    //   ctz: context,
-                                    //   amount: req.finalamount,
-                                    //   reqstId: req.id,
-                                    //   jobId: req.jobId,
-                                    //   providerId: req.providerid,
-                                    // );
-                                  },
-                                  icon: const Icon(
-                                    Icons.payment,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    "Make Payment",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.deepPurple,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
+                          //               //  txnNote: "herbal",
+                          //             );
+                          //             print("upiID:${req.upiId}");
+                          //           } catch (e) {
+                          //             print("error :$e");
+                          //             ScaffoldMessenger.of(
+                          //               context,
+                          //             ).showSnackBar(
+                          //               SnackBar(
+                          //                 content: Text(
+                          //                   "Upi app launced failed :$e",
+                          //                 ),
+                          //               ),
+                          //             );
+                          //           }
+                          //           // final paymentprovider =
+                          //           //     Provider.of<Providerpayment>(
+                          //           //       context,
+                          //           //       listen: false,
+                          //           //     );
+                          //           // print("payment :$paymentprovider");
+                          //           // ScaffoldMessenger.of(context).showSnackBar(
+                          //           //   const SnackBar(
+                          //           //     content: Text(
+                          //           //       "Redirecting to Payment Gateway",
+                          //           //     ),
+                          //           //   ),
+                          //           // );
+                          //           // paymentprovider.initializerazorpay(
+                          //           //   ctz: context,
+                          //           //   amount: req.finalamount,
+                          //           //   reqstId: req.id,
+                          //           //   jobId: req.jobId,
+                          //           //   providerId: req.providerid,
+                          //           // );
+                          //         },
+                          //         icon: const Icon(
+                          //           Icons.payment,
+                          //           color: Colors.white,
+                          //         ),
+                          //         label: const Text(
+                          //           "Make Payment",
+                          //           style: TextStyle(color: Colors.white),
+                          //         ),
+                          //         style: ElevatedButton.styleFrom(
+                          //           backgroundColor: Colors.deepPurple,
+                          //           padding: const EdgeInsets.symmetric(
+                          //             horizontal: 20,
+                          //             vertical: 12,
+                          //           ),
+                          //         ),
+                          //       );
+                          //     },
+                          //   ),
+                          // ),
                           ElevatedButton(
                             onPressed: () {
                               _showbottomsheet(context, req);

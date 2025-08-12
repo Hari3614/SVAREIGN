@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/bookingmodel.dart';
 import 'package:svareign/viewmodel/customerprovider/bookingprovider/bookingprovider.dart';
+import 'package:svareign/viewmodel/customerprovider/paymentprovider/upiredirectprovider.dart';
 
 class MyOrders extends StatefulWidget {
   const MyOrders({super.key});
@@ -199,7 +200,16 @@ class _MyOrdersState extends State<MyOrders>
             ),
             trailing: GestureDetector(
               onTap:
-                  isCompleted ? () => showReviewDialog(context, booking) : null,
+                  isCompleted
+                      ? () async {
+                        // final paymentprovider =
+                        //     Provider.of<Upiredirectprovider>(
+                        //       context,
+                        //       listen: false,
+                        //     );
+                        //  await paymentprovider.launchupiapp(userId: booking.userId, upiId: booking., name: booking.name, amount: booking., context: context, providerId: booking.providerId);
+                      }
+                      : null,
               child: Chip(
                 label: Text(
                   isCompleted ? "Payment" : status.toUpperCase(),

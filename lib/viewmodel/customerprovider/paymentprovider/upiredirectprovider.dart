@@ -1,126 +1,102 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:svareign/view/screens/customerscreen/paymentsucess/paymentsucces.dart';
-import 'package:upi_pay/upi_pay.dart';
-import 'package:uuid/uuid.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:flutter/material.dart';
+// import 'package:url_launcher/url_launcher.dart';
+// import 'package:uuid/uuid.dart';
 
-class Upiredirectprovider with ChangeNotifier {
-  bool _ispaymentlaunched = false;
-  bool get isPaymentlaunched => _ispaymentlaunched;
-  UpiPay upiPay = UpiPay();
-  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-  Future<void> launchupiapp({
-    required String userId,
-    required String upiId,
-    required String name,
-    required double amount,
-    required BuildContext context,
-    required String providerId,
-    //  required String txnNote,
-  }) async {
-    _ispaymentlaunched = true;
-    notifyListeners();
-    try {
-      final apps = await upiPay.getInstalledUpiApplications();
-      if (apps.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.red,
-            content: Text("No Upi App found on these device"),
-          ),
-        );
-        _ispaymentlaunched = false;
-        notifyListeners();
-        return;
-      }
-      final selectedapp = apps.firstWhere(
-        (app) => app.upiApplication == UpiApplication.googlePay,
-        orElse: () => apps.first,
-      );
-      final transactionref = "TXN${DateTime.now().millisecondsSinceEpoch}";
-      final result = await upiPay.initiateTransaction(
-        app: selectedapp.upiApplication,
-        receiverUpiAddress: upiId,
-        receiverName: name,
-        transactionRef: transactionref,
-        amount: amount.toStringAsFixed(2),
-      );
-      debugPrint('Transaction Status: ${result.status}');
-      //debugPrint('Transaction ID: ${result.transactionId}');
+// class Upiredirectprovider with ChangeNotifier {
+//   bool _ispaymentlaunched = false;
+//   bool get isPaymentlaunched => _ispaymentlaunched;
 
-      if (result.status == UpiTransactionStatus.success) {
-        await savepaymenttofirestore(
-          providerId: providerId,
-          userId: userId,
-          upiId: upiId,
-          name: name,
-          amount: amount,
-          transactionref: transactionref,
-          transactionId: result.txnId!,
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => Paymentsuccesscreen()),
-        );
-      } else if (result.status == UpiTransactionStatus.failure) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Transaction Failed ")));
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Transaction Cancelled ")));
-      }
-    } catch (E) {
-      _ispaymentlaunched = false;
-      notifyListeners();
-      debugPrint('Upi launched error :$E');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Failed to launch UPI app: $E")));
-    }
-    _ispaymentlaunched = false;
-    notifyListeners();
-  }
+//   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
-  void resetpaymentstatus() {
-    _ispaymentlaunched = false;
-    notifyListeners();
-  }
+//   Future<void> launchupiapp({
+//     required String userId,
+//     required String upiId,
+//     required String name,
+//     required double amount,
+//     required BuildContext context,
+//     required String providerId,
+//   }) async {
+//     _ispaymentlaunched = true;
+//     notifyListeners();
 
-  Future<void> savepaymenttofirestore({
-    required String userId,
-    required String upiId,
-    required String name,
-    required double amount,
-    required String transactionref,
-    required String transactionId,
-    required String providerId,
-  }) async {
-    final paymentId = Uuid().v4();
-    final paymentdata = {
-      'paymentId': paymentId,
-      'userId': userId,
-      'providerId': providerId,
-      'upiId': upiId,
-      'name': name,
-      'amount': amount,
-      'transactionref': transactionref,
-      'trnasactionId': transactionId,
-      'timestamp': FieldValue.serverTimestamp(),
-    };
-    await _firebaseFirestore
-        .collection('users')
-        .doc(userId)
-        .collection('payments')
-        .doc(paymentId)
-        .set(paymentdata);
-    // save prvoider side
-    await _firebaseFirestore
-        .collection('services')
-        .doc(providerId)
-        .collection('payments')
-        .doc(paymentId)
-        .set(paymentdata);
-  }
-}
+//     try {
+//       final transactionRef = "TXN${DateTime.now().millisecondsSinceEpoch}";
+//       final upiUrl = Uri.parse(
+//         "upi://pay?pa=$upiId&pn=$name&tn=Service Payment&am=${amount.toStringAsFixed(2)}&cu=INR&tr=$transactionRef",
+//       );
+
+//       if (await canLaunchUrl(upiUrl)) {
+//         // Save transaction BEFORE launching UPI app
+//         await savepaymenttofirestore(
+//           providerId: providerId,
+//           userId: userId,
+//           upiId: upiId,
+//           name: name,
+//           amount: amount,
+//           transactionref: transactionRef,
+//         );
+
+//         await launchUrl(upiUrl, mode: LaunchMode.externalApplication);
+//         // Optional: Navigate to success screen directly if you trust intent only
+//         // Navigator.push(context, MaterialPageRoute(builder: (context) => Paymentsuccesscreen()));
+//       } else {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//             content: Text("No UPI app found or unable to launch"),
+//             backgroundColor: Colors.red,
+//           ),
+//         );
+//       }
+//     } catch (e) {
+//       debugPrint('UPI deep link launch error: $e');
+//       ScaffoldMessenger.of(
+//         context,
+//       ).showSnackBar(SnackBar(content: Text("Failed to launch UPI app: $e")));
+//     }
+
+//     _ispaymentlaunched = false;
+//     notifyListeners();
+//   }
+
+//   void resetpaymentstatus() {
+//     _ispaymentlaunched = false;
+//     notifyListeners();
+//   }
+
+//   Future<void> savepaymenttofirestore({
+//     required String userId,
+//     required String upiId,
+//     required String name,
+//     required double amount,
+//     required String transactionref,
+//     required String providerId,
+//   }) async {
+//     final paymentId = const Uuid().v4();
+//     final paymentdata = {
+//       'paymentId': paymentId,
+//       'userId': userId,
+//       'providerId': providerId,
+//       'upiId': upiId,
+//       'name': name,
+//       'amount': amount,
+//       'transactionref': transactionref,
+//       'status': 'initiated', // No way to confirm actual result
+//       'timestamp': FieldValue.serverTimestamp(),
+//     };
+
+//     await _firebaseFirestore
+//         .collection('users')
+//         .doc(userId)
+//         .collection('payments')
+//         .doc(paymentId)
+//         .set(paymentdata);
+
+//     await _firebaseFirestore
+//         .collection('services')
+//         .doc(providerId)
+//         .collection('payments')
+//         .doc(paymentId)
+//         .set(paymentdata);
+//   }
+// }

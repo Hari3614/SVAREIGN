@@ -191,7 +191,8 @@ class Authprovider with ChangeNotifier {
       }
 
       final role = userDoc['role'];
-      await SessionManager.SaveUserSession(uid: uid, role: role, name: _name!);
+      final name = userDoc['name'];
+      await SessionManager.SaveUserSession(uid: uid, role: role, name: name);
 
       if (context.mounted) {
         Navigator.pushReplacement(

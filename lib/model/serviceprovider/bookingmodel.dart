@@ -19,6 +19,7 @@ class Bookingmodel {
     this.status,
     this.name,
     this.imagePath,
+    // this.upiId,
     this.phoneNumber, {
     required this.bookingId,
   });
@@ -29,6 +30,7 @@ class Bookingmodel {
     required String name,
     required String imagePath,
     String? phoneNumber,
+    //required String upiId
   }) {
     return Bookingmodel(
       data['userId'] ?? '',
@@ -40,7 +42,9 @@ class Bookingmodel {
       name,
       imagePath,
       phoneNumber ?? "",
+
       bookingId: bookingId,
+      //  upiId,
     );
   }
 }

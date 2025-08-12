@@ -64,6 +64,7 @@ dependencies:
   share_plus: ^7.2.1
   upi_pay: ^1.1.0
   uuid: ^4.5.1
+ # easy_upi_payment: ^0.1.6
   
 
 dev_dependencies:

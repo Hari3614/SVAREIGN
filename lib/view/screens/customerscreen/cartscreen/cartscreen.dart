@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/customerscreen/cartscreen/widgets/bookingscreen.dart';
-import 'package:svareign/view/screens/customerscreen/homescreen/homescreen.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 
 class Cartscreen extends StatefulWidget {

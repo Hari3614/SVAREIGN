@@ -60,7 +60,9 @@ class Completedjobs extends StatelessWidget {
                       !usersnapshot.hasData ||
                       !usersnapshot.data!.exists) {
                     return const ListTile(
-                      title: Text("Error loading user data"),
+                      title: Text(
+                        "This job may have been removed from the user",
+                      ),
                     );
                   }
 
@@ -85,7 +87,7 @@ class Completedjobs extends StatelessWidget {
                           !worksnapshot.hasData ||
                           !worksnapshot.data!.exists) {
                         return const ListTile(
-                          title: Text("Error loading work data"),
+                          title: Text("This job my removed from the user"),
                         );
                       }
 

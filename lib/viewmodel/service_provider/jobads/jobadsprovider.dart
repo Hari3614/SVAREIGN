@@ -12,7 +12,7 @@ class Jobadsprovider extends ChangeNotifier {
   bool get loading => isloading;
   Future<void> fetchglobalposts(String place) async {
     isloading = true;
-    //notifyListeners();
+    notifyListeners();
     try {
       final snapshot =
           await _firebaseFirestore
@@ -53,6 +53,8 @@ class Jobadsprovider extends ChangeNotifier {
         'phonenumber': user.phoneNumber,
         'place': place,
       });
+      print("post added successfully");
+
       notifyListeners();
     } catch (e) {
       debugPrint('error adding post with place :$e');

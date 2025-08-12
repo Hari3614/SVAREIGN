@@ -59,7 +59,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Serviceprofileprovider()),
         //ChangeNotifierProvider(create: (_) => Appstate()),
         ChangeNotifierProvider(create: (_) => Searchprovider()),
-        ChangeNotifierProvider(create: (_) => Upiredirectprovider()),
+        // ChangeNotifierProvider(create: (_) => Upiredirectprovider()),
       ],
       child: const MyApp(),
     ),
