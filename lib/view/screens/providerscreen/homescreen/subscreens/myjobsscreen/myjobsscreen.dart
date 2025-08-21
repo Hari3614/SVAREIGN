@@ -91,11 +91,63 @@ class Myjobsscreen extends StatelessWidget {
     double finalAmount,
   ) async {
     try {
+      final providerId = FirebaseAuth.instance.currentUser!.uid;
+
+      // Get request data
+      final requestRef = FirebaseFirestore.instance.doc(
+        '$parentDocPath/requests/$requestDocId',
+      );
+      final requestSnap = await requestRef.get();
+      if (!requestSnap.exists) {
+        throw Exception("Request document not found");
+      }
+      final requestData = requestSnap.data() as Map<String, dynamic>;
+
+      // 1️⃣ Get user name
+      final userSnap =
+          await FirebaseFirestore.instance
+              .collection("users")
+              .doc(requestData['userId'])
+              .get();
+      final userName =
+          userSnap.exists ? (userSnap.data()?['name'] ?? "Unknown") : "Unknown";
+
+      // 2️⃣ Get work description
+      final workSnap =
+          await FirebaseFirestore.instance
+              .collection("works")
+              .doc(requestData['jobId'])
+              .get();
+      final workDescription =
+          workSnap.exists
+              ? (workSnap.data()?['description'] ?? "No description")
+              : "No description";
+
+      // 3️⃣ Update request status in user's side
+      await requestRef.update({
+        'status': 'Completed',
+        'finalAmount': finalAmount,
+        'completedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 4️⃣ Save to provider's completedJobs
       await FirebaseFirestore.instance
-          .doc('$parentDocPath/requests/$requestDocId')
-          .update({'status': 'Completed', 'finalAmount': finalAmount});
+          .collection('services')
+          .doc(providerId)
+          .collection('completedWorks')
+          .doc(requestDocId)
+          .set({
+            ...requestData, // original request fields
+            'status': 'Completed',
+            'finalAmount': finalAmount,
+            'completedAt': FieldValue.serverTimestamp(),
+            'userName': userName,
+            'description': workDescription,
+          });
+
+      print(" Work marked complete and saved to provider's completedJobs.");
     } catch (e) {
-      print("Error updating work status: $e");
+      print(" Error updating work status: $e");
     }
   }
 

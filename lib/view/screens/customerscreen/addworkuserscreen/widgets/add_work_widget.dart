@@ -27,7 +27,7 @@ class AddWorkWidget extends StatelessWidget {
 
         final works =
             (snapshot.data ?? [])
-                .where((work) => work.status != 'completed') // filter completed
+                .where((work) => work.status != 'completed')
                 .toList();
 
         if (works.isEmpty) {
@@ -42,42 +42,24 @@ class AddWorkWidget extends StatelessWidget {
 
             return Dismissible(
               key: Key(work.id),
+              direction:
+                  DismissDirection.endToStart, // Only swipe right-to-left
               background: Container(
-                color: Colors.green,
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.only(left: 20),
-                child: const Icon(Icons.check, color: Colors.white, size: 30),
-              ),
-              secondaryBackground: Container(
                 color: Colors.red,
                 alignment: Alignment.centerRight,
                 padding: const EdgeInsets.only(right: 20),
                 child: const Icon(Icons.delete, color: Colors.white, size: 30),
               ),
               confirmDismiss: (direction) async {
-                if (direction == DismissDirection.startToEnd) {
-                  // Mark as completed
-                  final confirm = await _showConfirmDialog(
-                    context,
-                    "Mark as Completed?",
-                    "Are you sure you want to mark this work as completed?",
-                  );
-                  if (confirm) {
-                    await workprovider.completework(work.id);
-                  }
-                  return confirm;
-                } else {
-                  // Delete work
-                  final confirm = await _showConfirmDialog(
-                    context,
-                    "Delete Work?",
-                    "Are you sure you want to delete this work?",
-                  );
-                  if (confirm) {
-                    await workprovider.deletework(work.id);
-                  }
-                  return confirm;
+                final confirm = await _showConfirmDialog(
+                  context,
+                  "Delete Work?",
+                  "Are you sure you want to delete this work?",
+                );
+                if (confirm) {
+                  await workprovider.deletework(work.id);
                 }
+                return confirm;
               },
               child: Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -90,7 +72,7 @@ class AddWorkWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Posted time + status icon
+                      // Posted time
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

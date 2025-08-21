@@ -62,19 +62,6 @@ class Workprovider extends ChangeNotifier {
         .set({...work.tomap(), 'place': userplace, 'status': 'active'});
   }
 
-  Future<void> deleteCompletedWorkFromMySide(String workId) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    await _firestore
-        .collection("users")
-        .doc(user.uid)
-        .collection("completed_works")
-        .doc(workId)
-        .delete();
-  }
-
-  /// Permanently delete work (for cancellations)
   Future<void> deletework(String workId) async {
     final user = _auth.currentUser;
     if (user == null) return;

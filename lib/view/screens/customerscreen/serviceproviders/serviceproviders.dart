@@ -33,10 +33,21 @@ class Serviceproviders extends StatelessWidget {
               ? const Center(child: CircularProgressIndicator())
               : provider.availableProvider.isEmpty
               ? Center(
-                child: Text(
-                  "No service providers available in this location.",
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                  textAlign: TextAlign.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.location_off, // or Icons.location_on_outlined
+                      size: 50,
+                      color: Colors.grey[500],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "No service providers available in this location.",
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               )
               : GridView.builder(
