@@ -1,9 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/reqstmodel.dart';
-import 'package:svareign/viewmodel/customerprovider/paymentprovider/upiredirectprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovider/reviewprovider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -99,7 +100,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                   fixedSize: Size(width * 0.9, height * 0.06),
                 ),
                 onPressed: () async {
-                  final provider = Provider.of<Reviewprovider>(
+                  final provider = Provider.of<ReviewProvider>(
                     context,
                     listen: false,
                   );
@@ -109,10 +110,10 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       SnackBar(content: Text("please give a review")),
                     );
                   }
-                  await provider.addreview(
+                  await provider.addReview(
                     providerId: req.providerid,
                     jobId: req.jobId,
-                    reviewtext: review,
+                    reviewText: review,
                     rating: rating,
                   );
                   Navigator.pop(context);
@@ -194,16 +195,38 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                                       ),
                                     ),
                                   ),
-                                  Row(
-                                    children: const [
-                                      Text('4.2'),
-                                      SizedBox(width: 4),
-                                      Icon(
-                                        Icons.star,
-                                        size: 18,
-                                        color: Color(0xFFF6C104),
-                                      ),
-                                    ],
+                                  FutureBuilder<double>(
+                                    future: Provider.of<ReviewProvider>(
+                                      context,
+                                      listen: false,
+                                    ).getAverageRating(req.providerid),
+                                    builder: (context, snapshot) {
+                                      if (!snapshot.hasData) {
+                                        return Row(
+                                          children: const [
+                                            Text("..."),
+                                            SizedBox(width: 4),
+                                            Icon(
+                                              Icons.star,
+                                              size: 18,
+                                              color: Color(0xFFF6C104),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                      final avgRating = snapshot.data!;
+                                      return Row(
+                                        children: [
+                                          Text(avgRating.toStringAsFixed(1)),
+                                          const SizedBox(width: 4),
+                                          const Icon(
+                                            Icons.star,
+                                            size: 18,
+                                            color: Color(0xFFF6C104),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -222,8 +245,36 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _infoColumn("Experience", "${req.experience}"),
-                        _infoColumn("Projects completed", "200"),
-                        _infoColumn("Reviews", "140"),
+                        FutureBuilder<int>(
+                          future: Provider.of<Userrequestprovider>(
+                            context,
+                            listen: false,
+                          ).getCompletedWorksCount(req.providerid),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return _infoColumn("Projects completed", "...");
+                            }
+                            return _infoColumn(
+                              "Projects completed",
+                              snapshot.data.toString(),
+                            );
+                          },
+                        ),
+                        FutureBuilder<int>(
+                          future: Provider.of<ReviewProvider>(
+                            context,
+                            listen: false,
+                          ).getreviews(req.providerid),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return _infoColumn("Reviews", "...");
+                            }
+                            return _infoColumn(
+                              "Reviews",
+                              snapshot.data.toString(),
+                            );
+                          },
+                        ),
                       ],
                     ),
                     const Divider(height: 20),

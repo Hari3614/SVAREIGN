@@ -17,10 +17,10 @@ class _ReviewscreenState extends State<Reviewscreen> {
     super.initState();
     final providerid = FirebaseAuth.instance.currentUser?.uid;
     if (providerid != null) {
-      Provider.of<Reviewprovider>(
+      Provider.of<ReviewProvider>(
         context,
         listen: false,
-      ).fetchreviews(providerid);
+      ).fetchReviews(providerid);
     }
   }
 
@@ -36,7 +36,7 @@ class _ReviewscreenState extends State<Reviewscreen> {
         automaticallyImplyLeading: true,
         backgroundColor: Colors.lightGreen,
       ),
-      body: Consumer<Reviewprovider>(
+      body: Consumer<ReviewProvider>(
         builder: (context, reviewprovider, child) {
           final reviews = reviewprovider.reviews;
           if (reviews.isEmpty) {

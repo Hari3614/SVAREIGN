@@ -51,7 +51,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Jobadsprovider()),
         ChangeNotifierProvider(create: (_) => Jobstatprovider()),
         // ChangeNotifierProvider(create: (_) => Providerpayment()),
-        ChangeNotifierProvider(create: (_) => Reviewprovider()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => Availablityservice()),
         ChangeNotifierProvider(create: (_) => Cartprovider()),
         ChangeNotifierProvider(create: (_) => Bookingprovider()),

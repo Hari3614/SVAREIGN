@@ -3,7 +3,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
-    id("kotlin-android")
+    id("org.jetbrains.kotlin.android") // ✅ correct Kotlin DSL plugin
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -17,7 +17,7 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.example.svareign"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -31,15 +31,15 @@ android {
 
     defaultConfig {
         applicationId = "com.example.svareign"
-        minSdk = 23
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 23              // ✅ Kotlin DSL uses `=`
+        targetSdk = 35           // ✅ Kotlin DSL uses `=`
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
     signingConfigs {
         create("release") {
-            storeFile = rootProject.file(keystoreProperties["storeFile"]as String)
+            storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
             storePassword = keystoreProperties["storePassword"] as String
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String

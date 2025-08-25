@@ -95,4 +95,15 @@ class Userrequestprovider extends ChangeNotifier {
       debugPrint("Failed to update request status: $e");
     }
   }
+
+  Future<int> getCompletedWorksCount(String providerId) async {
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection("works")
+            .where("providerId", isEqualTo: providerId)
+            .where("status", isEqualTo: "Completed")
+            .get();
+
+    return snapshot.docs.length;
+  }
 }
