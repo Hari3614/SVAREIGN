@@ -278,7 +278,7 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                               context,
                               listen: false,
                             ).addpost(post);
-
+                            //  await Provider.of<Jobadsprovider>(context, listen: false).fetchglobalposts()
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

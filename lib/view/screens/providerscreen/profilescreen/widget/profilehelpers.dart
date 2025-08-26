@@ -11,6 +11,8 @@ import 'package:svareign/view/screens/Authentication/serivice_provider/service_s
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart'
     show Servicehomecontainer;
+import 'package:svareign/view/screens/providerscreen/profilescreen/widget/editprofile/editprofile.dart';
+import 'package:svareign/view/screens/settings/settings_screen.dart';
 import 'package:svareign/viewmodel/service_provider/serviceprofileprovider/serviceprofileprovider.dart';
 
 class Profilehelpers extends StatefulWidget {
@@ -155,57 +157,128 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                 ],
               ),
 
-              buildProfileTile(Icons.edit, 'Edit Profile', context),
-              buildProfileTile(Icons.settings, 'Settings', context),
+              // buildProfileTile(Icons.edit, 'Edit Profile', context, () {
+              //   Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //       builder:
+              //           (context) => EditProfileScreen(
+              //             currentName: provider.profile!.fullname,
+              //             currentUpi: provider.profile!.upiId,
+              //             currentImageUrl: provider.profile!.imageurl,
+              //             currentpayment: provider.profile!.payment,
+              //           ),
+              //     ),
+              //   ).then((_) {
+              //     Provider.of<Serviceprofileprovider>(
+              //       context,
+              //       listen: false,
+              //     ).fetchProfile();
+              //   });
+              // }),
+              // buildProfileTile(Icons.settings, 'Settings', context, () {
+              //   Navigator.push(
+              //     context,
+              //     MaterialPageRoute(builder: (context) => SettingsScreen()),
+              //   );
+              // }),
 
               //    buildProfileTile(Icons.shopping_bag, 'My orders', context),
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w500,
+              // ListTile(
+              //   leading: const Icon(Icons.logout, color: Colors.red),
+              //   title: const Text(
+              //     'Logout',
+              //     style: TextStyle(
+              //       color: Colors.red,
+              //       fontWeight: FontWeight.w500,
+              //     ),
+              //   ),
+              //   onTap: () {
+              //     showDialog(
+              //       context: context,
+              //       builder:
+              //           (context) => AlertDialog(
+              //             title: const Text("Logout Confirmation"),
+              //             content: const Text("Are you sure want to logout ?"),
+              //             actions: [
+              //               TextButton(
+              //                 onPressed: () {
+              //                   Navigator.pop(context);
+              //                 },
+              //                 child: Text("Cancel"),
+              //               ),
+              //               TextButton(
+              //                 onPressed: () async {
+              //                   Navigator.pop(context);
+              //                   await FirebaseAuth.instance.signOut();
+              //                   Navigator.pushReplacement(
+              //                     context,
+              //                     MaterialPageRoute(
+              //                       builder: (context) => Loginscreen(),
+              //                     ),
+              //                   );
+              //                 },
+              //                 child: Text(
+              //                   "Logout",
+              //                   style: TextStyle(color: Colors.red),
+              //                 ),
+              //               ),
+              //             ],
+              //           ),
+              //     );
+              //   },
+              // ),
+              //  const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SettingsScreen()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.grey.shade200,
+                          child: const Icon(
+                            Icons.settings,
+                            size: 22,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          'Settings',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: const Text("Logout Confirmation"),
-                          content: const Text("Are you sure want to logout ?"),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text("Cancel"),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(context);
-                                await FirebaseAuth.instance.signOut();
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Loginscreen(),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                "Logout",
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        ),
-                  );
-                },
               ),
-
-              const SizedBox(height: 30),
-
+              const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: InkWell(
@@ -489,16 +562,17 @@ class _ProfilehelpersState extends State<Profilehelpers> {
     );
   }
 
-  Widget buildProfileTile(IconData icon, String title, BuildContext context) {
+  Widget buildProfileTile(
+    IconData icon,
+    String title,
+    BuildContext context,
+    VoidCallback ontap,
+  ) {
     return ListTile(
       leading: Icon(icon, color: Colors.black87),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('$title tapped')));
-      },
+      onTap: ontap,
     );
   }
 }

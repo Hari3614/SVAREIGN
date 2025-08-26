@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -17,11 +16,14 @@ class EditProfileDialog extends StatelessWidget {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: SingleChildScrollView(
+        // 👈 prevents overflow
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Profile image picker
             GestureDetector(
               onTap: () async {
                 final picker = ImagePicker();
@@ -29,6 +31,9 @@ class EditProfileDialog extends StatelessWidget {
                   source: ImageSource.gallery,
                   imageQuality: 70,
                 );
+                if (pickedFile != null) {
+                  // TODO: handle image upload to Firebase Storage
+                }
               },
               child: CircleAvatar(
                 radius: 60,
@@ -42,14 +47,27 @@ class EditProfileDialog extends StatelessWidget {
                         : null,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+
+            // Name input
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Enter your name'),
+              decoration: const InputDecoration(
+                labelText: 'Enter your name',
+                border: OutlineInputBorder(),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+
+            // Save button
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                minimumSize: const Size.fromHeight(45),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               onPressed: () async {
                 final newName = _nameController.text.trim();
                 if (newName.isNotEmpty) {
@@ -58,21 +76,25 @@ class EditProfileDialog extends StatelessWidget {
                       context,
                       listen: false,
                     ).updateName(newName);
-                    _nameController.clear(); // Clear text
-                    Navigator.pop(context); // Close dialog
+
+                    _nameController.clear();
+                    Navigator.pop(context);
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("Name updated successfully"),
                       ),
                     );
                   } catch (e) {
-                    throw Exception("failed");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Failed to update name")),
+                    );
                   }
                 }
               },
               child: const Text(
                 'Save Changes',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
           ],

@@ -45,6 +45,7 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         backgroundColor: Colors.lightGreen,
         title: const Text(

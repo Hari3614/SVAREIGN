@@ -1,18 +1,18 @@
 class Profile {
-  final String id;
+  final String? id;
   final String fullname;
-  final String description;
-  final List<String> categories;
-  final String experience;
+  final String? description;
+  final List<String>? categories;
+  final String? experience;
   final String payment;
   final String? imageurl;
   final String upiId;
   Profile({
-    required this.id,
+    this.id,
     required this.fullname,
-    required this.description,
-    required this.experience,
-    required this.categories,
+    this.description,
+    this.experience,
+    this.categories,
     required this.imageurl,
     required this.payment,
     required this.upiId,

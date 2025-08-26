@@ -54,7 +54,7 @@ class Jobadsprovider extends ChangeNotifier {
         'place': place,
       });
       print("post added successfully");
-
+      await fetchglobalposts(place);
       notifyListeners();
     } catch (e) {
       debugPrint('error adding post with place :$e');

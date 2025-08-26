@@ -14,6 +14,8 @@ import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_scre
 import 'package:svareign/view/screens/customerscreen/editscreen/edit_screen.dart';
 import 'package:svareign/view/screens/customerscreen/myordersscreen/myorders.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
+import 'package:svareign/view/screens/settings/settings_screen.dart';
+import 'package:svareign/view/screens/settings/settingsforuser.dart';
 import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
 
 class ProfileWidget extends StatelessWidget {
@@ -171,50 +173,50 @@ class ProfileWidget extends StatelessWidget {
         ),
 
         // Profile Options
-        buildProfileTile(Icons.edit, 'Edit Profile', context),
+        // buildProfileTile(Icons.edit, 'Edit Profile', context),
         buildProfileTile(Icons.settings, 'Settings', context),
         buildProfileTile(Icons.shopping_bag, 'My orders', context),
-        // Logout Button
-        ListTile(
-          leading: const Icon(Icons.logout, color: Colors.red),
-          title: const Text(
-            'Logout',
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
-          ),
-          onTap: () {
-            showDialog(
-              context: context,
-              builder:
-                  (context) => AlertDialog(
-                    title: const Text('Logout Confirmation'),
-                    content: Text("Are you sure want to logout ?"),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text("Cancel"),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          await FirebaseAuth.instance.signOut();
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Loginscreen(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          "Logout",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-            );
-          },
-        ),
 
+        // Logout Button
+        // ListTile(
+        //   leading: const Icon(Icons.logout, color: Colors.red),
+        //   title: const Text(
+        //     'Logout',
+        //     style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
+        //   ),
+        //   onTap: () {
+        //     showDialog(
+        //       context: context,
+        //       builder:
+        //           (context) => AlertDialog(
+        //             title: const Text('Logout Confirmation'),
+        //             content: Text("Are you sure want to logout ?"),
+        //             actions: [
+        //               TextButton(
+        //                 onPressed: () => Navigator.pop(context),
+        //                 child: Text("Cancel"),
+        //               ),
+        //               TextButton(
+        //                 onPressed: () async {
+        //                   Navigator.pop(context);
+        //                   await FirebaseAuth.instance.signOut();
+        //                   Navigator.pushReplacement(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                       builder: (context) => Loginscreen(),
+        //                     ),
+        //                   );
+        //                 },
+        //                 child: Text(
+        //                   "Logout",
+        //                   style: TextStyle(color: Colors.red),
+        //                 ),
+        //               ),
+        //             ],
+        //           ),
+        //     );
+        //   },
+        // ),
         const SizedBox(height: 30),
 
         // Add Another Account
@@ -311,6 +313,13 @@ class ProfileWidget extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => MyOrders()),
+          );
+        } else if (title == "Settings") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SettingsforuserScreen(),
+            ),
           );
         }
       },
