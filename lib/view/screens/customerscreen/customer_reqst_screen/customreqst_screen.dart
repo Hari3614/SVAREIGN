@@ -68,8 +68,8 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                           Icons.star,
                           color: Color.fromARGB(255, 252, 208, 52),
                         ),
-                    onRatingUpdate: (rating) {
-                      rating = rating;
+                    onRatingUpdate: (ratting) {
+                      rating = ratting;
                     },
                   );
                 },

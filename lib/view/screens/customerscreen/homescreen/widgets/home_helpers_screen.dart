@@ -10,6 +10,7 @@ import 'package:svareign/services/location_services/location_services.dart';
 import 'package:svareign/view/screens/customerscreen/cartscreen/cartscreen.dart';
 import 'package:svareign/view/screens/customerscreen/serviceproviders/serviceproviders.dart';
 import 'package:http/http.dart' as http;
+import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovider/reviewprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/searchprovider/searchprovider.dart';
@@ -570,30 +571,49 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
 
             SizedBox(height: size.height * 0.03),
             _sectionHeader("Best Services"),
+
             SizedBox(height: size.height * 0.015),
 
-            _buildServiceCard(
-              size: size,
-              imagePath: 'assets/images/citc.jpg',
-              title: "Complete Kitchen Cleaning",
-              oldPrice: "\$180",
-              newPrice: "\$150",
-              providerName: "Mark Willions",
-              rating: 5,
-              reviews: 130,
-            ),
-            SizedBox(height: size.height * 0.02),
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: Provider.of<ReviewProvider>(
+                context,
+                listen: false,
+              ).fetchBestProvidersByLocation(
+                Provider.of<Searchprovider>(context, listen: false).userPlace ??
+                    "",
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text("No top services found");
+                }
 
-            _buildServiceCard(
-              size: size,
-              imagePath: 'assets/images/images.jpeg',
-              title: "Living Room Cleaning",
-              oldPrice: "\$230",
-              newPrice: "\$200",
-              providerName: "Ronald Mark",
-              rating: 5,
-              reviews: 240,
+                final providers = snapshot.data!;
+
+                return Column(
+                  children:
+                      providers.map((data) {
+                        final imageurl = data['imageurl'] ?? "";
+                        return _buildServiceCard(
+                          providerData: data,
+                          size: size,
+                          imagePath: imageurl,
+
+                          title:
+                              (data['categories'] as List?)?.join(", ") ??
+                              "Service",
+                          providerName: data['fullname'] ?? data['name'],
+                          rating:
+                              ((data['avgRating'] ?? 0.0) as double).round(),
+                          reviews: data['reviewCount'] ?? 0,
+                        );
+                      }).toList(),
+                );
+              },
             ),
+
             SizedBox(height: 20),
             _sectionHeader('Available Providers'),
             SizedBox(height: 10),
@@ -758,10 +778,10 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
             color: Colors.black,
           ),
         ),
-        const Text(
-          "See All",
-          style: TextStyle(color: Colors.black54, fontSize: 14),
-        ),
+        // const Text(
+        //   "See All",
+        //   style: TextStyle(color: Colors.black54, fontSize: 14),
+        // ),
       ],
     );
   }
@@ -847,11 +867,12 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     required Size size,
     required String imagePath,
     required String title,
-    required String oldPrice,
-    required String newPrice,
+    //  required String oldPrice,
+    //  required String newPrice,
     required String providerName,
     required int rating,
     required int reviews,
+    required Map<String, dynamic> providerData,
   }) {
     return Card(
       elevation: 3,
@@ -867,7 +888,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 image: DecorationImage(
-                  image: AssetImage(imagePath),
+                  image: NetworkImage(imagePath),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -898,25 +919,25 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                       color: Colors.black,
                     ),
                   ),
-                  Row(
-                    children: [
-                      Text(
-                        newPrice,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        oldPrice,
-                        style: const TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          color: Colors.black45,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Row(
+                  //   children: [
+                  //     Text(
+                  //       newPrice,
+                  //       style: const TextStyle(
+                  //         color: Colors.black,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //     ),
+                  //     const SizedBox(width: 5),
+                  //     Text(
+                  //       oldPrice,
+                  //       style: const TextStyle(
+                  //         decoration: TextDecoration.lineThrough,
+                  //         color: Colors.black45,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -932,7 +953,50 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          final cartprovider = Provider.of<Cartprovider>(
+                            context,
+                            listen: false,
+                          );
+
+                          final serviceModel = Fetchserviceprovidermodel(
+                            serviceId: providerData['providerId'] ?? '',
+                            name: providerData['name'] ?? providerName,
+                            imagepath: providerData['imageurl'] ?? imagePath,
+                            role:
+                                providerData['categories'] is List
+                                    ? List<String>.from(
+                                      providerData['categories'],
+                                    )
+                                    : [],
+                            description: providerData['description'] ?? '',
+                            hourlypayment: providerData['payment'] ?? '',
+                          );
+
+                          final alreadyInCart = cartprovider.cartitems.any(
+                            (e) => e.serviceId == serviceModel.serviceId,
+                          );
+
+                          if (alreadyInCart) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Already added to the cart"),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          } else {
+                            cartprovider.addtocart(serviceModel);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "${serviceModel.name} added to the cart",
+                                ),
+                                backgroundColor: Colors.lightGreen,
+                              ),
+                            );
+                          }
+                        },
+
                         child: const Text("Add"),
                       ),
                     ],

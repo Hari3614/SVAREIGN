@@ -50,31 +50,59 @@ class ReviewProvider with ChangeNotifier {
         return;
       }
 
-      final review = Reviewmodel(
-        id: '',
-        jobId: jobId,
-        providerId: providerId,
-        rating: rating,
-        review: reviewText,
-        userid: user.uid,
-        timestamp: DateTime.now(),
-      );
+      final firestore = FirebaseFirestore.instance;
 
-      final globalRef = await FirebaseFirestore.instance
-          .collection('reviews')
-          .add(review.tomap());
+      // 🔹 Fetch provider profile from services/{providerId}/profile
+      final profileSnapshot =
+          await firestore
+              .collection('services')
+              .doc(providerId)
+              .collection('profile')
+              .limit(1)
+              .get();
+
+      if (profileSnapshot.docs.isEmpty) {
+        print("Provider profile not found");
+        return;
+      }
+
+      final profileData = profileSnapshot.docs.first.data()!;
+      final providerName = profileData['fullname'] ?? "Unknown";
+      final hourlyPayment = profileData['payment'] ?? 0;
+      final categories = profileData['categories'] ?? [];
+      final imageurl = profileData['imageurl'] ?? "";
+
+      final review = {
+        'id': user.uid,
+        'jobId': jobId,
+        'providerId': providerId,
+        'rating': rating,
+        'review': reviewText,
+        'userId': user.uid,
+        'timestamp': DateTime.now(),
+        // 🔹 Add extra provider info
+        'providerName': providerName,
+        'hourlyPayment': hourlyPayment,
+        'categories': categories,
+        'imageurl': imageurl,
+      };
+
+      // Save review in global collection
+      final globalRef = await firestore.collection('reviews').add(review);
       await globalRef.update({'id': globalRef.id});
 
-      final subRef = FirebaseFirestore.instance
+      // Save review in provider subcollection
+      final subRef = firestore
           .collection('services')
           .doc(providerId)
           .collection('reviews')
           .doc(globalRef.id);
-      await subRef.set(review.tomap());
+      await subRef.set(review);
 
+      // Update avg rating
       await _updateProviderRating(providerId);
 
-      print("Review added successfully");
+      print("Review added successfully with provider details");
     } catch (e) {
       print("Error adding review: $e");
     }
@@ -99,26 +127,7 @@ class ReviewProvider with ChangeNotifier {
     await FirebaseFirestore.instance
         .collection('services')
         .doc(providerId)
-        .update({'avgRating': avgRating});
-  }
-
-  Future<List<Map<String, dynamic>>> getBestProvidersInDistrict(
-    String district,
-  ) async {
-    try {
-      final querySnapshot =
-          await FirebaseFirestore.instance
-              .collection('services')
-              .where('district', isEqualTo: district)
-              .orderBy('avgRating', descending: true)
-              .limit(5)
-              .get();
-
-      return querySnapshot.docs.map((doc) => doc.data()).toList();
-    } catch (e) {
-      print("Error fetching best providers: $e");
-      return [];
-    }
+        .update({'avgRating': avgRating, 'reviewcount': snapshot.docs.length});
   }
 
   Future<double> getAverageRating(String providerId) async {
@@ -135,5 +144,83 @@ class ReviewProvider with ChangeNotifier {
       total += (doc['rating'] ?? 0).toDouble();
     }
     return total / snapshot.docs.length;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchBestProvidersByLocation(
+    String place,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+
+      final providerSnapshot =
+          await firestore
+              .collection('services')
+              .where('place', isEqualTo: place)
+              .get();
+
+      if (providerSnapshot.docs.isEmpty) return [];
+
+      List<Map<String, dynamic>> result = [];
+
+      for (var provider in providerSnapshot.docs) {
+        final providerId = provider.id;
+
+        // 🔹 Fetch profile from subcollection
+        final profileSnapshot =
+            await firestore
+                .collection('services')
+                .doc(providerId)
+                .collection('profile')
+                .limit(1)
+                .get();
+
+        String imageurl = "";
+        List categories = [];
+        String fullname = "";
+
+        if (profileSnapshot.docs.isNotEmpty) {
+          final profileData = profileSnapshot.docs.first.data();
+          imageurl = profileData['imageurl'] ?? "";
+          categories = profileData['categories'] ?? [];
+          fullname = profileData['fullname'] ?? "";
+        }
+
+        // 🔹 Fetch reviews for this provider
+        final reviewsSnapshot =
+            await firestore
+                .collection('reviews')
+                .where('providerId', isEqualTo: providerId)
+                .get();
+
+        final ratings =
+            reviewsSnapshot.docs
+                .map((doc) => (doc['rating'] ?? 0).toDouble())
+                .toList();
+
+        final avgRating =
+            ratings.isEmpty
+                ? 0.0
+                : ratings.reduce((a, b) => a + b) / ratings.length;
+
+        result.add({
+          'providerId': providerId,
+          'name': provider['name'] ?? 'Unknown',
+          'fullname': fullname,
+          'place': provider['place'] ?? '',
+          'avgRating': avgRating,
+          'reviewCount': ratings.length,
+          'imageurl': imageurl,
+          'categories': categories,
+        });
+
+        print("Provider data: ${provider.data()}");
+      }
+
+      result.sort((a, b) => (b['avgRating']).compareTo(a['avgRating']));
+      return result;
+    } catch (e) {
+      print("Error fetching best providers: $e");
+      return [];
+    }
   }
 }

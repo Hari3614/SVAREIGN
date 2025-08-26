@@ -51,7 +51,7 @@ class _ReviewscreenState extends State<Reviewscreen> {
                   future:
                       FirebaseFirestore.instance
                           .collection('users')
-                          .doc(review.userid)
+                          .doc(review.userId)
                           .get(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
