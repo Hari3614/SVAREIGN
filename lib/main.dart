@@ -11,7 +11,6 @@ import 'package:svareign/view/screens/splashscreen/splashscreen.dart';
 import 'package:svareign/viewmodel/customerprovider/bookingprovider/bookingprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
-import 'package:svareign/viewmodel/customerprovider/paymentprovider/upiredirectprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/searchprovider/searchprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';

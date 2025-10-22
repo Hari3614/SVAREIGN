@@ -286,10 +286,12 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                                   content: Text("Posted Successfully"),
                                 ),
                               );
+                              // ignore: use_build_context_synchronously
                               Navigator.of(context).pop();
                             }
                           } catch (e) {
                             if (mounted) {
+                              // ignore: use_build_context_synchronously
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   backgroundColor: Colors.red,

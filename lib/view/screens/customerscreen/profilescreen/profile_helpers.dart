@@ -7,14 +7,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/view/screens/Authentication/customer_signup_screen/signupscreen.dart';
-import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/view/screens/Authentication/roleselectionpage/role_selection_page.dart';
 import 'package:svareign/view/screens/Authentication/serivice_provider/service_signup_screen.dart';
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/customerscreen/editscreen/edit_screen.dart';
 import 'package:svareign/view/screens/customerscreen/myordersscreen/myorders.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
-import 'package:svareign/view/screens/settings/settings_screen.dart';
 import 'package:svareign/view/screens/settings/settingsforuser.dart';
 import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
 

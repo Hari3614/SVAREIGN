@@ -8,6 +8,7 @@ import 'package:svareign/model/customer/fetchserviceprovider.dart';
 import 'package:svareign/services/location_services/fetchinguseraddress/fetching_address.dart';
 import 'package:svareign/services/location_services/location_services.dart';
 import 'package:svareign/view/screens/customerscreen/cartscreen/cartscreen.dart';
+import 'package:svareign/view/screens/customerscreen/homescreen/widgets/all_providerscreen.dart';
 import 'package:svareign/view/screens/customerscreen/serviceproviders/serviceproviders.dart';
 import 'package:http/http.dart' as http;
 import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovider/reviewprovider.dart';
@@ -28,6 +29,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   final TextEditingController serarchcontroller = TextEditingController();
   bool _isLoadingMore = false;
   bool _showNoProvidersMessage = false;
+  bool _showall = false;
 
   bool isloading = true;
   @override
@@ -570,7 +572,15 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
             _buildCategoryRow(size, context),
 
             SizedBox(height: size.height * 0.03),
-            _sectionHeader("Best Services"),
+            _sectionHeader(
+              "Best Services",
+              onpressed: () {
+                setState(() {
+                  _showall = !_showall;
+                });
+              },
+              showall: _showall,
+            ),
 
             SizedBox(height: size.height * 0.015),
 
@@ -591,10 +601,12 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                 }
 
                 final providers = snapshot.data!;
+                final visibleprovider =
+                    _showall ? providers : providers.take(3).toList();
 
                 return Column(
                   children:
-                      providers.map((data) {
+                      visibleprovider.map((data) {
                         final imageurl = data['imageurl'] ?? "";
                         return _buildServiceCard(
                           providerData: data,
@@ -615,7 +627,15 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
             ),
 
             SizedBox(height: 20),
-            _sectionHeader('Available Providers'),
+            _sectionHeader(
+              'Available Providers',
+              onpressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AllProviderScreen()),
+                );
+              },
+            ),
             SizedBox(height: 10),
             SizedBox(
               height: 400,
@@ -766,7 +786,11 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     );
   }
 
-  Widget _sectionHeader(String title) {
+  Widget _sectionHeader(
+    String title, {
+    VoidCallback? onpressed,
+    bool showall = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -778,10 +802,13 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
             color: Colors.black,
           ),
         ),
-        // const Text(
-        //   "See All",
-        //   style: TextStyle(color: Colors.black54, fontSize: 14),
-        // ),
+        TextButton(
+          onPressed: onpressed,
+          child: Text(
+            showall ? "Show Less" : "See All",
+            style: TextStyle(color: Colors.black54, fontSize: 14),
+          ),
+        ),
       ],
     );
   }

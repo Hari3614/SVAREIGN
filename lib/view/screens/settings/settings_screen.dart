@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/helperfunctions/delete_helper.dart';
 import 'package:svareign/view/screens/settings/Privacy_policy_screen.dart';
 import 'package:svareign/view/screens/settings/about_screen.dart';
 import 'package:svareign/view/screens/settings/customer_agreements_screen.dart';
@@ -187,6 +188,22 @@ class SettingsScreen extends StatelessWidget {
                     (route) => false,
                   );
                 }
+              },
+            ),
+            buildDivider(),
+            buildSettingsTile(
+              icon: Icons.delete,
+              iconBg: Colors.red.shade100,
+              iconColor: Colors.red,
+              title: "Delete My Account",
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            DeleteAccountScreen(role: 'serviceprovider'),
+                  ),
+                );
               },
             ),
           ]),

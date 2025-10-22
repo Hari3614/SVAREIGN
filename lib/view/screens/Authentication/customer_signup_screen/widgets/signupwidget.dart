@@ -150,6 +150,7 @@ class Signupwidget extends StatelessWidget {
                       context,
                       listen: false,
                     ).updatefield("password", value!);
+                    _formKey.currentState!.validate();
                     return null;
                   },
                 );
@@ -188,6 +189,7 @@ class Signupwidget extends StatelessWidget {
                       listen: false,
                       context,
                     ).updatefield("confirmpassword", value!);
+                    _formKey.currentState!.validate();
                     return null;
                   },
                 );

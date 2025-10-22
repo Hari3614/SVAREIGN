@@ -79,6 +79,7 @@ class ServiceSignupWidget extends StatelessWidget {
                   listen: false,
                   context,
                 ).updatefield("email", value!);
+
                 return null;
               },
             ),
@@ -139,6 +140,8 @@ class ServiceSignupWidget extends StatelessWidget {
                       context,
                       listen: false,
                     ).updatefield("password", value!);
+                    formkey.currentState!.validate();
+
                     return null;
                   },
                 );
@@ -175,6 +178,7 @@ class ServiceSignupWidget extends StatelessWidget {
                       listen: false,
                       context,
                     ).updatefield('confirmpassword', value!);
+                    formkey.currentState!.validate();
                     return null;
                   },
                 );

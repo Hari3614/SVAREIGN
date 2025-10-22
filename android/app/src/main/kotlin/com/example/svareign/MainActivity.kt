@@ -1,4 +1,4 @@
-package com.example.svareign
+package com.svareign.app
 
 import io.flutter.embedding.android.FlutterActivity
 

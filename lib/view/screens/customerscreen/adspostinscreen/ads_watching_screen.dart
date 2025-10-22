@@ -47,6 +47,7 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: true,

@@ -8,9 +8,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:412848064485:android:d7c12e0122511db8f7110c",
+        "mobilesdk_app_id": "1:412848064485:android:70ea0abaf307dc09f7110c",
         "android_client_info": {
-          "package_name": "com.example.svareign"
+          "package_name": "com.svareign.app"
         }
       },
       "oauth_client": [],
