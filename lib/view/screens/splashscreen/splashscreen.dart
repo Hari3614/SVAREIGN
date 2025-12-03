@@ -23,33 +23,47 @@ class _SplashscreenState extends State<Splashscreen> {
   Future<void> navigateToNext() async {
     await Future.delayed(const Duration(seconds: 2)); // Splash effect delay
 
-    User? user = FirebaseAuth.instance.currentUser;
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
 
-    user ??= await FirebaseAuth.instance.authStateChanges().first;
+      // Only wait for auth state if we don't already have a user
+      if (user == null) {
+        user = await FirebaseAuth.instance.authStateChanges().first;
+      }
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? role = prefs.getString('role');
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? role = prefs.getString('role');
 
-    Widget nextScreen;
+      Widget nextScreen;
 
-    if (user != null && role != null) {
-      if (role == 'customer') {
-        nextScreen = const HomeContainer();
-      } else if (role == 'service provider') {
-        nextScreen = const Servicehomecontainer();
+      if (user != null && role != null) {
+        if (role == 'customer') {
+          nextScreen = const HomeContainer();
+        } else if (role == 'service provider') {
+          nextScreen = const Servicehomecontainer();
+        } else {
+          nextScreen = const Loginscreen();
+        }
       } else {
         nextScreen = const Loginscreen();
       }
-    } else {
-      nextScreen = const Loginscreen();
-    }
 
-    // Ensure context is still valid before navigating
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => nextScreen),
-      );
+      // Ensure context is still valid before navigating
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => nextScreen),
+        );
+      }
+    } catch (e) {
+      print("Error in splash screen navigation: $e");
+      // Navigate to login screen in case of any error
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const Loginscreen()),
+        );
+      }
     }
   }
 

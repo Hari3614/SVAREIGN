@@ -9,12 +9,16 @@ class EditProfileScreen extends StatefulWidget {
   final String currentUpi;
   final String? currentImageUrl;
   final String? currentpayment;
+  final String? currentPhoneNumber;
+  final String? currentEmail;
   const EditProfileScreen({
     super.key,
     required this.currentName,
     required this.currentUpi,
     this.currentImageUrl,
     required this.currentpayment,
+    this.currentPhoneNumber,
+    this.currentEmail,
   });
 
   @override
@@ -26,6 +30,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _upiController;
   late TextEditingController _paymentcontroller;
+  late TextEditingController _phoneController;
+  late TextEditingController _emailController;
   File? _newImage;
 
   @override
@@ -34,6 +40,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController = TextEditingController(text: widget.currentName);
     _upiController = TextEditingController(text: widget.currentUpi);
     _paymentcontroller = TextEditingController(text: widget.currentpayment);
+    _phoneController = TextEditingController(text: widget.currentPhoneNumber);
+    _emailController = TextEditingController(text: widget.currentEmail);
   }
 
   void _saveProfile() async {
@@ -53,6 +61,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           name: _nameController.text.trim(),
           upiId: _upiController.text.trim(),
           payment: _paymentcontroller.text.trim(),
+          phoneNumber: _phoneController.text.trim(),
+          email: _emailController.text.trim(),
           imageUrl: imageUrl,
         );
 
@@ -123,6 +133,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 validator:
                     (value) =>
                         value == null || value.isEmpty ? "Enter name" : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Phone Number
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: "Phone Number",
+                  border: OutlineInputBorder(),
+                ),
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? "Enter phone number"
+                            : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Email
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Enter email";
+                  }
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return "Enter a valid email";
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 

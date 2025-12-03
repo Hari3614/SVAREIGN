@@ -12,15 +12,24 @@ class ProviderBookingsScreen extends StatefulWidget {
 }
 
 class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
+  Ordersfromuserprovider? _ordersProvider;
+
   @override
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () {
-      Provider.of<Ordersfromuserprovider>(
+      _ordersProvider = Provider.of<Ordersfromuserprovider>(
         context,
         listen: false,
-      ).fetchbookings();
+      );
+      _ordersProvider!.startListeningToBookings();
     });
+  }
+
+  @override
+  void dispose() {
+    _ordersProvider?.stopListeningToBookings();
+    super.dispose();
   }
 
   @override
@@ -110,10 +119,12 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: () async {
-                          await Provider.of<Ordersfromuserprovider>(
-                            context,
-                            listen: false,
-                          ).updatebookings(booking.bookingId, "Accepted");
+                          if (_ordersProvider != null) {
+                            await _ordersProvider!.updatebookings(
+                              booking.bookingId,
+                              "Accepted",
+                            );
+                          }
                         },
                         icon: const Icon(Icons.check, color: Colors.white),
                         label: Text(
@@ -127,10 +138,12 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                       const SizedBox(width: 10),
                       ElevatedButton.icon(
                         onPressed: () async {
-                          await Provider.of<Ordersfromuserprovider>(
-                            context,
-                            listen: false,
-                          ).updatebookings(booking.bookingId, 'Declined');
+                          if (_ordersProvider != null) {
+                            await _ordersProvider!.updatebookings(
+                              booking.bookingId,
+                              'Declined',
+                            );
+                          }
                         },
                         icon: const Icon(Icons.close, color: Colors.white),
                         label: const Text(
@@ -185,10 +198,12 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await Provider.of<Ordersfromuserprovider>(
-                        context,
-                        listen: false,
-                      ).updatebookings(booking.bookingId, "completed");
+                      if (_ordersProvider != null) {
+                        await _ordersProvider!.updatebookings(
+                          booking.bookingId,
+                          "completed",
+                        );
+                      }
                     },
                     icon: Icon(Icons.check_circle_outline, color: Colors.white),
                     label: Text(

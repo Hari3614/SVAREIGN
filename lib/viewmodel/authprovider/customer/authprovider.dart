@@ -200,11 +200,34 @@ class Authprovider with ChangeNotifier {
           MaterialPageRoute(builder: (context) => HomeContainer()),
         );
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
+      String message = "Login failed";
+      if (e.code == 'user-not-found') {
+        message = "No user found with this email";
+      } else if (e.code == 'wrong-password') {
+        message = "Incorrect password";
+      } else if (e.code == 'network-request-failed') {
+        message = "Network error. Please check your internet connection.";
+      } else {
+        message = e.message ?? "Login failed";
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } catch (e) {
+      String message = "Login failed. Please try again.";
+      if (e.toString().contains('network') ||
+          e.toString().contains('timeout')) {
+        message = "Network error. Please check your internet connection.";
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     }
   }

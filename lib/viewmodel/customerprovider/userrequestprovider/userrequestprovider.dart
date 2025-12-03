@@ -3,10 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:svareign/model/serviceprovider/reqstmodel.dart';
 import 'package:svareign/viewmodel/customerprovider/addworkprovider/addworkprovider.dart';
+import 'dart:async';
 
 class Userrequestprovider extends ChangeNotifier {
   List<Reqstmodel> _requests = [];
   List<Reqstmodel> get request => _requests;
+  StreamSubscription<QuerySnapshot>? _requestsSubscription;
+
   //fetch profile
   Future<Map<String, dynamic>?> fetchproviderProfile(String providerId) async {
     try {
@@ -21,12 +24,93 @@ class Userrequestprovider extends ChangeNotifier {
         return profilesnapshot.docs.first.data();
       }
     } catch (e) {
-      debugPrint("error fetching provider profile");
+      debugPrint("error fetching provider profile: $e");
     }
     return null;
   }
 
-  // merge request and profile
+  // Start listening to real-time request updates
+  void startListeningToRequests(String userId, String workId) {
+    // Cancel any existing subscription
+    _requestsSubscription?.cancel();
+
+    // Start listening to real-time updates from user's subcollection
+    _requestsSubscription = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('requests')
+        .where('jobId', isEqualTo: workId)
+        .snapshots()
+        .listen(
+          (snapshot) async {
+            final List<Reqstmodel> combinedlist = [];
+
+            for (var doc in snapshot.docs) {
+              try {
+                final reqstdata = doc.data() as Map<String, dynamic>;
+                final providerId = reqstdata['providerId'] as String? ?? '';
+                final jobId = reqstdata['jobId'] as String? ?? '';
+                final profiledata = await fetchproviderProfile(providerId);
+                final status = reqstdata['status'] as String? ?? "pending";
+                final userphone =
+                    FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
+                final finalamount =
+                    reqstdata['finalAmount'] is num
+                        ? reqstdata['finalAmount'].toDouble()
+                        : 0.0;
+                //  final upiId = reqstdata['upiId'] ?? "";
+
+                if (profiledata != null && status != "Rejected") {
+                  combinedlist.add(
+                    Reqstmodel(
+                      upiId: profiledata['upiId'] as String? ?? '',
+                      finalamount: finalamount,
+                      userId: userId,
+                      phonenumber: userphone,
+                      id: doc.id,
+                      status: status,
+                      providerid: providerId,
+                      jobId: jobId,
+                      name:
+                          profiledata['fullname'] as String? ??
+                          profiledata['name'] as String? ??
+                          '',
+                      imagepath:
+                          profiledata['imageurl'] as String? ??
+                          profiledata['imagepath'] as String? ??
+                          '',
+                      experience: profiledata['experience']?.toString() ?? '',
+                      hourlypayment:
+                          profiledata['payment'] as String? ??
+                          profiledata['hourlypayment'] as String? ??
+                          '',
+                      jobs:
+                          profiledata['categories'] != null
+                              ? (profiledata['categories'] is List
+                                  ? List<String>.from(profiledata['categories'])
+                                  : [profiledata['categories'].toString()])
+                              : (profiledata['jobs'] != null
+                                  ? (profiledata['jobs'] is List
+                                      ? List<String>.from(profiledata['jobs'])
+                                      : [profiledata['jobs'].toString()])
+                                  : []),
+                    ),
+                  );
+                }
+              } catch (e) {
+                debugPrint("Error processing request document ${doc.id}: $e");
+              }
+            }
+            _requests = combinedlist;
+            notifyListeners();
+          },
+          onError: (error) {
+            debugPrint("Error listening to requests: $error");
+          },
+        );
+  }
+
+  // merge request and profile (for backward compatibility)
   Future<void> loadrequest(String userId, String workId) async {
     final List<Reqstmodel> combinedlist = [];
 
@@ -38,35 +122,57 @@ class Userrequestprovider extends ChangeNotifier {
             .where('jobId', isEqualTo: workId)
             .get();
     for (var doc in requestsnapshot.docs) {
-      final reqstdata = doc.data();
-      final providerId = reqstdata['providerId'];
-      final jobId = reqstdata['jobId'];
-      final profiledata = await fetchproviderProfile(providerId);
-      final status = reqstdata['status'] ?? "pending";
-      final userphone = FirebaseAuth.instance.currentUser?.phoneNumber;
-      final finalamount = reqstdata['finalAmount'] ?? 0.0;
-      //  final upiId = reqstdata['upiId'] ?? "";
-      if (profiledata != null && status != "Rejected") {
-        combinedlist.add(
-          Reqstmodel(
-            upiId: profiledata['upiId'],
-            finalamount: finalamount,
-            userId: userId,
-            phonenumber: userphone!,
-            id: doc.id,
-            status: status,
-            providerid: providerId,
-            jobId: jobId,
-            name: profiledata['fullname'],
-            imagepath: profiledata['imageurl'],
-            experience: profiledata['experience'],
-            hourlypayment: profiledata['payment'],
-            jobs:
-                profiledata['categories'] != null
-                    ? List<String>.from(profiledata['categories'])
-                    : null,
-          ),
-        );
+      try {
+        final reqstdata = doc.data() as Map<String, dynamic>;
+        final providerId = reqstdata['providerId'] as String? ?? '';
+        final jobId = reqstdata['jobId'] as String? ?? '';
+        final profiledata = await fetchproviderProfile(providerId);
+        final status = reqstdata['status'] as String? ?? "pending";
+        final userphone = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
+        final finalamount =
+            reqstdata['finalAmount'] is num
+                ? reqstdata['finalAmount'].toDouble()
+                : 0.0;
+        //  final upiId = reqstdata['upiId'] ?? "";
+        if (profiledata != null && status != "Rejected") {
+          combinedlist.add(
+            Reqstmodel(
+              upiId: profiledata['upiId'] as String? ?? '',
+              finalamount: finalamount,
+              userId: userId,
+              phonenumber: userphone,
+              id: doc.id,
+              status: status,
+              providerid: providerId,
+              jobId: jobId,
+              name:
+                  profiledata['fullname'] as String? ??
+                  profiledata['name'] as String? ??
+                  '',
+              imagepath:
+                  profiledata['imageurl'] as String? ??
+                  profiledata['imagepath'] as String? ??
+                  '',
+              experience: profiledata['experience']?.toString() ?? '',
+              hourlypayment:
+                  profiledata['payment'] as String? ??
+                  profiledata['hourlypayment'] as String? ??
+                  '',
+              jobs:
+                  profiledata['categories'] != null
+                      ? (profiledata['categories'] is List
+                          ? List<String>.from(profiledata['categories'])
+                          : [profiledata['categories'].toString()])
+                      : (profiledata['jobs'] != null
+                          ? (profiledata['jobs'] is List
+                              ? List<String>.from(profiledata['jobs'])
+                              : [profiledata['jobs'].toString()])
+                          : []),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint("Error loading request document ${doc.id}: $e");
       }
     }
     _requests = combinedlist;
@@ -80,17 +186,27 @@ class Userrequestprovider extends ChangeNotifier {
     required String workId,
   }) async {
     try {
+      // Update the request in the user's subcollection
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .collection('requests')
           .doc(reqstId)
           .update({'status': newstatus});
+
+      // Also update the request in the global collection
+      await FirebaseFirestore.instance
+          .collection('requests')
+          .doc(reqstId)
+          .update({'status': newstatus});
+
       if (newstatus == "Rejected") {
         _requests.removeWhere((req) => req.id == reqstId);
         notifyListeners();
+      } else {
+        // For other status updates, reload the requests to reflect changes
+        await loadrequest(userId, workId);
       }
-      await loadrequest(userId, workId);
     } catch (e) {
       debugPrint("Failed to update request status: $e");
     }
@@ -105,5 +221,11 @@ class Userrequestprovider extends ChangeNotifier {
             .get();
 
     return snapshot.docs.length;
+  }
+
+  // Method to stop listening to requests
+  void stopListeningToRequests() {
+    _requestsSubscription?.cancel();
+    _requestsSubscription = null;
   }
 }

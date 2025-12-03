@@ -2,12 +2,76 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:svareign/model/serviceprovider/bookingmodel.dart';
+import 'dart:async';
 
 class Ordersfromuserprovider with ChangeNotifier {
   List<Bookingmodel> _bookings = [];
   List<Bookingmodel> get bookings => _bookings;
+  StreamSubscription<QuerySnapshot>? _bookingsSubscription;
+
+  void startListeningToBookings() {
+    final providerId = FirebaseAuth.instance.currentUser?.uid;
+    if (providerId == null) {
+      print("Provider not logged in.");
+      return;
+    }
+
+    // Cancel any existing subscription
+    _bookingsSubscription?.cancel();
+
+    // Start listening to real-time updates
+    _bookingsSubscription = FirebaseFirestore.instance
+        .collection('bookings')
+        .where('providerId', isEqualTo: providerId)
+        .snapshots()
+        .listen(
+          (snapshot) async {
+            _bookings.clear();
+
+            for (var doc in snapshot.docs) {
+              final data = doc.data() as Map<String, dynamic>;
+              final userId = data['userId'];
+
+              // Check if userId exists
+              if (userId == null) {
+                print("Missing userId in booking ${doc.id}");
+                continue;
+              }
+
+              final userdoc =
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(userId)
+                      .get();
+
+              final userdata = userdoc.data() ?? {};
+
+              final booking = Bookingmodel.fromMap(
+                data: data,
+                bookingId: doc.id,
+                name: userdata['name'] ?? '',
+                imagePath: userdata['imageurl'] ?? '',
+                phoneNumber: userdata['phone'] ?? '',
+              );
+
+              _bookings.add(booking);
+            }
+
+            notifyListeners();
+          },
+          onError: (error) {
+            print("Error listening to bookings: $error");
+          },
+        );
+  }
+
+  void stopListeningToBookings() {
+    _bookingsSubscription?.cancel();
+    _bookingsSubscription = null;
+  }
 
   Future<void> fetchbookings() async {
+    // Keep the existing method for backward compatibility
     try {
       _bookings.clear();
       final providerId = FirebaseAuth.instance.currentUser?.uid;

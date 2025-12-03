@@ -15,6 +15,7 @@ import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovid
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/searchprovider/searchprovider.dart';
+import 'package:svareign/viewmodel/customerprovider/servicepostprovider/servicepostprovider.dart';
 
 class HomeHelpersScreen extends StatefulWidget {
   const HomeHelpersScreen({super.key});
@@ -44,6 +45,11 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     searchprovider.fetchUserPlace().then((place) {
       if (place != null) {
         searchprovider.setUserPlace(place); // use setter
+        // Fetch service posts for the user's place
+        Provider.of<ServicePostProvider>(
+          context,
+          listen: false,
+        ).fetchServicePosts(place);
       }
     });
   }
@@ -218,14 +224,23 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                           .update({
                             'location': {'latitude': lat, 'longitude': lng},
                           });
-                      Provider.of<Availablityservice>(
+                      // Save the context before popping the dialog
+                      final availablityService =
+                          Provider.of<Availablityservice>(
+                            context,
+                            listen: false,
+                          );
+                      Navigator.of(
                         context,
-                      ).fetchavailableProvider(
+                      ).pop(); // Context becomes invalid after this
+                      // Use the saved reference instead of context
+                      availablityService.fetchavailableProvider(
                         selectedplace: selectedlocation,
                         userLat: lat,
                         userlng: lng,
                       );
-                      // Provider.of<Appstate>(context, listen: false).reloadapp();
+                      print("Location updated successfully");
+                    } else {
                       Navigator.of(context).pop();
                       print("No location selected");
                     }
@@ -264,26 +279,37 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 onTap: () async {
-                  CircularProgressIndicator();
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Pop the bottom sheet first
                   setState(() {
                     isloading = true;
                   });
-                  Position? position = await LocationService()
-                      .getCurrentLocation(context);
-                  double lat = position.latitude;
-                  double lng = position.longitude;
-                  String userId = FirebaseAuth.instance.currentUser!.uid;
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(userId)
-                      .update({
-                        'location': {'latitude': lat, 'longitude': lng},
-                      });
-                  //  Provider.of<Appstate>(context, listen: false).reloadapp();
-                  setState(() {
-                    isloading = false;
-                  });
+
+                  try {
+                    Position? position = await LocationService()
+                        .getCurrentLocation(context);
+                    double lat = position.latitude;
+                    double lng = position.longitude;
+                    String userId = FirebaseAuth.instance.currentUser!.uid;
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .update({
+                          'location': {'latitude': lat, 'longitude': lng},
+                        });
+                    // Get the provider reference before potentially losing context
+                    final availabilityService = Provider.of<Availablityservice>(
+                      context,
+                      listen: false,
+                    );
+                    setState(() {
+                      isloading = false;
+                    });
+                  } catch (e) {
+                    setState(() {
+                      isloading = false;
+                    });
+                    print("Error getting location: $e");
+                  }
                 },
               ),
               ListTile(
@@ -513,23 +539,23 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                                             final serviceModel =
                                                 Fetchserviceprovidermodel(
                                                   serviceId: data['uid'] ?? '',
-
                                                   name: data['name'] ?? '',
                                                   imagepath:
                                                       data['imageurl'] ?? '',
                                                   role:
                                                       data['Jobs'] is List
-                                                          ? List<dynamic>.from(
-                                                            data['categories'],
+                                                          ? List<String>.from(
+                                                            data['Jobs'],
                                                           )
-                                                          : [
-                                                            data['categories'],
-                                                          ],
+                                                          : data['Jobs'] != null
+                                                          ? [
+                                                            data['Jobs']
+                                                                .toString(),
+                                                          ]
+                                                          : [],
                                                   description:
                                                       data['description'] ?? '',
-
-                                                  hourlypayment:
-                                                      data['payment'] ?? '',
+                                                  hourlypayment: '',
                                                 );
                                             print(
                                               "servicemodel: $serviceModel",

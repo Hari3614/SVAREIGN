@@ -190,13 +190,13 @@ class ServiceAuthprovider extends ChangeNotifier {
   //   }
   // }
   Future<void> loginwithemailandpassword({
-    required String emial,
+    required String email,
     required String password,
     required BuildContext context,
   }) async {
     try {
       UserCredential credential = await _auth.signInWithEmailAndPassword(
-        email: emial,
+        email: email,
         password: password,
       );
       final uid = credential.user!.uid;
@@ -217,10 +217,31 @@ class ServiceAuthprovider extends ChangeNotifier {
         context,
         MaterialPageRoute(builder: (context) => Servicehomecontainer()),
       );
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
+      String message = "Login failed";
+      if (e.code == 'user-not-found') {
+        message = "No user found with this email";
+      } else if (e.code == 'wrong-password') {
+        message = "Incorrect password";
+      } else if (e.code == 'network-request-failed') {
+        message = "Network error. Please check your internet connection.";
+      } else {
+        message = e.message ?? "Login failed";
+      }
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Login Failed :$e")));
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } catch (e) {
+      String message = "Login failed. Please try again.";
+      if (e.toString().contains('network') ||
+          e.toString().contains('timeout')) {
+        message = "Network error. Please check your internet connection.";
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 }

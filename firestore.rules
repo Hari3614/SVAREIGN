@@ -1,0 +1,234 @@
+rules_version = '2';
+
+service cloud.firestore {
+
+  match /databases/{database}/documents {
+
+    // Helper: check if current user is an admin
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Global requests collection
+    match /requests/{requestId} {
+      // Allow service providers to CREATE requests where they will be the provider
+      allow create: if request.auth != null;
+      
+      // Allow service providers to read requests where they are the provider
+      allow read: if request.auth != null &&
+        resource.data.providerId == request.auth.uid;
+        
+      // Allow users to read their own requests
+      allow read: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+        
+      // Allow service providers to update requests where they are the provider
+      allow update: if request.auth != null &&
+        request.resource.data.providerId == request.auth.uid;
+        
+      // Allow users to update their own requests (for status changes)
+      allow update: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+        
+      // Admin access
+      allow read, write: if request.auth != null && isAdmin();
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Users can read/write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Admin: can read/write all users
+      allow read, write: if request.auth != null && isAdmin();
+
+      // Subcollections under users
+      match /{subCollection=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth != null && isAdmin();
+      }
+    }
+
+    // Requests subcollection under users
+    match /users/{userId}/requests/{requestId} {
+      // Allow the user to read/write their own requests
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow service providers to CREATE requests for this user
+      allow create: if request.auth != null;
+      
+      // Allow the service provider to read requests where they are the provider
+      allow read: if request.auth != null && 
+        resource.data.providerId == request.auth.uid;
+      
+      // Allow the service provider to update requests where they are the provider
+      allow update: if request.auth != null && 
+        request.resource.data.providerId == request.auth.uid;
+      
+      // Admin access
+      allow read, write: if request.auth != null && isAdmin();
+    }
+
+    // Collection group query for requests - THIS IS THE FIX
+    match /{document=**}/requests/{requestId} {
+      // Allow service providers to CREATE requests
+      allow create: if request.auth != null;
+      
+      // Allow service providers to read requests where they are the provider
+      allow read: if request.auth != null &&
+        resource.data.providerId == request.auth.uid;
+
+      // Allow users to read their own requests
+      allow read: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+
+      // Allow service providers to update requests where they are the provider
+      allow update: if request.auth != null &&
+        request.resource.data.providerId == request.auth.uid;
+        
+      // Allow users to update their own requests
+      allow update: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Admin access
+      allow read, write: if request.auth != null && isAdmin();
+    }
+
+    // Services Collection
+    match /services/{serviceId} {
+      // Service providers can read/write their own data
+      allow read, write: if request.auth != null && request.auth.uid == serviceId;
+
+      // Admin access
+      allow read, write: if request.auth != null && isAdmin();
+
+      match /payments/{paymentId} {
+        allow read, write: if request.auth != null &&
+          (request.auth.uid == serviceId ||
+           request.resource.data.userId == request.auth.uid);
+
+        allow read, write: if request.auth != null && isAdmin();
+      }
+
+      match /profile/{profileId} {
+        allow read, write: if request.auth != null && request.auth.uid == serviceId;
+        allow read, write: if request.auth != null && isAdmin();
+        
+        // Allow users to read provider profiles
+        allow read: if request.auth != null;
+      }
+
+      // Service posts
+      match /posts/{postId} {
+        // Anyone can READ posts (public)
+        allow read: if true;
+
+        // Provider can WRITE their own posts
+        allow write: if request.auth != null && request.auth.uid == serviceId;
+
+        // Admin full control
+        allow read, write: if request.auth != null && isAdmin();
+      }
+
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if request.auth != null &&
+          request.resource.data.userId == request.auth.uid;
+
+        allow update, delete: if request.auth != null &&
+          request.auth.uid == resource.data.userId;
+
+        allow read, write: if request.auth != null && isAdmin();
+      }
+
+      match /completedWorks/{workId} {
+        allow read, create, update, delete: if request.auth != null &&
+          (request.auth.uid == serviceId ||
+           request.auth.uid == resource.data.userId);
+
+        allow read, write: if request.auth != null && isAdmin();
+      }
+
+      match /{document=**} {
+        allow read: if true;
+        allow read, write: if request.auth != null && isAdmin();
+      }
+    }
+
+    // Works Collection
+    match /works/{workId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null && isAdmin();
+    }
+
+    // Posts Collection - FIXED VERSION
+    match /posts/{postId} {
+      // Allow public read access
+      allow read: if true;
+      
+      // Allow service providers to create and update their own posts
+      allow create, update: if request.auth != null &&
+        request.resource.data.providerId == request.auth.uid;
+        
+      // Allow service providers to DELETE their own posts
+      // During delete operations, we need to check the existing document data, not request.resource.data
+      allow delete: if request.auth != null &&
+        resource.data.providerId == request.auth.uid;
+        
+      // Admin access
+      allow read, write: if request.auth != null && isAdmin();
+    }
+    
+    // Allow reading individual user documents - THIS IS THE FIX
+    match /users/{userId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId || 
+         exists(/databases/$(database)/documents/services/$(request.auth.uid)));
+         
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Admin access
+      allow read, write: if request.auth != null && isAdmin();
+    }
+    
+    // Global reviews collection - THIS IS THE FIX
+    match /reviews/{reviewId} {
+      // Allow public read access
+      allow read: if true;
+      
+      // Allow users to create reviews
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+        
+      // Allow users to update/delete their own reviews
+      allow update, delete: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+        
+      // Admin access
+      allow read, write: if request.auth != null && isAdmin();
+    }
+    
+    // Bookings Collection - REVISED VERSION
+    match /bookings/{bookingId} {
+      // Allow authenticated users to create bookings
+      allow create: if request.auth != null;
+      
+      // Allow users and service providers to read their own bookings
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.uid == resource.data.providerId ||
+         request.auth.uid == resource.data.serviceId);
+         
+      // Allow users and service providers to update their own bookings
+      allow update: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.uid == resource.data.providerId ||
+         request.auth.uid == resource.data.serviceId);
+         
+      // Admin access
+      allow read, write: if request.auth != null && isAdmin();
+    }
+  }
+}

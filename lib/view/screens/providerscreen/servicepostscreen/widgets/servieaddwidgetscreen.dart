@@ -264,6 +264,7 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                             final imageurl = await uploadimages();
                             final providerId =
                                 FirebaseAuth.instance.currentUser!.uid;
+
                             final post = Jobsadsmodel(
                               providerid: providerId,
                               tittle: tittle,
@@ -273,6 +274,9 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                               starttime: startime!.format(context),
                               endtime: endtime!.format(context),
                               postedtime: DateTime.now(),
+                              expirytime: DateTime.now().add(
+                                Duration(hours: 24),
+                              ),
                             );
                             await Provider.of<Jobadsprovider>(
                               context,
@@ -295,7 +299,9 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   backgroundColor: Colors.red,
-                                  content: Text("Failed to post. Try again."),
+                                  content: Text(
+                                    "Failed to post: ${e.toString()}. Please try again.",
+                                  ),
                                 ),
                               );
                             }

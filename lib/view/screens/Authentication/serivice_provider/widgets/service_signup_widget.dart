@@ -8,19 +8,26 @@ import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dar
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
 
-class ServiceSignupWidget extends StatelessWidget {
+class ServiceSignupWidget extends StatefulWidget {
   const ServiceSignupWidget({super.key});
 
   @override
+  State<ServiceSignupWidget> createState() => _ServiceSignupWidgetState();
+}
+
+class _ServiceSignupWidgetState extends State<ServiceSignupWidget> {
+  final TextEditingController namecontroller = TextEditingController();
+  final TextEditingController phonecontoller = TextEditingController();
+  final TextEditingController emailcontoller = TextEditingController();
+  final TextEditingController passwordcontroller = TextEditingController();
+  final TextEditingController confirmcontoller = TextEditingController();
+  final formkey = GlobalKey<FormState>();
+  bool _isLoading = false;
+
+  @override
   Widget build(BuildContext context) {
-    final TextEditingController namecontroller = TextEditingController();
-    final TextEditingController phonecontoller = TextEditingController();
-    final TextEditingController emailcontoller = TextEditingController();
-    final TextEditingController passwordcontroller = TextEditingController();
-    final TextEditingController confirmcontoller = TextEditingController();
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
-    final formkey = GlobalKey<FormState>();
 
     return Form(
       key: formkey,
@@ -188,33 +195,43 @@ class ServiceSignupWidget extends StatelessWidget {
             Consumer<Signupformprovide>(
               builder: (context, formrprovider, child) {
                 return Elevatedbuttonwidget(
-                  onpressed: () {
-                    if (namecontroller.text.isEmpty ||
-                        emailcontoller.text.isEmpty ||
-                        phonecontoller.text.isEmpty ||
-                        passwordcontroller.text.isEmpty ||
-                        confirmcontoller.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("All fields are required")),
-                      );
-                    } else if (formkey.currentState!.validate()) {
+                  onpressed: () async {
+                    if (formkey.currentState!.validate()) {
+                      setState(() {
+                        _isLoading = true;
+                      });
                       final serviceauthprovider =
                           Provider.of<ServiceAuthprovider>(
                             context,
                             listen: false,
                           );
-                      serviceauthprovider.sendServiceOtp(
-                        name: namecontroller.text.trim(),
-                        email: emailcontoller.text.trim(),
-                        phonenumber: phonecontoller.text.trim(),
-                        password: passwordcontroller.text.trim(),
-                        context: context,
+
+                      try {
+                        await serviceauthprovider.sendServiceOtp(
+                          name: namecontroller.text.trim(),
+                          email: emailcontoller.text.trim(),
+                          phonenumber: phonecontoller.text.trim(),
+                          password: passwordcontroller.text.trim(),
+                          context: context,
+                        );
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        }
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please fix the errors in the form'),
+                        ),
                       );
                     }
                   },
                   widht: width * 0.35,
                   height: height * 0.05,
-                  buttontext: "SignUp",
+                  buttontext: _isLoading ? 'Signing up...' : 'SignUp',
                   color:
                       formrprovider.areAllFieldsFilled
                           ? Colors.black

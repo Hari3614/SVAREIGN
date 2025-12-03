@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/service_provider/Serviceproivdereqst/servicereqsrprovider.dart';
@@ -22,6 +23,34 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
   void initState() {
     super.initState();
     _loadServiceProviderPlaceAndStartListening();
+    _loadRequestedJobs();
+  }
+
+  Future<void> _loadRequestedJobs() async {
+    final providerId = FirebaseAuth.instance.currentUser?.uid;
+    if (providerId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final reqstprovider = Provider.of<Servicereqsrprovider>(
+          context,
+          listen: false,
+        );
+        reqstprovider.startListeningToRequests(providerId);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // Stop listening to requests when the widget is disposed
+    final providerId = FirebaseAuth.instance.currentUser?.uid;
+    if (providerId != null) {
+      final reqstprovider = Provider.of<Servicereqsrprovider>(
+        context,
+        listen: false,
+      );
+      reqstprovider.stopListeningToRequests();
+    }
+    super.dispose();
   }
 
   Future<void> _loadServiceProviderPlaceAndStartListening() async {
@@ -56,9 +85,50 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
     return timeago.format(timestamp);
   }
 
+  Future<void> _sendRequest({
+    required Servicereqsrprovider reqstprovider,
+    required String userId,
+    required String providerId,
+    required String jobId,
+    required int index,
+  }) async {
+    try {
+      await reqstprovider.sendreqstuser(
+        userId: userId,
+        providerId: providerId,
+        jobId: jobId,
+      );
+      setState(() {
+        requestStates[index] = true;
+      });
+    } catch (e) {
+      // Handle errors when sending request
+      String errorMessage = "Failed to send request";
+      if (e is FirebaseException) {
+        if (e.code == 'permission-denied') {
+          errorMessage = "Permission denied. Please contact support.";
+        } else {
+          errorMessage = e.message ?? errorMessage;
+        }
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+        );
+      }
+
+      // Reset the button state on error
+      setState(() {
+        requestStates[index] = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final jobPostProvider = Provider.of<Jobpostprovider>(context);
+    final reqstprovider = Provider.of<Servicereqsrprovider>(context);
     final height = MediaQuery.of(context).size.height;
 
     // Make sure state list sizes match data length
@@ -97,6 +167,9 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
                 itemCount: jobPostProvider.works.length,
                 itemBuilder: (context, index) {
                   final job = jobPostProvider.works[index];
+                  // Check if this job has already been requested
+                  final isAlreadyRequested = reqstprovider.requestedjobIds
+                      .contains(job.id);
 
                   return GestureDetector(
                     onTap: () {
@@ -175,7 +248,7 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
                                   children: [
                                     ElevatedButton(
                                       onPressed:
-                                          requestStates[index]
+                                          isAlreadyRequested
                                               ? null
                                               : () async {
                                                 final providerId =
@@ -187,24 +260,24 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
                                                     Provider.of<
                                                       Servicereqsrprovider
                                                     >(context, listen: false);
-                                                await reqstprovider
-                                                    .sendreqstuser(
-                                                      userId: job.userId,
-                                                      providerId: providerId,
-                                                      jobId: job.id,
-                                                    );
-                                                setState(() {
-                                                  requestStates[index] = true;
-                                                });
+
+                                                // Call the request sending method with error handling
+                                                await _sendRequest(
+                                                  reqstprovider: reqstprovider,
+                                                  userId: job.userId,
+                                                  providerId: providerId,
+                                                  jobId: job.id,
+                                                  index: index,
+                                                );
                                               },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
-                                            requestStates[index]
+                                            isAlreadyRequested
                                                 ? Colors.grey
                                                 : null,
                                       ),
                                       child: Text(
-                                        requestStates[index]
+                                        isAlreadyRequested
                                             ? "Requested"
                                             : "Request",
                                       ),

@@ -8,15 +8,21 @@ import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dar
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
 
-class Signupwidget extends StatelessWidget {
-  Signupwidget({super.key});
+class Signupwidget extends StatefulWidget {
+  const Signupwidget({super.key});
 
+  @override
+  State<Signupwidget> createState() => _SignupwidgetState();
+}
+
+class _SignupwidgetState extends State<Signupwidget> {
   final TextEditingController namecontroller = TextEditingController();
   final TextEditingController emailcontroller = TextEditingController();
   final TextEditingController phonecontroller = TextEditingController();
   final TextEditingController passwordcontroller = TextEditingController();
   final TextEditingController confirmcontroller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -201,27 +207,36 @@ class Signupwidget extends StatelessWidget {
             Consumer<Signupformprovide>(
               builder: (context, signupprovider, child) {
                 return Elevatedbuttonwidget(
-                  onpressed: () {
-                    if (namecontroller.text.isEmpty ||
-                        emailcontroller.text.isEmpty ||
-                        phonecontroller.text.isEmpty ||
-                        passwordcontroller.text.isEmpty ||
-                        confirmcontroller.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('All fields are required')),
-                      );
-                    } else if (_formKey.currentState!.validate()) {
+                  onpressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      setState(() {
+                        _isLoading = true;
+                      });
                       final authProvider = Provider.of<Authprovider>(
                         context,
                         listen: false,
                       );
 
-                      authProvider.sendotp(
-                        name: namecontroller.text.trim(),
-                        email: emailcontroller.text.trim(),
-                        phonenumber: phonecontroller.text.trim(),
-                        password: passwordcontroller.text.trim(),
-                        context: context,
+                      try {
+                        await authProvider.sendotp(
+                          name: namecontroller.text.trim(),
+                          email: emailcontroller.text.trim(),
+                          phonenumber: phonecontroller.text.trim(),
+                          password: passwordcontroller.text.trim(),
+                          context: context,
+                        );
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        }
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please fix the errors in the form'),
+                        ),
                       );
                     }
                   },
@@ -232,7 +247,7 @@ class Signupwidget extends StatelessWidget {
                           ? Colors.black
                           : Colors.grey,
                   textsize: 16,
-                  buttontext: 'Signup',
+                  buttontext: _isLoading ? 'Signing up...' : 'Signup',
                 );
               },
             ),

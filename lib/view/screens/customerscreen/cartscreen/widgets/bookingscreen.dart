@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:svareign/model/customer/fetchserviceprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/bookingprovider/bookingprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Bookingscreen extends StatefulWidget {
   const Bookingscreen({super.key, required this.serviceitem});
@@ -116,15 +117,24 @@ class _BookingscreenState extends State<Bookingscreen> {
                           );
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: Colors.green,
+                            const SnackBar(
                               content: Text("Booking succesfull"),
+                              backgroundColor: Colors.green,
                             ),
                           );
                         } catch (E) {
+                          String errorMessage = "Booking failed";
+                          if (E is FirebaseException) {
+                            if (E.code == 'permission-denied') {
+                              errorMessage =
+                                  "Permission denied. Please try again or contact support.";
+                            } else {
+                              errorMessage = E.message ?? errorMessage;
+                            }
+                          }
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Booking failed"),
+                            SnackBar(
+                              content: Text(errorMessage),
                               backgroundColor: Colors.red,
                             ),
                           );

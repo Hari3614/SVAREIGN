@@ -100,6 +100,14 @@ class Bookingprovider with ChangeNotifier {
         'status': 'pending',
       });
       cartprovider.removefromcart(service.serviceId);
+    } on FirebaseException catch (e) {
+      debugPrint("Firebase Booking failed: ${e.message}");
+      if (e.code == 'permission-denied') {
+        debugPrint(
+          "Permission denied error. Please check Firestore security rules.",
+        );
+      }
+      rethrow;
     } catch (e) {
       debugPrint("Booking failed: $e");
       rethrow;

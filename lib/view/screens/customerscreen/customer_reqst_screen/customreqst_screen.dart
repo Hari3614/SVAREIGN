@@ -18,19 +18,30 @@ class CustomreqstScreen extends StatefulWidget {
 }
 
 class _CustomreqstScreenState extends State<CustomreqstScreen> {
+  Userrequestprovider? _userRequestProvider;
+
   @override
   void initState() {
     super.initState();
 
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final userid = FirebaseAuth.instance.currentUser?.uid;
       if (userid != null) {
-        Provider.of<Userrequestprovider>(
+        // Get the provider reference and start listening
+        _userRequestProvider = Provider.of<Userrequestprovider>(
           context,
           listen: false,
-        ).loadrequest(userid, widget.workid);
+        );
+        _userRequestProvider!.startListeningToRequests(userid, widget.workid);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Stop listening to requests when the widget is disposed
+    _userRequestProvider?.stopListeningToRequests();
+    super.dispose();
   }
 
   void _showbottomsheet(BuildContext context, Reqstmodel req) {
@@ -139,6 +150,10 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
       body: Consumer<Userrequestprovider>(
         builder: (context, provider, _) {
           final request = provider.request;
+          debugPrint(
+            "Building customer request screen with ${request.length} requests",
+          );
+
           if (request.isEmpty) {
             return const Center(child: Text('No requests found'));
           }
@@ -147,6 +162,17 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
             itemCount: request.length,
             itemBuilder: (context, index) {
               final req = request[index];
+              debugPrint(
+                "Displaying request ${req.id} with status ${req.status}",
+              );
+
+              // Add error handling for missing data
+              if (req.providerid.isEmpty) {
+                return const ListTile(
+                  title: Text("Invalid request data"),
+                  subtitle: Text("Missing provider information"),
+                );
+              }
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -175,6 +201,18 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                             width: width * 0.18,
                             height: height * 0.08,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Show a placeholder if image fails to load
+                              return Container(
+                                width: width * 0.18,
+                                height: height * 0.08,
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -196,10 +234,16 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                                     ),
                                   ),
                                   FutureBuilder<double>(
-                                    future: Provider.of<ReviewProvider>(
-                                      context,
-                                      listen: false,
-                                    ).getAverageRating(req.providerid),
+                                    future: Future.microtask(() {
+                                      final reviewProvider =
+                                          Provider.of<ReviewProvider>(
+                                            context,
+                                            listen: false,
+                                          );
+                                      return reviewProvider.getAverageRating(
+                                        req.providerid,
+                                      );
+                                    }),
                                     builder: (context, snapshot) {
                                       if (!snapshot.hasData) {
                                         return Row(
@@ -246,10 +290,16 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       children: [
                         _infoColumn("Experience", "${req.experience}"),
                         FutureBuilder<int>(
-                          future: Provider.of<Userrequestprovider>(
-                            context,
-                            listen: false,
-                          ).getCompletedWorksCount(req.providerid),
+                          future: Future.microtask(() {
+                            final userRequestProvider =
+                                Provider.of<Userrequestprovider>(
+                                  context,
+                                  listen: false,
+                                );
+                            return userRequestProvider.getCompletedWorksCount(
+                              req.providerid,
+                            );
+                          }),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
                               return _infoColumn("Projects completed", "...");
@@ -261,10 +311,13 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                           },
                         ),
                         FutureBuilder<int>(
-                          future: Provider.of<ReviewProvider>(
-                            context,
-                            listen: false,
-                          ).getreviews(req.providerid),
+                          future: Future.microtask(() {
+                            final reviewProvider = Provider.of<ReviewProvider>(
+                              context,
+                              listen: false,
+                            );
+                            return reviewProvider.getreviews(req.providerid);
+                          }),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
                               return _infoColumn("Reviews", "...");

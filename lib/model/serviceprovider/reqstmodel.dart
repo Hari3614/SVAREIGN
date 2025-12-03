@@ -12,6 +12,7 @@ class Reqstmodel {
   final String userId;
   final double finalamount;
   final String upiId;
+
   Reqstmodel({
     required this.id,
     required this.providerid,
@@ -29,20 +30,33 @@ class Reqstmodel {
   });
 
   factory Reqstmodel.fromMap(String documentId, Map<String, dynamic> map) {
+    // Debug print to see what data we're getting
+    print("Creating Reqstmodel from map: $map");
+
     return Reqstmodel(
-      upiId: map['upiId'],
-      userId: map['userId'],
-      phonenumber: map['phone'],
+      upiId: map['upiId'] ?? '',
+      userId: map['userId'] ?? '',
+      phonenumber: map['phone'] ?? map['phonenumber'] ?? '',
       id: documentId,
-      finalamount: map['finalAmount'],
-      status: map['status'],
-      providerid: map['providerId'],
-      jobId: map['jobId'],
-      name: map['name'],
-      imagepath: map['imagepath'],
-      hourlypayment: map['hourlypayment'],
-      experience: map['experience'],
-      jobs: map['job'] != null ? List<String>.from(map['job']) : null, // ✅
+      finalamount:
+          map['finalAmount'] is num ? map['finalAmount'].toDouble() : 0.0,
+      status: map['status'] ?? 'pending',
+      providerid: map['providerId'] ?? '',
+      jobId: map['jobId'] ?? '',
+      name: map['name'] ?? map['fullname'] ?? '',
+      imagepath: map['imagepath'] ?? map['imageurl'] ?? '',
+      hourlypayment: map['hourlypayment'] ?? map['payment'] ?? '',
+      experience: map['experience']?.toString() ?? '',
+      jobs:
+          map['job'] != null
+              ? (map['job'] is List
+                  ? List<String>.from(map['job'])
+                  : [map['job'].toString()])
+              : (map['jobs'] != null
+                  ? (map['jobs'] is List
+                      ? List<String>.from(map['jobs'])
+                      : [map['jobs'].toString()])
+                  : []),
     );
   }
 
@@ -54,7 +68,7 @@ class Reqstmodel {
       'imagepath': imagepath,
       'hourlypayment': hourlypayment,
       'experience': experience,
-      'job': jobs,
+      'jobs': jobs,
       'status': status,
       "phone": phonenumber,
       "userId": userId,

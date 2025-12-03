@@ -31,7 +31,7 @@ android {
 
     defaultConfig {
         applicationId = "com.svareign.app"
-        minSdk = 23              // ✅ Kotlin DSL uses `=`
+        minSdk = flutter.minSdkVersion              // ✅ Kotlin DSL uses `=`
         targetSdk = 35           // ✅ Kotlin DSL uses `=`
         versionCode = 3
         versionName = "1.0.2"

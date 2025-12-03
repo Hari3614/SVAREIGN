@@ -93,10 +93,10 @@ class Myjobsscreen extends StatelessWidget {
     try {
       final providerId = FirebaseAuth.instance.currentUser!.uid;
 
-      // Get request data
-      final requestRef = FirebaseFirestore.instance.doc(
-        '$parentDocPath/requests/$requestDocId',
-      );
+      // Get request data from global collection
+      final requestRef = FirebaseFirestore.instance
+          .collection('requests')
+          .doc(requestDocId);
       final requestSnap = await requestRef.get();
       if (!requestSnap.exists) {
         throw Exception("Request document not found");
@@ -105,10 +105,7 @@ class Myjobsscreen extends StatelessWidget {
 
       // 1️⃣ Get user name
       final userSnap =
-          await FirebaseFirestore.instance
-              .collection("users")
-              .doc(requestData['userId'])
-              .get();
+          await FirebaseFirestore.instance.doc(parentDocPath).get();
       final userName =
           userSnap.exists ? (userSnap.data()?['name'] ?? "Unknown") : "Unknown";
 
@@ -123,12 +120,21 @@ class Myjobsscreen extends StatelessWidget {
               ? (workSnap.data()?['description'] ?? "No description")
               : "No description";
 
-      // 3️⃣ Update request status in user's side
+      // 3️⃣ Update request status in both global and user's subcollection
       await requestRef.update({
         'status': 'Completed',
         'finalAmount': finalAmount,
         'completedAt': FieldValue.serverTimestamp(),
       });
+
+      // Update in user's subcollection as well
+      await FirebaseFirestore.instance
+          .doc('$parentDocPath/requests/$requestDocId')
+          .update({
+            'status': 'Completed',
+            'finalAmount': finalAmount,
+            'completedAt': FieldValue.serverTimestamp(),
+          });
 
       // 4️⃣ Save to provider's completedJobs
       await FirebaseFirestore.instance
@@ -168,19 +174,38 @@ class Myjobsscreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream:
             FirebaseFirestore.instance
-                .collectionGroup('requests')
+                .collection('requests')
                 .where('providerId', isEqualTo: providerId)
                 .where("status", isEqualTo: "Accepted")
                 .snapshots(),
         builder: (context, snapshot) {
+          debugPrint(
+            "My Jobs screen - snapshot state: ${snapshot.connectionState}",
+          );
+
           if (snapshot.hasError) {
-            return const Center(child: Text("Error loading Jobs"));
+            debugPrint("My Jobs screen - error: ${snapshot.error}");
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Error loading Jobs"),
+                  Text("Error: ${snapshot.error.toString()}"),
+                ],
+              ),
+            );
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            debugPrint("My Jobs screen - no data");
+            return const Center(child: Text("No data available"));
           }
 
           final docs = snapshot.data!.docs;
+          debugPrint("My Jobs screen - found ${docs.length} accepted jobs");
+
           if (docs.isEmpty) {
             return const Center(child: Text("No Accepted Jobs yet"));
           }
@@ -189,27 +214,40 @@ class Myjobsscreen extends StatelessWidget {
             itemCount: docs.length,
             itemBuilder: (context, index) {
               final data = docs[index].data() as Map<String, dynamic>;
+              debugPrint("Processing job request: ${docs[index].id}");
+
               final userId = data['userId'];
               final workId = data['jobId'];
               final requestDocId = docs[index].id;
-              final parentDocPath =
-                  docs[index].reference.path.split('/requests/').first;
+              // For global requests, we might need the userDocPath
+              final userDocPath =
+                  data['userDocPath'] as String? ?? 'users/$userId';
+
+              // Add error handling for missing data
+              if (userId == null || workId == null) {
+                debugPrint("Invalid request data - missing userId or workId");
+                return const ListTile(
+                  title: Text("Invalid request data"),
+                  subtitle: Text("Missing user or work information"),
+                );
+              }
 
               return FutureBuilder<DocumentSnapshot>(
-                future:
-                    FirebaseFirestore.instance
-                        .collection("users")
-                        .doc(userId)
-                        .get(),
+                future: FirebaseFirestore.instance.doc(userDocPath).get(),
                 builder: (context, usersnapshot) {
                   if (usersnapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (usersnapshot.hasError ||
-                      !usersnapshot.hasData ||
-                      !usersnapshot.data!.exists) {
+                  if (usersnapshot.hasError) {
+                    return ListTile(
+                      title: const Text("Error loading user data"),
+                      subtitle: Text("Error: ${usersnapshot.error.toString()}"),
+                    );
+                  }
+                  if (!usersnapshot.hasData || !usersnapshot.data!.exists) {
                     return const ListTile(
                       title: Text("Error loading user data"),
+                      subtitle: Text("Unable to fetch customer information"),
                     );
                   }
 
@@ -229,21 +267,31 @@ class Myjobsscreen extends StatelessWidget {
                           ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      if (worksnapshot.hasError ||
-                          !worksnapshot.hasData ||
-                          !worksnapshot.data!.exists) {
+                      if (worksnapshot.hasError) {
                         return ListTile(
                           title: Text(userName),
-                          subtitle: const Text("Error loading work"),
+                          subtitle: Text(
+                            "Error loading work: ${worksnapshot.error.toString()}",
+                          ),
+                        );
+                      }
+                      if (!worksnapshot.hasData || !worksnapshot.data!.exists) {
+                        return ListTile(
+                          title: Text(userName),
+                          subtitle: const Text("Work details not available"),
                         );
                       }
 
                       final workdata =
                           worksnapshot.data!.data() as Map<String, dynamic>;
-                      final worktitle = workdata['worktittle'] ?? "Unknown";
+                      final worktitle =
+                          workdata['worktittle'] ??
+                          workdata['title'] ??
+                          "Unknown Work";
                       final workdesc =
                           workdata['description'] ?? "No description";
-                      final minbudget = workdata['minbudget'] ?? "0";
+                      final minbudget =
+                          workdata['minbudget'] ?? workdata['budget'] ?? "0";
                       final maxbudget = workdata['maxbudget'] ?? "0";
                       final duration = workdata['duration'] ?? "N/A";
 
@@ -322,7 +370,7 @@ class Myjobsscreen extends StatelessWidget {
                                       () => _showpaymentdialogue(
                                         context,
                                         requestDocId,
-                                        parentDocPath,
+                                        userDocPath,
                                       ),
                                   icon: const Icon(Icons.check_circle),
                                   label: const Text("Mark as Complete"),

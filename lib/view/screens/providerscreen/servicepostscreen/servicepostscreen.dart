@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/view/screens/providerscreen/servicepostscreen/widgets/servieaddwidgetscreen.dart';
 import 'package:svareign/viewmodel/service_provider/jobads/jobadsprovider.dart';
+import 'package:svareign/model/serviceprovider/jobsadsmodel.dart';
 
 class Serviceadscreen extends StatefulWidget {
   const Serviceadscreen({super.key});
@@ -18,6 +19,85 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
   void initState() {
     super.initState();
     _fetchplaceandPosts();
+  }
+
+  String _formatExpiryTime(DateTime expiryTime) {
+    final now = DateTime.now();
+    final difference = expiryTime.difference(now);
+
+    if (difference.isNegative) {
+      return "Expired";
+    }
+
+    final inHours = difference.inHours;
+    final inMinutes = difference.inMinutes % 60;
+
+    if (inHours > 0) {
+      return "$inHours hours $inMinutes minutes";
+    } else {
+      return "$inMinutes minutes";
+    }
+  }
+
+  void _confirmDelete(
+    BuildContext context,
+    Jobsadsmodel post,
+    Jobadsprovider provider,
+  ) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc =
+        FirebaseFirestore.instance.collection('services').doc(user.uid).get();
+    doc.then((value) {
+      final place = value.data()?['place'] ?? '';
+
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text("Delete Post"),
+              content: const Text("Are you sure you want to delete this post?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    try {
+                      await provider.deletePost(post.id, user.uid, place);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Post deleted successfully"),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Error deleting post: ${e.toString()}",
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text(
+                    "Delete",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            ),
+      );
+    });
   }
 
   Future<void> _fetchplaceandPosts() async {
@@ -156,6 +236,33 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
                             style: const TextStyle(
                               fontSize: 13,
                               color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "Expires in: ${_formatExpiryTime(posts.expirytime)}",
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                _confirmDelete(context, posts, provider);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                              ),
+                              child: const Text("Delete"),
                             ),
                           ),
                         ],

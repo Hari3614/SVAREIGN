@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/model/customer/fetchserviceprovider.dart';
+import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobads/jobadsprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
 
@@ -152,22 +154,130 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green.shade600,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                          Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green.shade600,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.chat,
+                                    color: Colors.white,
+                                  ),
+                                  label: const Text(
+                                    "Chat via WhatsApp",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               ),
-                              onPressed: () {},
-                              icon: const Icon(Icons.chat, color: Colors.white),
-                              label: const Text(
-                                "Chat via WhatsApp",
-                                style: TextStyle(color: Colors.white),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange.shade600,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    final cartprovider =
+                                        Provider.of<Cartprovider>(
+                                          context,
+                                          listen: false,
+                                        );
+
+                                    // Check if already in cart
+                                    final isAlreadyInCart = cartprovider
+                                        .cartitems
+                                        .any(
+                                          (item) =>
+                                              item.serviceId == post.providerid,
+                                        );
+
+                                    if (isAlreadyInCart) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Already added to cart",
+                                          ),
+                                          backgroundColor: Colors.orange,
+                                        ),
+                                      );
+                                    } else {
+                                      // Add to cart
+                                      final jobspostprovider =
+                                          Provider.of<Jobpostprovider>(
+                                            context,
+                                            listen: false,
+                                          );
+
+                                      // Get provider details
+                                      final providerDoc =
+                                          await FirebaseFirestore.instance
+                                              .collection('services')
+                                              .doc(post.providerid)
+                                              .collection('profile')
+                                              .limit(1)
+                                              .get();
+
+                                      if (providerDoc.docs.isNotEmpty) {
+                                        final profileData =
+                                            providerDoc.docs.first.data();
+
+                                        // Create a service model
+                                        final serviceModel =
+                                            Fetchserviceprovidermodel(
+                                              serviceId: post.providerid,
+                                              name:
+                                                  profileData['fullname'] ??
+                                                  'Unknown',
+                                              imagepath:
+                                                  profileData['imageurl'] ?? '',
+                                              role: List<String>.from(
+                                                profileData['categories'] ?? [],
+                                              ),
+                                              description:
+                                                  profileData['description'] ??
+                                                  post.description,
+                                              hourlypayment:
+                                                  profileData['payment'] ?? '',
+                                            );
+
+                                        cartprovider.addtocart(serviceModel);
+
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              "${profileData['fullname'] ?? 'Service provider'} added to cart",
+                                            ),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    Icons.shopping_cart,
+                                    color: Colors.white,
+                                  ),
+                                  label: const Text(
+                                    "Add to Cart",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),

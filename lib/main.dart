@@ -25,12 +25,14 @@ import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
 import 'package:svareign/viewmodel/service_provider/jobstatprovider/jobstatprovider.dart';
 import 'package:svareign/viewmodel/service_provider/serviceprofileprovider/serviceprofileprovider.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
+import 'package:svareign/viewmodel/customerprovider/servicepostprovider/servicepostprovider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.instance.requestPermission();
+
   runApp(
     MultiProvider(
       providers: [
@@ -58,6 +60,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Serviceprofileprovider()),
         //ChangeNotifierProvider(create: (_) => Appstate()),
         ChangeNotifierProvider(create: (_) => Searchprovider()),
+        ChangeNotifierProvider(create: (_) => ServicePostProvider()),
         // ChangeNotifierProvider(create: (_) => Upiredirectprovider()),
       ],
       child: const MyApp(),

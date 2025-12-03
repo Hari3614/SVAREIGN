@@ -9,6 +9,7 @@ import 'package:svareign/view/screens/settings/customer_support_screen.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/view/screens/providerscreen/profilescreen/widget/editprofile/editprofile.dart';
 import 'package:svareign/viewmodel/service_provider/serviceprofileprovider/serviceprofileprovider.dart';
+import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -16,6 +17,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profileProvider = Provider.of<Serviceprofileprovider>(context);
+    final setupProfileProvider = Provider.of<Profileprovider>(context);
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -66,6 +68,8 @@ class SettingsScreen extends StatelessWidget {
                           currentUpi: profile.upiId,
                           currentImageUrl: profile.imageurl,
                           currentpayment: profile.payment,
+                          currentPhoneNumber: setupProfileProvider.phoneNumber,
+                          currentEmail: setupProfileProvider.email,
                         ),
                   ),
                 ).then((_) {
@@ -74,6 +78,10 @@ class SettingsScreen extends StatelessWidget {
                     context,
                     listen: false,
                   ).fetchProfile();
+                  Provider.of<Profileprovider>(
+                    context,
+                    listen: false,
+                  ).fetchprofile();
                 });
               },
             ),

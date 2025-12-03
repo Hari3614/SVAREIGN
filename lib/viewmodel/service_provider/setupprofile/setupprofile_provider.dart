@@ -11,8 +11,12 @@ class Profileprovider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final _storage = FirebaseStorage.instance;
   Profile? _profile;
+  String? _phoneNumber;
+  String? _email;
 
   Profile? get profile => _profile;
+  String? get phoneNumber => _phoneNumber;
+  String? get email => _email;
 
   Future<void> addprofile(Profile profile) async {
     final uid = _auth.currentUser?.uid;
@@ -33,7 +37,8 @@ class Profileprovider extends ChangeNotifier {
     final uid = _auth.currentUser?.uid;
     if (uid == null) throw Exception("No authenticated user");
 
-    final snapshot =
+    // Fetch profile data
+    final profileSnapshot =
         await _firebaseFirestore
             .collection('services')
             .doc(uid)
@@ -41,11 +46,21 @@ class Profileprovider extends ChangeNotifier {
             .limit(1)
             .get();
 
-    if (snapshot.docs.isNotEmpty) {
-      final data = snapshot.docs.first.data();
+    if (profileSnapshot.docs.isNotEmpty) {
+      final data = profileSnapshot.docs.first.data();
       _profile = Profile.frommap(data);
     } else {
       _profile = null;
+    }
+
+    // Fetch phone number and email from main service document
+    final serviceSnapshot =
+        await _firebaseFirestore.collection('services').doc(uid).get();
+
+    if (serviceSnapshot.exists) {
+      final serviceData = serviceSnapshot.data() as Map<String, dynamic>;
+      _phoneNumber = serviceData['phone'] as String?;
+      _email = serviceData['email'] as String?;
     }
 
     notifyListeners();
@@ -55,25 +70,45 @@ class Profileprovider extends ChangeNotifier {
     required String name,
     required String upiId,
     required String payment,
+    String? phoneNumber,
+    String? email,
     String? imageUrl,
   }) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) throw Exception("No authenticated user");
 
-    final docRef = _firebaseFirestore
+    // Update profile subcollection
+    final profileDocRef = _firebaseFirestore
         .collection('services')
         .doc(uid)
         .collection('profile')
         .doc('main');
 
-    final data = {
+    final profileData = {
       "fullname": name,
       "upiId": upiId,
       "payment": payment,
       if (imageUrl != null) "imageurl": imageUrl,
     };
 
-    await docRef.set(data, SetOptions(merge: true));
+    await profileDocRef.set(profileData, SetOptions(merge: true));
+
+    // Update main service document with phone and email
+    final serviceDocRef = _firebaseFirestore.collection('services').doc(uid);
+
+    final serviceData = <String, dynamic>{};
+    if (phoneNumber != null) {
+      serviceData['phone'] = phoneNumber;
+      _phoneNumber = phoneNumber;
+    }
+    if (email != null) {
+      serviceData['email'] = email;
+      _email = email;
+    }
+
+    if (serviceData.isNotEmpty) {
+      await serviceDocRef.set(serviceData, SetOptions(merge: true));
+    }
 
     // update local profile object
     if (_profile != null) {

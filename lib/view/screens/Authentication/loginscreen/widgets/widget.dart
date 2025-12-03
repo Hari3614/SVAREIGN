@@ -23,6 +23,7 @@ class _LoginwidgetState extends State<Loginwidget> {
   final TextEditingController emailcontroller = TextEditingController();
   final TextEditingController passwordcontroller = TextEditingController();
   String selectedrole = "Customer";
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -148,7 +149,7 @@ class _LoginwidgetState extends State<Loginwidget> {
           Consumer<LoginFormprovider>(
             builder: (context, loginprovider, child) {
               return Elevatedbuttonwidget(
-                onpressed: () {
+                onpressed: () async {
                   final email = emailcontroller.text.trim();
                   final password = passwordcontroller.text.trim();
 
@@ -158,20 +159,36 @@ class _LoginwidgetState extends State<Loginwidget> {
                         content: Text("Please fill all the fields"),
                       ),
                     );
-                  } else if (selectedrole == "Customer") {
-                    context.read<Authprovider>().loginWithEmailAndPassword(
-                      email: email,
-                      password: password,
-                      context: context,
-                    );
                   } else {
-                    context
-                        .read<ServiceAuthprovider>()
-                        .loginwithemailandpassword(
-                          emial: email,
-                          password: password,
-                          context: context,
-                        );
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    try {
+                      if (selectedrole == "Customer") {
+                        await context
+                            .read<Authprovider>()
+                            .loginWithEmailAndPassword(
+                              email: email,
+                              password: password,
+                              context: context,
+                            );
+                      } else {
+                        await context
+                            .read<ServiceAuthprovider>()
+                            .loginwithemailandpassword(
+                              email: email,
+                              password: password,
+                              context: context,
+                            );
+                      }
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    }
                   }
                 },
                 widht: width * 0.4,
@@ -180,7 +197,7 @@ class _LoginwidgetState extends State<Loginwidget> {
                     loginprovider.areallfiedlfilled
                         ? Colors.black
                         : Colors.grey,
-                buttontext: 'Login',
+                buttontext: _isLoading ? 'Logging in...' : 'Login',
                 textsize: 16,
               );
             },
