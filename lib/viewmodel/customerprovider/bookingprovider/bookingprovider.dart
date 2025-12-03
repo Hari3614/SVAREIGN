@@ -62,8 +62,19 @@ class Bookingprovider with ChangeNotifier {
       }
 
       bookings = tempList;
+    } on FirebaseException catch (e) {
+      print("Firebase error fetching bookings: ${e.message}");
+      if (e.code == 'permission-denied') {
+        print(
+          "Permission denied error. Please check Firestore security rules.",
+        );
+      }
+      // Re-throw to let the UI handle it
+      rethrow;
     } catch (e) {
       print("Error fetching bookings: $e");
+      // Re-throw to let the UI handle it
+      rethrow;
     } finally {
       isloading = false;
       notifyListeners();

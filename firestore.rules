@@ -210,12 +210,13 @@ service cloud.firestore {
       allow read, write: if request.auth != null && isAdmin();
     }
     
-    // Bookings Collection - REVISED VERSION
+    // Bookings Collection - FIXED VERSION FOR COLLECTION GROUP QUERIES
     match /bookings/{bookingId} {
       // Allow authenticated users to create bookings
       allow create: if request.auth != null;
       
       // Allow users and service providers to read their own bookings
+      // This rule supports both direct document access and collection group queries
       allow read: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
          request.auth.uid == resource.data.providerId ||
@@ -229,6 +230,20 @@ service cloud.firestore {
          
       // Admin access
       allow read, write: if request.auth != null && isAdmin();
+    }
+    
+    // Collection group query support for bookings
+    match /{document=**}/bookings/{bookingId} {
+      // Allow users to read their own bookings via collection group queries
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+        
+      // Allow service providers to read bookings where they are the provider
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.providerId;
+        
+      // Admin access
+      allow read: if request.auth != null && isAdmin();
     }
   }
 }

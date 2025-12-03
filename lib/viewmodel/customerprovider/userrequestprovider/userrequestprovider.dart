@@ -13,6 +13,7 @@ class Userrequestprovider extends ChangeNotifier {
   //fetch profile
   Future<Map<String, dynamic>?> fetchproviderProfile(String providerId) async {
     try {
+      // First fetch the profile data from the profile subcollection
       final profilesnapshot =
           await FirebaseFirestore.instance
               .collection('services')
@@ -20,9 +21,30 @@ class Userrequestprovider extends ChangeNotifier {
               .collection('profile')
               .limit(1)
               .get();
+              
+      // Then fetch the phone number from the main service document
+      final serviceSnapshot = 
+          await FirebaseFirestore.instance
+              .collection('services')
+              .doc(providerId)
+              .get();
+      
+      Map<String, dynamic> combinedData = {};
+      
+      // Add profile data if it exists
       if (profilesnapshot.docs.isNotEmpty) {
-        return profilesnapshot.docs.first.data();
+        combinedData.addAll(profilesnapshot.docs.first.data());
       }
+      
+      // Add phone number from main service document if it exists
+      if (serviceSnapshot.exists) {
+        final serviceData = serviceSnapshot.data() as Map<String, dynamic>;
+        if (serviceData.containsKey('phone')) {
+          combinedData['phone'] = serviceData['phone'];
+        }
+      }
+      
+      return combinedData.isEmpty ? null : combinedData;
     } catch (e) {
       debugPrint("error fetching provider profile: $e");
     }
@@ -66,7 +88,7 @@ class Userrequestprovider extends ChangeNotifier {
                       upiId: profiledata['upiId'] as String? ?? '',
                       finalamount: finalamount,
                       userId: userId,
-                      phonenumber: userphone,
+                      phonenumber: profiledata['phone'] as String? ?? '',
                       id: doc.id,
                       status: status,
                       providerid: providerId,
@@ -128,7 +150,6 @@ class Userrequestprovider extends ChangeNotifier {
         final jobId = reqstdata['jobId'] as String? ?? '';
         final profiledata = await fetchproviderProfile(providerId);
         final status = reqstdata['status'] as String? ?? "pending";
-        final userphone = FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
         final finalamount =
             reqstdata['finalAmount'] is num
                 ? reqstdata['finalAmount'].toDouble()
@@ -140,7 +161,7 @@ class Userrequestprovider extends ChangeNotifier {
               upiId: profiledata['upiId'] as String? ?? '',
               finalamount: finalamount,
               userId: userId,
-              phonenumber: userphone,
+              phonenumber: profiledata['phone'] as String? ?? '',
               id: doc.id,
               status: status,
               providerid: providerId,

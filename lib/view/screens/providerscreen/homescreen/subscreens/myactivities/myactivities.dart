@@ -18,11 +18,13 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () {
-      _ordersProvider = Provider.of<Ordersfromuserprovider>(
-        context,
-        listen: false,
-      );
-      _ordersProvider!.startListeningToBookings();
+      if (context.mounted) {
+        _ordersProvider = Provider.of<Ordersfromuserprovider>(
+          context,
+          listen: false,
+        );
+        _ordersProvider!.startListeningToBookings();
+      }
     });
   }
 
@@ -119,7 +121,7 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: () async {
-                          if (_ordersProvider != null) {
+                          if (_ordersProvider != null && context.mounted) {
                             await _ordersProvider!.updatebookings(
                               booking.bookingId,
                               "Accepted",
@@ -138,7 +140,7 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                       const SizedBox(width: 10),
                       ElevatedButton.icon(
                         onPressed: () async {
-                          if (_ordersProvider != null) {
+                          if (_ordersProvider != null && context.mounted) {
                             await _ordersProvider!.updatebookings(
                               booking.bookingId,
                               'Declined',
@@ -198,7 +200,7 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      if (_ordersProvider != null) {
+                      if (_ordersProvider != null && context.mounted) {
                         await _ordersProvider!.updatebookings(
                           booking.bookingId,
                           "completed",

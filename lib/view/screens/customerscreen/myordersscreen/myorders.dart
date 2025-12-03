@@ -21,7 +21,22 @@ class _MyOrdersState extends State<MyOrders>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     Future.delayed(Duration.zero, () {
-      Provider.of<Bookingprovider>(context, listen: false).fetchbookings();
+      try {
+        Provider.of<Bookingprovider>(context, listen: false).fetchbookings();
+      } catch (e) {
+        print("Error initializing bookings: $e");
+        // Show error message to user
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Failed to load bookings. Please try again."),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        });
+      }
       // Provider.of<Bookingprovider>(context, listen: false).fetproviderforuser();
     });
   }
@@ -109,42 +124,49 @@ class _MyOrdersState extends State<MyOrders>
 
   @override
   Widget build(BuildContext context) {
-    final bookingProvider = Provider.of<Bookingprovider>(context);
-    final allBookings = bookingProvider.bookings;
+    return Consumer<Bookingprovider>(
+      builder: (context, bookingProvider, child) {
+        if (bookingProvider.isloading) {
+          return Scaffold(
+            appBar: AppBar(title: const Text("My Orders")),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("My Orders"),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(
-              icon: Icon(Icons.pending_actions, color: Colors.lightGreen),
-              text: "Orders",
+        final allBookings = bookingProvider.bookings;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: const Text("My Orders"),
+            bottom: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(
+                  icon: Icon(Icons.pending_actions, color: Colors.lightGreen),
+                  text: "Orders",
+                ),
+                Tab(
+                  icon: Icon(Icons.check_circle, color: Colors.lightGreen),
+                  text: "Completed",
+                ),
+                Tab(
+                  icon: Icon(Icons.cancel, color: Colors.lightGreen),
+                  text: "Rejected",
+                ),
+              ],
             ),
-            Tab(
-              icon: Icon(Icons.check_circle, color: Colors.lightGreen),
-              text: "Completed",
-            ),
-            Tab(
-              icon: Icon(Icons.cancel, color: Colors.lightGreen),
-              text: "Rejected",
-            ),
-          ],
-        ),
-      ),
-      body:
-          bookingProvider.isloading
-              ? const Center(child: CircularProgressIndicator())
-              : TabBarView(
-                controller: _tabController,
-                children: [
-                  buildBookingList(allBookings, ["pending", "Accepted"]),
-                  buildBookingList(allBookings, ["completed"]),
-                  buildBookingList(allBookings, ["rejected"]),
-                ],
-              ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              buildBookingList(allBookings, ["pending", "Accepted"]),
+              buildBookingList(allBookings, ["completed"]),
+              buildBookingList(allBookings, ["rejected"]),
+            ],
+          ),
+        );
+      },
     );
   }
 
