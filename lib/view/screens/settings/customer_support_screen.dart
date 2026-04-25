@@ -52,7 +52,7 @@ class CustomerSupportScreen extends StatelessWidget {
                   child: Icon(Icons.email, color: Colors.white),
                 ),
                 title: const Text("Email"),
-                subtitle: const Text("teamsvareign@gmail.com"),
+                subtitle: const Text("support@svareign.com"),
                 onTap: () {},
               ),
               const Divider(),

@@ -42,8 +42,19 @@ class _LoginwidgetState extends State<Loginwidget> {
         children: [
           SizedBox(
             height: height * 0.35,
-            width: width * 10,
-            child: Image.asset('assets/images/app icon1.png'),
+            width: width,
+            child: Image.asset(
+              'assets/images/app_icon1.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback image or widget if the main image fails to load
+                return const Icon(
+                  Icons.image_not_supported,
+                  size: 100,
+                  color: Colors.grey,
+                );
+              },
+            ),
           ),
           const Text(
             'Welcome Back!',

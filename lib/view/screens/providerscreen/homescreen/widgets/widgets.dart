@@ -15,6 +15,8 @@ import 'package:http/http.dart' as http;
 import 'package:svareign/viewmodel/appstate/appstate.dart';
 import 'package:svareign/viewmodel/service_provider/jobstatprovider/jobstatprovider.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
+import 'package:svareign/viewmodel/notification/notification_provider.dart';
+import 'package:svareign/services/notification/notification_service.dart';
 
 class Homewidget extends StatefulWidget {
   const Homewidget({super.key});
@@ -290,6 +292,8 @@ class _HomewidgetState extends State<Homewidget> {
     final profilename = profileprovider.profile?.fullname;
     final imagepath = profileprovider.profile?.imageurl ?? "";
     final width = MediaQuery.sizeOf(context).width;
+    final notificationProvider = Provider.of<NotificationProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -308,88 +312,166 @@ class _HomewidgetState extends State<Homewidget> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              JobStatsCard(
-                onlocationtap: _showlocationoption,
-                providerName: profilename ?? "Unknown",
-                isAvailable: isAvailable,
-                imagepath: imagepath,
-                location: "",
-                onToggle: (value) {
-                  setState(() {
-                    isAvailable = value;
-                  });
-                  handleavailablitytoggle(value);
-                },
-              ),
-              const SizedBox(height: 10),
-              Recentactivitycard(),
-              const Divider(height: 30),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "Quick Stats",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Statcard(
-                    label: "Jobs Today",
-                    value:
-                        jobstats.isloading
-                            ? "..."
-                            : jobstats.jobtodaycount.toString(),
+                  JobStatsCard(
+                    onlocationtap: _showlocationoption,
+                    providerName: profilename ?? "Unknown",
+                    isAvailable: isAvailable,
+                    imagepath: imagepath,
+                    location: "",
+                    onToggle: (value) {
+                      setState(() {
+                        isAvailable = value;
+                      });
+                      handleavailablitytoggle(value);
+                    },
                   ),
-                  Statcard(
-                    label: 'Completed',
-                    value:
-                        jobstats.isloading
-                            ? "..."
-                            : jobstats.completedjobcount.toString(),
+                  const SizedBox(height: 10),
+                  Recentactivitycard(),
+                  const Divider(height: 30),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      "Quick Stats",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Statcard(
+                        label: "Jobs Today",
+                        value:
+                            jobstats.isloading
+                                ? "..."
+                                : jobstats.jobtodaycount.toString(),
+                      ),
+                      Statcard(
+                        label: 'Completed',
+                        value:
+                            jobstats.isloading
+                                ? "..."
+                                : jobstats.completedjobcount.toString(),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 30),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      "Quick Actions",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 3 / 2,
+                      children: const [
+                        Quickactionboard(
+                          icon: Icons.assignment,
+                          label: "My Jobs",
+                        ),
+                        Quickactionboard(icon: Icons.reviews, label: "Reviews"),
+                        Quickactionboard(
+                          icon: Icons.assignment_turned_in,
+                          label: "Completed Jobs",
+                        ),
+                        Quickactionboard(
+                          icon: Icons.settings,
+                          label: "Settings",
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
-              const Divider(height: 30),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "Quick Actions",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 3 / 2,
-                  children: const [
-                    Quickactionboard(icon: Icons.assignment, label: "My Jobs"),
-                    Quickactionboard(icon: Icons.reviews, label: "Reviews"),
-                    Quickactionboard(
-                      icon: Icons.assignment_turned_in,
-                      label: "Completed Jobs",
-                    ),
-                    Quickactionboard(icon: Icons.settings, label: "Settings"),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
+            ),
           ),
+          // Notification overlay
+          if (notificationProvider.hasNewNotifications &&
+              notificationProvider.notifications.isNotEmpty)
+            Positioned(
+              top: kToolbarHeight + 10, // Position below app bar
+              left: 0,
+              right: 0,
+              child: _buildNotificationBanner(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationBanner() {
+    final notificationProvider = Provider.of<NotificationProvider>(context);
+    if (notificationProvider.notifications.isEmpty) {
+      return SizedBox.shrink();
+    }
+
+    final latestNotification = notificationProvider.notifications.first;
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Dismissible(
+        key: Key(latestNotification.id),
+        direction: DismissDirection.horizontal,
+        onDismissed: (_) {
+          notificationProvider.removeNotification(latestNotification);
+        },
+        child: ListTile(
+          leading: Icon(Icons.notifications_active, color: Colors.blue),
+          title: Text(
+            latestNotification.title,
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+          ),
+          subtitle: Text(
+            latestNotification.message,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () {
+              notificationProvider.removeNotification(latestNotification);
+            },
+          ),
+          onTap: () {
+            notificationProvider.removeNotification(latestNotification);
+          },
         ),
       ),
     );

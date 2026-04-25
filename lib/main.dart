@@ -27,6 +27,7 @@ import 'package:svareign/viewmodel/service_provider/serviceprofileprovider/servi
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 import 'package:svareign/viewmodel/customerprovider/servicepostprovider/servicepostprovider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
+import 'package:svareign/viewmodel/notification/notification_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +62,7 @@ void main() async {
         //ChangeNotifierProvider(create: (_) => Appstate()),
         ChangeNotifierProvider(create: (_) => Searchprovider()),
         ChangeNotifierProvider(create: (_) => ServicePostProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
         // ChangeNotifierProvider(create: (_) => Upiredirectprovider()),
       ],
       child: const MyApp(),

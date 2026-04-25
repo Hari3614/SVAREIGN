@@ -26,20 +26,24 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     try {
+      // Fetch place from the correct collection for customers
       final doc =
           await FirebaseFirestore.instance
-              .collection('services')
+              .collection('users') // Changed from 'services' to 'users'
               .doc(user.uid)
               .get();
+
       final place = doc.data()?['place'];
+
       if (place != null && place is String) {
-        final jobpostProvider = Provider.of<Jobpostprovider>(
+        // Use Jobadsprovider instead of Jobpostprovider
+        final jobAdsProvider = Provider.of<Jobadsprovider>(
           context,
           listen: false,
         );
-        jobpostProvider.startlisteningTojobs(place);
+        jobAdsProvider.fetchglobalposts(place);
       } else {
-        print("place is null");
+        print("place is null or not a string");
       }
     } catch (e) {
       print("error fetching place:$e");

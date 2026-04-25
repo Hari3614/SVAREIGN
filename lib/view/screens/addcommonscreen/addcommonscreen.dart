@@ -8,7 +8,7 @@ class Addcommonscreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ads'),
+        title: Text('Offers'),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),

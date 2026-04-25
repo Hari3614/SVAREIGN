@@ -17,7 +17,7 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.svareign.app"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -31,10 +31,10 @@ android {
 
     defaultConfig {
         applicationId = "com.svareign.app"
-        minSdk = flutter.minSdkVersion              // ✅ Kotlin DSL uses `=`
-        targetSdk = 35           // ✅ Kotlin DSL uses `=`
-        versionCode = 3
-        versionName = "1.0.2"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36
+        versionCode = 11
+        versionName = "1.0.7"
     }
 
     signingConfigs {

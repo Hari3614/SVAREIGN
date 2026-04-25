@@ -223,7 +223,16 @@ class _MyOrdersState extends State<MyOrders>
             trailing: GestureDetector(
               onTap:
                   isCompleted
-                      ? () async {
+                      ? () {
+                        // Show snackbar when payment button is clicked
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("This is under progress"),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+
+                        // TODO: Implement actual payment functionality
                         // final paymentprovider =
                         //     Provider.of<Upiredirectprovider>(
                         //       context,
