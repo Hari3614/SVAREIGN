@@ -160,56 +160,59 @@ class _LoginwidgetState extends State<Loginwidget> {
           Consumer<LoginFormprovider>(
             builder: (context, loginprovider, child) {
               return Elevatedbuttonwidget(
-                onpressed: () async {
-                  final email = emailcontroller.text.trim();
-                  final password = passwordcontroller.text.trim();
+                onpressed: _isLoading
+                    ? null
+                    : () async {
+                        final email = emailcontroller.text.trim();
+                        final password = passwordcontroller.text.trim();
 
-                  if (email.isEmpty || password.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Please fill all the fields"),
-                      ),
-                    );
-                  } else {
-                    setState(() {
-                      _isLoading = true;
-                    });
+                        if (email.isEmpty || password.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Please fill all the fields"),
+                            ),
+                          );
+                        } else {
+                          setState(() {
+                            _isLoading = true;
+                          });
 
-                    try {
-                      if (selectedrole == "Customer") {
-                        await context
-                            .read<Authprovider>()
-                            .loginWithEmailAndPassword(
-                              email: email,
-                              password: password,
-                              context: context,
-                            );
-                      } else {
-                        await context
-                            .read<ServiceAuthprovider>()
-                            .loginwithemailandpassword(
-                              email: email,
-                              password: password,
-                              context: context,
-                            );
-                      }
-                    } finally {
-                      if (mounted) {
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      }
-                    }
-                  }
-                },
+                          try {
+                            if (selectedrole == "Customer") {
+                              await context
+                                  .read<Authprovider>()
+                                  .loginWithEmailAndPassword(
+                                    email: email,
+                                    password: password,
+                                    context: context,
+                                  );
+                            } else {
+                              await context
+                                  .read<ServiceAuthprovider>()
+                                  .loginwithemailandpassword(
+                                    email: email,
+                                    password: password,
+                                    context: context,
+                                  );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          }
+                        }
+                      },
                 widht: width * 0.4,
                 height: height * 0.054,
                 color:
                     loginprovider.areallfiedlfilled
                         ? Colors.black
                         : Colors.grey,
-                buttontext: _isLoading ? 'Logging in...' : 'Login',
+                buttontext: 'Login',
                 textsize: 16,
+                isLoading: _isLoading,
               );
             },
           ),

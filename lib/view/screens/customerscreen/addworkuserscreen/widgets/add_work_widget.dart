@@ -72,7 +72,7 @@ class AddWorkWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Posted time
+                      // Posted time and expiry
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -86,6 +86,20 @@ class AddWorkWidget extends StatelessWidget {
                           const Icon(
                             Icons.pending_actions_outlined,
                             color: Color.fromARGB(255, 192, 31, 31),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time, size: 13, color: Colors.orange),
+                          const SizedBox(width: 4),
+                          Text(
+                            "Expires ${timeago.format(work.expirytime, allowFromNow: true)}",
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),

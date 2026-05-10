@@ -37,7 +37,7 @@ class _SignupwidgetState extends State<Signupwidget> {
             SizedBox(
               height: height * 0.24,
               width: width * 1,
-              child: Image.asset('assets/images/app icon1.png'),
+              child: Image.asset('assets/images/app_icon1.png'),
             ),
             Text(
               'Create New Account',
@@ -207,39 +207,41 @@ class _SignupwidgetState extends State<Signupwidget> {
             Consumer<Signupformprovide>(
               builder: (context, signupprovider, child) {
                 return Elevatedbuttonwidget(
-                  onpressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      final authProvider = Provider.of<Authprovider>(
-                        context,
-                        listen: false,
-                      );
+                  onpressed: _isLoading
+                      ? null
+                      : () async {
+                          if (_formKey.currentState!.validate()) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            final authProvider = Provider.of<Authprovider>(
+                              context,
+                              listen: false,
+                            );
 
-                      try {
-                        await authProvider.sendotp(
-                          name: namecontroller.text.trim(),
-                          email: emailcontroller.text.trim(),
-                          phonenumber: phonecontroller.text.trim(),
-                          password: passwordcontroller.text.trim(),
-                          context: context,
-                        );
-                      } finally {
-                        if (mounted) {
-                          setState(() {
-                            _isLoading = false;
-                          });
-                        }
-                      }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Please fix the errors in the form'),
-                        ),
-                      );
-                    }
-                  },
+                            try {
+                              await authProvider.sendotp(
+                                name: namecontroller.text.trim(),
+                                email: emailcontroller.text.trim(),
+                                phonenumber: phonecontroller.text.trim(),
+                                password: passwordcontroller.text.trim(),
+                                context: context,
+                              );
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                              }
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Please fix the errors in the form'),
+                              ),
+                            );
+                          }
+                        },
                   widht: width * 0.4,
                   height: height * 0.054,
                   color:
@@ -247,7 +249,8 @@ class _SignupwidgetState extends State<Signupwidget> {
                           ? Colors.black
                           : Colors.grey,
                   textsize: 16,
-                  buttontext: _isLoading ? 'Signing up...' : 'Signup',
+                  buttontext: 'Signup',
+                  isLoading: _isLoading,
                 );
               },
             ),

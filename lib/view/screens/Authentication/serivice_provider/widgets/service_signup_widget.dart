@@ -37,7 +37,7 @@ class _ServiceSignupWidgetState extends State<ServiceSignupWidget> {
             SizedBox(
               height: height * 0.25,
               width: width * 1,
-              child: Image.asset("assets/images/app icon1.png"),
+              child: Image.asset("assets/images/app_icon1.png"),
             ),
             Text(
               "Create a New Account",
@@ -195,48 +195,51 @@ class _ServiceSignupWidgetState extends State<ServiceSignupWidget> {
             Consumer<Signupformprovide>(
               builder: (context, formrprovider, child) {
                 return Elevatedbuttonwidget(
-                  onpressed: () async {
-                    if (formkey.currentState!.validate()) {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      final serviceauthprovider =
-                          Provider.of<ServiceAuthprovider>(
-                            context,
-                            listen: false,
-                          );
+                  onpressed: _isLoading
+                      ? null
+                      : () async {
+                          if (formkey.currentState!.validate()) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            final serviceauthprovider =
+                                Provider.of<ServiceAuthprovider>(
+                                  context,
+                                  listen: false,
+                                );
 
-                      try {
-                        await serviceauthprovider.sendServiceOtp(
-                          name: namecontroller.text.trim(),
-                          email: emailcontoller.text.trim(),
-                          phonenumber: phonecontoller.text.trim(),
-                          password: passwordcontroller.text.trim(),
-                          context: context,
-                        );
-                      } finally {
-                        if (mounted) {
-                          setState(() {
-                            _isLoading = false;
-                          });
-                        }
-                      }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Please fix the errors in the form'),
-                        ),
-                      );
-                    }
-                  },
+                            try {
+                              await serviceauthprovider.sendServiceOtp(
+                                name: namecontroller.text.trim(),
+                                email: emailcontoller.text.trim(),
+                                phonenumber: phonecontoller.text.trim(),
+                                password: passwordcontroller.text.trim(),
+                                context: context,
+                              );
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                              }
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Please fix the errors in the form'),
+                              ),
+                            );
+                          }
+                        },
                   widht: width * 0.35,
                   height: height * 0.05,
-                  buttontext: _isLoading ? 'Signing up...' : 'SignUp',
+                  buttontext: 'SignUp',
                   color:
                       formrprovider.areAllFieldsFilled
                           ? Colors.black
                           : Colors.grey,
                   textsize: 16,
+                  isLoading: _isLoading,
                 );
               },
             ),

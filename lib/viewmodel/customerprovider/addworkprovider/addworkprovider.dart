@@ -21,10 +21,13 @@ class Workprovider extends ChangeNotifier {
           .orderBy('postedtime', descending: true)
           .snapshots()
           .map(
-            (snapshot) =>
-                snapshot.docs
-                    .map((doc) => Addworkmodel.fromMap(doc.data(), doc.id))
-                    .toList(),
+            (snapshot) {
+              final now = DateTime.now();
+              return snapshot.docs
+                  .map((doc) => Addworkmodel.fromMap(doc.data(), doc.id))
+                  .where((work) => work.expirytime.isAfter(now))
+                  .toList();
+            },
           );
     });
   }

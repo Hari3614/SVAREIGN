@@ -14,10 +14,14 @@ class Jobpostprovider extends ChangeNotifier {
         .orderBy('postedtime', descending: true)
         .snapshots()
         .listen((querySnapshots) {
-          _jobPost =
-              querySnapshots.docs
-                  .map((doc) => Jobpost.fromfirestore(doc))
-                  .toList();
+          final now = DateTime.now();
+          _jobPost = querySnapshots.docs
+              .map((doc) => Jobpost.fromfirestore(doc))
+              .where((job) {
+                final expiry = job.postedtime.add(const Duration(hours: 24));
+                return expiry.isAfter(now);
+              })
+              .toList();
           notifyListeners();
         });
   }

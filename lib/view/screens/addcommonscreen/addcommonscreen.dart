@@ -17,17 +17,17 @@ class Addcommonscreen extends StatelessWidget {
         children: const [
           Postcardwidget(
             imageurl:
-                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.avif",
+                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.png",
             description: "Offer upto 30%",
           ),
           Postcardwidget(
             imageurl:
-                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.avif",
+                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.png",
             description: "Offer upto 20%",
           ),
           Postcardwidget(
             imageurl:
-                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.avif",
+                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.png",
             description: "Offer upto 20%",
           ),
           Postcardwidget(
@@ -36,7 +36,7 @@ class Addcommonscreen extends StatelessWidget {
           ),
           Postcardwidget(
             imageurl:
-                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.avif",
+                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.png",
             description: "Offer upto 10%",
           ),
         ],
