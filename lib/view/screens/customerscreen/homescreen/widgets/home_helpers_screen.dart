@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/customer/fetchserviceprovider.dart';
@@ -47,14 +48,12 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     final searchprovider = Provider.of<Searchprovider>(context, listen: false);
     searchprovider.fetchUserPlace().then((place) {
       if (place != null) {
-        searchprovider.setUserPlace(place); // use setter
-        // Fetch service posts for the user's place
-        Provider.of<ServicePostProvider>(
-          context,
-          listen: false,
-        ).fetchServicePosts(place);
+        searchprovider.setUserPlace(place);
       }
     });
+
+    // Fetch service posts with radius after getting user location
+    _fetchServicePostsWithRadius();
 
     // Listen for new requests and show notifications
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -114,37 +113,57 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
               .get();
       if (!snapshot.exists) return print('doc not exits');
       final data = snapshot.data();
-      final selectedplace = data?['place'];
       final lat = data?['location']?['latitude'];
       final long = data?['location']?['longitude'];
-      if (lat != null && long != null && selectedplace != null) {
+      if (lat != null && long != null) {
         await Provider.of<Availablityservice>(
           context,
           listen: false,
-        ).fetchavailableProvider(
-          selectedplace: selectedplace,
-          userLat: lat,
-          userlng: long,
-          radiusinKm: 10,
-        );
+        ).fetchavailableProvider(userLat: lat, userlng: long, radiusinKm: 20);
       }
     } catch (E) {
       debugPrint('error locationn fetching :$E');
     }
   }
 
+  Future<void> _fetchServicePostsWithRadius() async {
+    try {
+      final userid = FirebaseAuth.instance.currentUser!.uid;
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userid)
+              .get();
+      if (!snapshot.exists) return;
+      final data = snapshot.data();
+      final lat = data?['location']?['latitude'];
+      final long = data?['location']?['longitude'];
+      if (lat != null && long != null) {
+        await Provider.of<ServicePostProvider>(
+          context,
+          listen: false,
+        ).fetchServicePosts(userLat: lat, userLng: long, radiusinKm: 20);
+      }
+    } catch (e) {
+      debugPrint('error fetching service posts with radius: $e');
+    }
+  }
+
   Future<Map<String, double>?> _getlatlanfromaddress(String address) async {
-    final String apiKey = "AIzaSyDqpOdQdfhCp5iv-2TdmOCYJwEI0K_O8IY";
     final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$apiKey',
+      'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(address)}&format=json&limit=1',
     );
-    final response = await http.get(url);
+    final response = await http.get(
+      url,
+      headers: {'User-Agent': 'Svareign-App'},
+    );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final results = data['results'] as List;
-      if (results.isNotEmpty) {
-        final location = results[0]['geometry']['location'];
-        return {'lat': location['lat'], 'lng': location['lng']};
+      final data = jsonDecode(response.body) as List;
+      if (data.isNotEmpty) {
+        return {
+          'lat': double.parse(data[0]['lat']),
+          'lng': double.parse(data[0]['lon']),
+        };
       }
     } else {
       print('error fetching geocode');
@@ -170,20 +189,18 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
         return StatefulBuilder(
           builder: (context, localSetState) {
             Future<void> fetchSuggestions(String input) async {
-              final String apiKey = "AIzaSyDqpOdQdfhCp5iv-2TdmOCYJwEI0K_O8IY";
               final url = Uri.parse(
-                'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-                '?input=$input&key=$apiKey&types=geocode&language=en',
+                'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(input)}&format=json&limit=5&addressdetails=1',
               );
-              final response = await http.get(url);
+              final response = await http.get(
+                url,
+                headers: {'User-Agent': 'Svareign-App'},
+              );
               if (response.statusCode == 200) {
-                final data = jsonDecode(response.body);
-                final List predictions = data['predictions'];
+                final List data = jsonDecode(response.body);
                 localSetState(() {
                   suggestions =
-                      predictions
-                          .map((p) => p['description'] as String)
-                          .toList();
+                      data.map((p) => p['display_name'] as String).toList();
                 });
               } else {
                 print('Error fetching suggestions: ${response.body}');
@@ -261,7 +278,6 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                       ).pop(); // Context becomes invalid after this
                       // Use the saved reference instead of context
                       availablityService.fetchavailableProvider(
-                        selectedplace: selectedlocation,
                         userLat: lat,
                         userlng: lng,
                       );
@@ -361,6 +377,15 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 0,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarIconBrightness: Brightness.dark,
+        ),
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -415,15 +440,30 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                           ),
                         ],
                       ),
-                      IconButton(
-                        icon: Icon(Icons.shopping_cart_outlined),
-                        color: Colors.black,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Cartscreen(),
+                      Consumer<Cartprovider>(
+                        builder: (context, cartProvider, child) {
+                          final itemCount = cartProvider.cartitems.length;
+                          return IconButton(
+                            icon: Badge(
+                              isLabelVisible: itemCount > 0,
+                              label: Text(
+                                itemCount.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                ),
+                              ),
+                              child: const Icon(Icons.shopping_cart_outlined),
                             ),
+                            color: Colors.black,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Cartscreen(),
+                                ),
+                              );
+                            },
                           );
                         },
                       ),
@@ -717,7 +757,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                 ),
                 SizedBox(height: 10),
                 SizedBox(
-                  height: 400,
+                  height: 230,
                   child: Consumer<Availablityservice>(
                     builder: (context, provider, _) {
                       if (provider.isloading) {
@@ -731,131 +771,136 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                           final providermodel =
                               provider.availableProvider[index];
                           return Container(
-                            width: 200,
-                            margin: EdgeInsets.only(right: 16),
-                            child: Card(
-                              elevation: 6,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(16),
-                                      bottom: Radius.circular(16),
-                                    ),
-                                    child: Image.network(
-                                      providermodel.imagepath,
-                                      height: 150,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                    ),
+                            width: 160,
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(14),
                                   ),
-                                  Padding(
-                                    padding: EdgeInsets.all(12.0),
+                                  child: Image.network(
+                                    providermodel.imagepath,
+                                    height: 100,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 8,
+                                    ),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           providermodel.name,
-                                          style: TextStyle(
-                                            fontSize: 18,
+                                          style: const TextStyle(
+                                            fontSize: 14,
                                             fontWeight: FontWeight.w600,
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          maxLines: 2,
+                                          providermodel.role.join(', '),
+                                          maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          providermodel.description,
                                           style: TextStyle(
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[600],
+                                            fontSize: 11,
                                           ),
                                         ),
-                                        SizedBox(height: 5),
-                                        Text(
-                                          "Jobs:${providermodel.role.join(',')}",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        SizedBox(height: 5),
-                                        Text(
-                                          "Payment/hour: ${providermodel.hourlypayment}",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 20),
-                                        ElevatedButton.icon(
-                                          style: ElevatedButton.styleFrom(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 8,
+                                        const Spacer(),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "₹${providermodel.hourlypayment}/hr",
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                              ),
                                             ),
-                                            foregroundColor: Colors.white,
-                                            backgroundColor: Colors.black,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
+                                            SizedBox(
+                                              height: 28,
+                                              width: 28,
+                                              child: IconButton(
+                                                padding: EdgeInsets.zero,
+                                                onPressed: () {
+                                                  final cartprovider =
+                                                      Provider.of<Cartprovider>(
+                                                        context,
+                                                        listen: false,
+                                                      );
+                                                  final isalreadycart =
+                                                      cartprovider.cartitems
+                                                          .any(
+                                                            (e) =>
+                                                                e.serviceId ==
+                                                                providermodel
+                                                                    .serviceId,
+                                                          );
+                                                  if (isalreadycart) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text(
+                                                          "Already added to the cart",
+                                                        ),
+                                                        backgroundColor:
+                                                            Colors.orange,
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    cartprovider.addtocart(
+                                                      providermodel,
+                                                    );
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          "${providermodel.name} added to the cart",
+                                                        ),
+                                                        backgroundColor:
+                                                            Colors.lightGreen,
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                                icon: const Icon(
+                                                  Icons.add_circle,
+                                                  size: 24,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                          onPressed: () {
-                                            final cartprovider =
-                                                Provider.of<Cartprovider>(
-                                                  context,
-                                                  listen: false,
-                                                );
-                                            final isalreadycart = cartprovider
-                                                .cartitems
-                                                .any(
-                                                  (e) =>
-                                                      e.serviceId ==
-                                                      providermodel.serviceId,
-                                                );
-                                            if (isalreadycart) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    "Already added to the cart",
-                                                  ),
-                                                  backgroundColor:
-                                                      Colors.orange,
-                                                ),
-                                              );
-                                            } else {
-                                              cartprovider.addtocart(
-                                                providermodel,
-                                              );
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    "${providermodel.name} added to the cart",
-                                                  ),
-                                                  backgroundColor:
-                                                      Colors.lightGreen,
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          icon: Icon(Icons.shopping_cart),
-                                          label: Text("Add to cart"),
+                                          ],
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -895,7 +940,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withValues(alpha: 0.3),
             spreadRadius: 1,
             blurRadius: 4,
             offset: Offset(0, 2),
@@ -997,13 +1042,26 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                             context,
                             listen: false,
                           ).userPlace;
-                      if (place != null) {
+
+                      // Get user location for radius-based search
+                      final userid = FirebaseAuth.instance.currentUser!.uid;
+                      final userDoc =
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(userid)
+                              .get();
+                      final lat = userDoc.data()?['location']?['latitude'];
+                      final lng = userDoc.data()?['location']?['longitude'];
+
+                      if (lat != null && lng != null) {
                         await Provider.of<Availablityservice>(
                           context,
                           listen: false,
                         ).fetchproviderbycategoryandplace(
-                          place: place,
+                          userLat: (lat as num).toDouble(),
+                          userlng: (lng as num).toDouble(),
                           category: selectedcategory,
+                          radiusinKm: 10,
                         );
                       }
                       Navigator.pop(context);
@@ -1013,7 +1071,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                           builder:
                               (context) => Serviceproviders(
                                 category: selectedcategory,
-                                place: place!,
+                                place: place ?? '',
                               ),
                         ),
                       );
@@ -1041,137 +1099,140 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     required Size size,
     required String imagePath,
     required String title,
-    //  required String oldPrice,
-    //  required String newPrice,
     required String providerName,
     required int rating,
     required int reviews,
     required Map<String, dynamic> providerData,
   }) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Image section
             Container(
-              width: size.width * 0.25,
-              height: size.width * 0.25,
+              width: size.width * 0.22,
+              height: size.width * 0.22,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
                   image: NetworkImage(imagePath),
                   fit: BoxFit.cover,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-
-            // Details
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: List.generate(
-                      rating,
-                      (_) =>
-                          const Icon(Icons.star, color: Colors.green, size: 14),
-                    ),
+                    children: [
+                      ...List.generate(
+                        rating,
+                        (_) => const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "($reviews Reviews)",
+                        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                      ),
+                    ],
                   ),
-                  Text(
-                    "($reviews Reviews)",
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
+                  const SizedBox(height: 4),
                   Text(
                     title,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Colors.black87,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  // Row(
-                  //   children: [
-                  //     Text(
-                  //       newPrice,
-                  //       style: const TextStyle(
-                  //         color: Colors.black,
-                  //         fontWeight: FontWeight.bold,
-                  //       ),
-                  //     ),
-                  //     const SizedBox(width: 5),
-                  //     Text(
-                  //       oldPrice,
-                  //       style: const TextStyle(
-                  //         decoration: TextDecoration.lineThrough,
-                  //         color: Colors.black45,
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
+                  const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         providerName,
-                        style: const TextStyle(color: Colors.black87),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
                       ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      SizedBox(
+                        height: 32,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black87,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {
+                            final cartprovider = Provider.of<Cartprovider>(
+                              context,
+                              listen: false,
+                            );
+
+                            final serviceModel = Fetchserviceprovidermodel(
+                              serviceId: providerData['providerId'] ?? '',
+                              name: providerData['name'] ?? providerName,
+                              imagepath: providerData['imageurl'] ?? imagePath,
+                              role:
+                                  providerData['categories'] is List
+                                      ? List<String>.from(
+                                        providerData['categories'],
+                                      )
+                                      : [],
+                              description: providerData['description'] ?? '',
+                              hourlypayment: providerData['payment'] ?? '',
+                            );
+
+                            final alreadyInCart = cartprovider.cartitems.any(
+                              (e) => e.serviceId == serviceModel.serviceId,
+                            );
+
+                            if (alreadyInCart) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Already added to the cart"),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            } else {
+                              cartprovider.addtocart(serviceModel);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "${serviceModel.name} added to the cart",
+                                  ),
+                                  backgroundColor: Colors.lightGreen,
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text(
+                            "Add",
+                            style: TextStyle(fontSize: 12),
                           ),
                         ),
-                        onPressed: () {
-                          final cartprovider = Provider.of<Cartprovider>(
-                            context,
-                            listen: false,
-                          );
-
-                          final serviceModel = Fetchserviceprovidermodel(
-                            serviceId: providerData['providerId'] ?? '',
-                            name: providerData['name'] ?? providerName,
-                            imagepath: providerData['imageurl'] ?? imagePath,
-                            role:
-                                providerData['categories'] is List
-                                    ? List<String>.from(
-                                      providerData['categories'],
-                                    )
-                                    : [],
-                            description: providerData['description'] ?? '',
-                            hourlypayment: providerData['payment'] ?? '',
-                          );
-
-                          final alreadyInCart = cartprovider.cartitems.any(
-                            (e) => e.serviceId == serviceModel.serviceId,
-                          );
-
-                          if (alreadyInCart) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Already added to the cart"),
-                                backgroundColor: Colors.orange,
-                              ),
-                            );
-                          } else {
-                            cartprovider.addtocart(serviceModel);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  "${serviceModel.name} added to the cart",
-                                ),
-                                backgroundColor: Colors.lightGreen,
-                              ),
-                            );
-                          }
-                        },
-
-                        child: const Text("Add"),
                       ),
                     ],
                   ),

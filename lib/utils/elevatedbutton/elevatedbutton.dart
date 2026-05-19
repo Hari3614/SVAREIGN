@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 class Elevatedbuttonwidget extends StatelessWidget {
-  final void Function() onpressed;
+  final void Function()? onpressed;
   final double widht;
   final double? textsize;
   final String buttontext;
   final Color? color;
   final double height;
+  final bool isLoading;
 
   const Elevatedbuttonwidget({
     super.key,
@@ -16,6 +17,7 @@ class Elevatedbuttonwidget extends StatelessWidget {
     this.textsize,
     this.color,
     required this.buttontext,
+    this.isLoading = false,
   });
 
   @override
@@ -24,22 +26,30 @@ class Elevatedbuttonwidget extends StatelessWidget {
       width: widht,
       height: height,
       child: ElevatedButton(
-        onPressed: onpressed,
-
+        onPressed: isLoading ? null : onpressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color,
+          backgroundColor: isLoading ? Colors.grey : color,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25.0),
           ),
         ),
-        child: Text(
-          buttontext,
-          style: TextStyle(
-            fontSize: textsize,
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Text(
+                buttontext,
+                style: TextStyle(
+                  fontSize: textsize,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }

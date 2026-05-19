@@ -11,6 +11,7 @@ class Addworkmodel {
   final String? imagepath;
   final String userId;
   final String status;
+  final DateTime expirytime;
   Addworkmodel({
     required this.id,
     required this.worktittle,
@@ -22,7 +23,8 @@ class Addworkmodel {
     required this.userId,
     required this.maxbudget,
     required this.status,
-  });
+    DateTime? expirytime,
+  }) : expirytime = expirytime ?? postedtime.add(const Duration(hours: 24));
 
   factory Addworkmodel.fromMap(Map<String, dynamic> map, String documentId) {
     return Addworkmodel(
@@ -36,6 +38,9 @@ class Addworkmodel {
       duration: map['duration'] ?? '',
       postedtime: (map['postedtime'] as Timestamp).toDate(),
       imagepath: map['imagepath'] ?? "",
+      expirytime: map['expirytime'] != null
+          ? (map['expirytime'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -49,6 +54,7 @@ class Addworkmodel {
       'description': description,
       'duration': duration,
       'postedtime': postedtime,
+      'expirytime': expirytime,
       "imagepath": imagepath,
     };
   }

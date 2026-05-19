@@ -73,7 +73,7 @@ class _NotificationBannerState extends State<NotificationBanner>
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
+              color: Colors.grey.withValues(alpha: 0.3),
               spreadRadius: 2,
               blurRadius: 6,
               offset: const Offset(0, 3),
@@ -88,7 +88,7 @@ class _NotificationBannerState extends State<NotificationBanner>
             leading: Container(
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.2),
+                color: Colors.blue.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

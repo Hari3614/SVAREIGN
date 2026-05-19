@@ -63,13 +63,18 @@ class _ServiceProviderHomeState extends State<ServiceProviderHome>
             .doc(user.uid)
             .get();
 
-    final place = doc.data()?['place'];
-    if (place != null) {
+    final lat = doc.data()?['location']?['latitude'];
+    final lng = doc.data()?['location']?['longitude'];
+    if (lat != null && lng != null) {
       final jobPostProvider = Provider.of<Jobpostprovider>(
         context,
         listen: false,
       );
-      jobPostProvider.startlisteningTojobs(place);
+      jobPostProvider.startlisteningTojobs(
+        providerLat: (lat as num).toDouble(),
+        providerLng: (lng as num).toDouble(),
+        radiusinKm: 10,
+      );
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final jobCount = jobPostProvider.works.length;

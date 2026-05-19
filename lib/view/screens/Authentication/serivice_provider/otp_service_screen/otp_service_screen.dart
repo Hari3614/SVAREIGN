@@ -33,6 +33,8 @@ class _OtpScreenState extends State<OtpServiceScreen> {
   int start = 30;
   Timer? timer;
   bool isresendenabled = false;
+  bool _isVerifying = false;
+  bool _isResending = false;
   @override
   void initState() {
     super.initState();
@@ -126,38 +128,55 @@ class _OtpScreenState extends State<OtpServiceScreen> {
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: () async {
-                    print("otp :${otpcontrollerr.text}");
-                    if (otpcontrollerr.text.length == 6) {
-                      print('otp send :${otpcontrollerr.text}');
-                      // context.read<Authprovider>().verifyotpandsignup(
-                      //   otp: otpcontrollerr.text,
-                      //   context: context,
-                      // );
-                      context.read<ServiceAuthprovider>().verifyandsignUp(
-                        otp: otpcontrollerr.text,
-                        context: context,
-                      );
-
-                      print('text :${otpcontrollerr.text}');
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Please enter a valid OTP")),
-                      );
-                      print('error :$e');
-                    }
-                  },
+                  onPressed: _isVerifying
+                      ? null
+                      : () async {
+                          if (otpcontrollerr.text.length == 6) {
+                            setState(() {
+                              _isVerifying = true;
+                            });
+                            try {
+                              await context
+                                  .read<ServiceAuthprovider>()
+                                  .verifyandsignUp(
+                                    otp: otpcontrollerr.text,
+                                    context: context,
+                                  );
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _isVerifying = false;
+                                });
+                              }
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Please enter a valid OTP"),
+                              ),
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, height * 0.065),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: _isVerifying ? Colors.grey : Colors.blue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text(
-                    'Verify',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
+                  child: _isVerifying
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Verify',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
                 ),
                 SizedBox(height: 10),
                 Row(
@@ -171,26 +190,53 @@ class _OtpScreenState extends State<OtpServiceScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {
-                        // Resend OTP functionality
-                        context.read<ServiceAuthprovider>().sendServiceOtp(
-                          name: widget.name,
-                          email: widget.email,
-                          phonenumber: widget.phoneNumber,
-                          password: '', // Handle password if needed
-                          context: context,
-                        );
-                      },
-                      child: Text(
-                        isresendenabled
-                            ? 'Resend code'
-                            : "Resend in $start sec",
-                        style: TextStyle(
-                          color: isresendenabled ? Colors.blue : Colors.black,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      onPressed:
+                          (isresendenabled && !_isResending && !_isVerifying)
+                              ? () async {
+                                  setState(() {
+                                    _isResending = true;
+                                  });
+                                  try {
+                                    await context
+                                        .read<ServiceAuthprovider>()
+                                        .sendServiceOtp(
+                                          name: widget.name,
+                                          email: widget.email,
+                                          phonenumber: widget.phoneNumber,
+                                          password: '',
+                                          context: context,
+                                        );
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() {
+                                        _isResending = false;
+                                      });
+                                      startimer();
+                                    }
+                                  }
+                                }
+                              : null,
+                      child: _isResending
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              isresendenabled
+                                  ? 'Resend code'
+                                  : "Resend in $start sec",
+                              style: TextStyle(
+                                color:
+                                    isresendenabled
+                                        ? Colors.blue
+                                        : Colors.black,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ],
                 ),

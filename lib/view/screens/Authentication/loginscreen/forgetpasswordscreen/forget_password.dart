@@ -66,7 +66,7 @@ class _ForgetPasswordscreenState extends State<ForgetPasswordscreen> {
             SizedBox(
               height: height * 0.35,
               width: width,
-              child: Image.asset("assets/images/app icon1.png"),
+              child: Image.asset("assets/images/app_icon1.png"),
             ),
             Text(
               "Forgot password?",

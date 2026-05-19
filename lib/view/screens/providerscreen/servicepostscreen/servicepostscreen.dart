@@ -47,57 +47,49 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final doc =
-        FirebaseFirestore.instance.collection('services').doc(user.uid).get();
-    doc.then((value) {
-      final place = value.data()?['place'] ?? '';
-
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text("Delete Post"),
-              content: const Text("Are you sure you want to delete this post?"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    try {
-                      await provider.deletePost(post.id, user.uid, place);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Post deleted successfully"),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "Error deleting post: ${e.toString()}",
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text("Delete Post"),
+            content: const Text("Are you sure you want to delete this post?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  try {
+                    await provider.deletePost(post.id, user.uid);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Post deleted successfully"),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
                     }
-                  },
-                  child: const Text(
-                    "Delete",
-                    style: TextStyle(color: Colors.red),
-                  ),
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Error deleting post: ${e.toString()}"),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text(
+                  "Delete",
+                  style: TextStyle(color: Colors.red),
                 ),
-              ],
-            ),
-      );
-    });
+              ),
+            ],
+          ),
+    );
   }
 
   Future<void> _fetchplaceandPosts() async {
@@ -109,12 +101,14 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
               .collection('services')
               .doc(user.uid)
               .get();
-      final place = doc.data()?['place'];
-      if (place != null && place is String) {
-        Provider.of<Jobadsprovider>(
-          context,
-          listen: false,
-        ).fetchglobalposts(place);
+      final lat = doc.data()?['location']?['latitude'];
+      final lng = doc.data()?['location']?['longitude'];
+      if (lat != null && lng != null) {
+        Provider.of<Jobadsprovider>(context, listen: false).fetchglobalposts(
+          userLat: (lat as num).toDouble(),
+          userLng: (lng as num).toDouble(),
+          radiusinKm: 10,
+        );
       }
     } catch (e) {
       print("error fetching the place for provider :$e");
