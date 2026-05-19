@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:svareign/model/serviceprovider/jobsadsmodel.dart';
+import 'package:svareign/utils/calculatedistance/calculatedistance.dart';
 
 class ServicePostProvider with ChangeNotifier {
   List<Jobsadsmodel> _servicePosts = [];
@@ -9,7 +10,11 @@ class ServicePostProvider with ChangeNotifier {
   List<Jobsadsmodel> get servicePosts => _servicePosts;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchServicePosts(String place) async {
+  Future<void> fetchServicePosts({
+    required double userLat,
+    required double userLng,
+    double radiusinKm = 20,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -17,7 +22,6 @@ class ServicePostProvider with ChangeNotifier {
       final snapshot =
           await FirebaseFirestore.instance
               .collection('posts')
-              .where('place', isEqualTo: place)
               .orderBy('postedtime', descending: true)
               .get();
 
@@ -26,8 +30,26 @@ class ServicePostProvider with ChangeNotifier {
           snapshot.docs
               .where((doc) {
                 final data = doc.data();
-                final expiryTime = (data['expirytime'] as Timestamp).toDate();
-                return expiryTime.isAfter(now);
+                // Filter expired posts
+                if (data['expirytime'] != null) {
+                  final expiryTime = (data['expirytime'] as Timestamp).toDate();
+                  if (!expiryTime.isAfter(now)) return false;
+                }
+                // Filter by radius if location available
+                final location = data['location'];
+                if (location != null &&
+                    location['latitude'] != null &&
+                    location['longitude'] != null) {
+                  final distance = calculateDistance(
+                    userLat,
+                    userLng,
+                    (location['latitude'] as num).toDouble(),
+                    (location['longitude'] as num).toDouble(),
+                  );
+                  return distance <= radiusinKm;
+                }
+                // Include old posts without location (fallback)
+                return true;
               })
               .map((doc) {
                 final data = doc.data();
@@ -35,7 +57,6 @@ class ServicePostProvider with ChangeNotifier {
               })
               .toList();
 
-      // Shuffle the posts
       _servicePosts.shuffle();
     } catch (e) {
       debugPrint("Error fetching service posts: $e");

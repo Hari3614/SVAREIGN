@@ -6,7 +6,8 @@ double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
   final dlon = _degtorad(lon2 - lon1);
   final a =
       sin(dlat / 2) * sin(dlat / 2) +
-      cos(_degtorad(lat1) * cos(_degtorad(lat2))) *
+      cos(_degtorad(lat1)) *
+          cos(_degtorad(lat2)) *
           sin(dlon / 2) *
           sin(dlon / 2);
   final c = 2 * atan2(sqrt(a), sqrt(1 - a));

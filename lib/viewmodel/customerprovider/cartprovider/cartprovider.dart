@@ -6,18 +6,22 @@ import 'package:svareign/model/customer/fetchserviceprovider.dart';
 class Cartprovider with ChangeNotifier {
   final List<Fetchserviceprovidermodel> _cartitems = [];
   List<Fetchserviceprovidermodel> get cartitems => _cartitems;
-  void addtocart(Fetchserviceprovidermodel item) async {
+  int get cartCount => _cartitems.length;
+
+  bool addtocart(Fetchserviceprovidermodel item) {
     if (!_cartitems.any((e) => e.serviceId == item.serviceId)) {
       _cartitems.add(item);
       notifyListeners();
       final uid = FirebaseAuth.instance.currentUser?.uid;
-      await FirebaseFirestore.instance
+      FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .collection('cart')
           .doc(item.serviceId)
           .set(item.tomap());
+      return true;
     }
+    return false;
   }
 
   Future<void> fetchcart() async {

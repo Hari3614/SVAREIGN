@@ -10,7 +10,8 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: Colors.black,
         titleSpacing: 0,
         title: const Padding(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:svareign/utils/calculatedistance/calculatedistance.dart';
 
 class Searchprovider with ChangeNotifier {
   final FirebaseFirestore _firebasefirestore = FirebaseFirestore.instance;
@@ -11,10 +12,18 @@ class Searchprovider with ChangeNotifier {
   Timer? _debounce;
   String? _userPlace;
   String? get userPlace => _userPlace;
+  double? _userLat;
+  double? _userLng;
+
+  void setUserLocation(double lat, double lng) {
+    _userLat = lat;
+    _userLng = lng;
+  }
+
   void debouncesearch(String query, String place) {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      searchserviceprovider(query, place);
+      searchserviceprovider(query);
     });
   }
 
@@ -37,6 +46,9 @@ class Searchprovider with ChangeNotifier {
 
       final data = snapshot.data();
       final userPlace = data?['place'];
+      // Also cache user location
+      _userLat = data?['location']?['latitude']?.toDouble();
+      _userLng = data?['location']?['longitude']?.toDouble();
       return userPlace;
     } catch (e) {
       print('Error fetching place: $e');
@@ -44,19 +56,32 @@ class Searchprovider with ChangeNotifier {
     }
   }
 
-  Future<void> searchserviceprovider(String searchquery, String place) async {
+  Future<void> searchserviceprovider(String searchquery) async {
     try {
       _searchresults = [];
       final serviceprovidersnapshot =
-          await _firebasefirestore
-              .collection('services')
-              .where('place', isEqualTo: place)
-              .get();
+          await _firebasefirestore.collection('services').get();
       List<Map<String, dynamic>> tempresults = [];
       for (var providerdoc in serviceprovidersnapshot.docs) {
+        final providerdocdata = providerdoc.data();
+
+        // Filter by radius if user location available
+        if (_userLat != null && _userLng != null) {
+          final lat = providerdocdata['location']?['latitude'];
+          final lng = providerdocdata['location']?['longitude'];
+          if (lat != null && lng != null) {
+            final distance = calculateDistance(
+              _userLat!,
+              _userLng!,
+              (lat as num).toDouble(),
+              (lng as num).toDouble(),
+            );
+            if (distance > 20) continue; // 20 km radius
+          }
+        }
+
         final profilesnapshot =
             await providerdoc.reference.collection('profile').get();
-        final providerdocdata = providerdoc.data();
         for (var profiledoc in profilesnapshot.docs) {
           final data = profiledoc.data();
           final List<dynamic> jobs = data['categories'] ?? [];
@@ -84,7 +109,6 @@ class Searchprovider with ChangeNotifier {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _debounce?.cancel();
     super.dispose();
   }

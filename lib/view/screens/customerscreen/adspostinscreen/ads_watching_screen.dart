@@ -26,27 +26,30 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     try {
-      // Fetch place from the correct collection for customers
       final doc =
           await FirebaseFirestore.instance
-              .collection('users') // Changed from 'services' to 'users'
+              .collection('users')
               .doc(user.uid)
               .get();
 
-      final place = doc.data()?['place'];
+      final lat = doc.data()?['location']?['latitude'];
+      final lng = doc.data()?['location']?['longitude'];
 
-      if (place != null && place is String) {
-        // Use Jobadsprovider instead of Jobpostprovider
+      if (lat != null && lng != null) {
         final jobAdsProvider = Provider.of<Jobadsprovider>(
           context,
           listen: false,
         );
-        jobAdsProvider.fetchglobalposts(place);
+        jobAdsProvider.fetchglobalposts(
+          userLat: (lat as num).toDouble(),
+          userLng: (lng as num).toDouble(),
+          radiusinKm: 10,
+        );
       } else {
-        print("place is null or not a string");
+        print("location is null");
       }
     } catch (e) {
-      print("error fetching place:$e");
+      print("error fetching location:$e");
     }
   }
 

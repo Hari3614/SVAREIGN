@@ -10,10 +10,9 @@ class Availablityservice with ChangeNotifier {
   List<Fetchserviceprovidermodel> get availableProvider => _availableprovider;
   bool get isloading => _isloading;
   Future<void> fetchavailableProvider({
-    required String selectedplace,
     required double userLat,
     required double userlng,
-    double radiusinKm = 10,
+    double radiusinKm = 20,
   }) async {
     _isloading = true;
     notifyListeners();
@@ -22,10 +21,7 @@ class Availablityservice with ChangeNotifier {
 
     try {
       final servicesnapshot =
-          await FirebaseFirestore.instance
-              .collection('services')
-              .where('place', isEqualTo: selectedplace)
-              .get();
+          await FirebaseFirestore.instance.collection('services').get();
 
       debugPrint("Fetched service docs: ${servicesnapshot.docs.length}");
 
@@ -35,12 +31,10 @@ class Availablityservice with ChangeNotifier {
           final lat = servicedata['location']?['latitude'];
           final long = servicedata['location']?['longitude'];
 
-          debugPrint("Service ID: ${doc.id}, Lat: $lat, Long: $long");
-
           if (lat == null || long == null) continue;
 
           final distance = calculateDistance(userLat, userlng, lat, long);
-          debugPrint("Distance: $distance km");
+          debugPrint("Service ID: ${doc.id}, Distance: $distance km");
 
           if (distance > radiusinKm) continue;
 
@@ -49,8 +43,6 @@ class Availablityservice with ChangeNotifier {
                   .collection('profile')
                   .where('available', isEqualTo: true)
                   .get();
-
-          debugPrint("Profile docs found: ${profilesnapshot.docs.length}");
 
           for (var profiledoc in profilesnapshot.docs) {
             final profiledata = profiledoc.data();
@@ -76,25 +68,29 @@ class Availablityservice with ChangeNotifier {
   }
 
   Future<void> fetchproviderbycategoryandplace({
-    required String? place,
+    required double userLat,
+    required double userlng,
     required String category,
+    double radiusinKm = 20,
   }) async {
-    if (place == null) return;
-
     try {
       _isloading = true;
       notifyListeners();
 
       final servicesnapshot =
-          await FirebaseFirestore.instance
-              .collection('services')
-              .where('place', isEqualTo: place)
-              .get();
+          await FirebaseFirestore.instance.collection('services').get();
 
       List<Fetchserviceprovidermodel> providers = [];
 
       for (var serviceDoc in servicesnapshot.docs) {
         final servicedata = serviceDoc.data();
+        final lat = servicedata['location']?['latitude'];
+        final long = servicedata['location']?['longitude'];
+
+        if (lat == null || long == null) continue;
+
+        final distance = calculateDistance(userLat, userlng, lat, long);
+        if (distance > radiusinKm) continue;
 
         final profilesnapshot =
             await serviceDoc.reference

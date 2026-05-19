@@ -38,17 +38,20 @@ class _HomewidgetState extends State<Homewidget> {
   }
 
   Future<Map<String, double>?> _getlatlanfromaddress(String address) async {
-    final String apiKey = "AIzaSyDqpOdQdfhCp5iv-2TdmOCYJwEI0K_O8IY";
     final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$apiKey',
+      'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(address)}&format=json&limit=1',
     );
-    final response = await http.get(url);
+    final response = await http.get(
+      url,
+      headers: {'User-Agent': 'Svareign-App'},
+    );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final results = data['results'] as List;
-      if (results.isNotEmpty) {
-        final location = results[0]['geometry']['location'];
-        return {'lat': location['lat'], 'lng': location['lng']};
+      final data = jsonDecode(response.body) as List;
+      if (data.isNotEmpty) {
+        return {
+          'lat': double.parse(data[0]['lat']),
+          'lng': double.parse(data[0]['lon']),
+        };
       }
     } else {
       print('error fetching geocode');
@@ -68,20 +71,18 @@ class _HomewidgetState extends State<Homewidget> {
         return StatefulBuilder(
           builder: (context, setState) {
             Future<void> fetchsuggestion(String input) async {
-              final String apiKey = "AIzaSyDqpOdQdfhCp5iv-2TdmOCYJwEI0K_O8IY";
               final url = Uri.parse(
-                'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-                '?input=$input&key=$apiKey&types=geocode&language=en',
+                'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(input)}&format=json&limit=5&addressdetails=1',
               );
-              final response = await http.get(url);
+              final response = await http.get(
+                url,
+                headers: {'User-Agent': 'Svareign-App'},
+              );
               if (response.statusCode == 200) {
-                final data = jsonDecode(response.body);
-                final List predictions = data['predictions'];
+                final List data = jsonDecode(response.body);
                 setState(() {
                   suggestions =
-                      predictions
-                          .map((p) => p['description'] as String)
-                          .toList();
+                      data.map((p) => p['display_name'] as String).toList();
                 });
               } else {
                 print('error fetching suggestons: ${response.body}');
@@ -439,7 +440,7 @@ class _HomewidgetState extends State<Homewidget> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withValues(alpha: 0.3),
             spreadRadius: 1,
             blurRadius: 4,
             offset: Offset(0, 2),

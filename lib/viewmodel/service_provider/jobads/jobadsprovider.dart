@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:svareign/model/serviceprovider/jobsadsmodel.dart';
+import 'package:svareign/utils/calculatedistance/calculatedistance.dart';
 
 class Jobadsprovider extends ChangeNotifier {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
@@ -10,14 +11,17 @@ class Jobadsprovider extends ChangeNotifier {
   List<Jobsadsmodel> get globalposts => _globalposts;
   bool isloading = false;
   bool get loading => isloading;
-  Future<void> fetchglobalposts(String place) async {
+  Future<void> fetchglobalposts({
+    required double userLat,
+    required double userLng,
+    double radiusinKm = 20,
+  }) async {
     isloading = true;
     notifyListeners();
     try {
       final snapshot =
           await _firebaseFirestore
               .collection('posts')
-              .where('place', isEqualTo: place)
               .orderBy('postedtime', descending: true)
               .get();
 
@@ -26,8 +30,26 @@ class Jobadsprovider extends ChangeNotifier {
           snapshot.docs
               .where((doc) {
                 final data = doc.data();
-                final expiryTime = (data['expirytime'] as Timestamp).toDate();
-                return expiryTime.isAfter(now);
+                // Filter expired posts
+                if (data['expirytime'] != null) {
+                  final expiryTime = (data['expirytime'] as Timestamp).toDate();
+                  if (!expiryTime.isAfter(now)) return false;
+                }
+                // Filter by radius if location available
+                final location = data['location'];
+                if (location != null &&
+                    location['latitude'] != null &&
+                    location['longitude'] != null) {
+                  final distance = calculateDistance(
+                    userLat,
+                    userLng,
+                    (location['latitude'] as num).toDouble(),
+                    (location['longitude'] as num).toDouble(),
+                  );
+                  return distance <= radiusinKm;
+                }
+                // Include old posts without location (fallback)
+                return true;
               })
               .map((doc) {
                 final data = doc.data();
@@ -35,7 +57,6 @@ class Jobadsprovider extends ChangeNotifier {
               })
               .toList();
 
-      // Shuffle the posts
       _globalposts.shuffle();
     } catch (e) {
       debugPrint("error fetching global posts :$e");
@@ -53,7 +74,8 @@ class Jobadsprovider extends ChangeNotifier {
     try {
       final providerdoc =
           await _firebaseFirestore.collection('services').doc(user.uid).get();
-      final place = providerdoc.data()?['place'] ?? 'unknknown';
+      final place = providerdoc.data()?['place'] ?? 'unknown';
+      final providerLocation = providerdoc.data()?['location'];
       await _firebaseFirestore
           .collection('services')
           .doc(user.uid)
@@ -64,20 +86,22 @@ class Jobadsprovider extends ChangeNotifier {
         'providerId': user.uid,
         'phonenumber': user.phoneNumber,
         'place': place,
+        if (providerLocation != null) 'location': providerLocation,
       });
       print("post added successfully");
-      await fetchglobalposts(place);
+      if (providerLocation != null) {
+        await fetchglobalposts(
+          userLat: (providerLocation['latitude'] as num).toDouble(),
+          userLng: (providerLocation['longitude'] as num).toDouble(),
+        );
+      }
       notifyListeners();
     } catch (e) {
       debugPrint('error adding post with place :$e');
     }
   }
 
-  Future<void> deletePost(
-    String postId,
-    String providerId,
-    String place,
-  ) async {
+  Future<void> deletePost(String postId, String providerId) async {
     try {
       // Delete from global posts collection
       await _firebaseFirestore.collection('posts').doc(postId).delete();
@@ -90,14 +114,13 @@ class Jobadsprovider extends ChangeNotifier {
           .doc(postId)
           .delete();
 
-      // Refresh the posts
-      await fetchglobalposts(place);
+      // Remove from local list
+      _globalposts.removeWhere((post) => post.id == postId);
       notifyListeners();
 
       print("post deleted successfully");
     } catch (e) {
       debugPrint('error deleting post: $e');
-      // Re-throw the error so the UI can handle it properly
       rethrow;
     }
   }

@@ -20,15 +20,13 @@ class Workprovider extends ChangeNotifier {
           .collection('works')
           .orderBy('postedtime', descending: true)
           .snapshots()
-          .map(
-            (snapshot) {
-              final now = DateTime.now();
-              return snapshot.docs
-                  .map((doc) => Addworkmodel.fromMap(doc.data(), doc.id))
-                  .where((work) => work.expirytime.isAfter(now))
-                  .toList();
-            },
-          );
+          .map((snapshot) {
+            final now = DateTime.now();
+            return snapshot.docs
+                .map((doc) => Addworkmodel.fromMap(doc.data(), doc.id))
+                .where((work) => work.expirytime.isAfter(now))
+                .toList();
+          });
     });
   }
 
@@ -41,6 +39,7 @@ class Workprovider extends ChangeNotifier {
 
     final userDoc = await _firestore.collection('users').doc(user.uid).get();
     final userplace = userDoc.data()?['place'];
+    final userLocation = userDoc.data()?['location'];
     if (userplace == null) {
       throw Exception('User place is not available in profile');
     }
@@ -50,7 +49,8 @@ class Workprovider extends ChangeNotifier {
       'place': userplace,
       'userId': user.uid,
       "userphone": user.phoneNumber,
-      'status': 'active', // ✅ added for filtering
+      'status': 'active',
+      if (userLocation != null) 'location': userLocation,
     };
 
     // Add to global active works
@@ -62,7 +62,12 @@ class Workprovider extends ChangeNotifier {
         .doc(user.uid)
         .collection('works')
         .doc(globaldoc.id)
-        .set({...work.tomap(), 'place': userplace, 'status': 'active'});
+        .set({
+          ...work.tomap(),
+          'place': userplace,
+          'status': 'active',
+          if (userLocation != null) 'location': userLocation,
+        });
   }
 
   Future<void> deletework(String workId) async {
