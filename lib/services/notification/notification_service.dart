@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,6 +10,15 @@ class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
+
+  final List<StreamSubscription> _firestoreSubscriptions = [];
+
+  void cancelFirestoreListeners() {
+    for (final sub in _firestoreSubscriptions) {
+      sub.cancel();
+    }
+    _firestoreSubscriptions.clear();
+  }
 
   // Initialize Firebase Messaging
   Future<void> initialize() async {
@@ -118,67 +128,77 @@ class NotificationService {
     // Set the callback for notifications
     setOnNotificationReceived(onNewRequest);
 
-    // Listen for new requests in the user's collection (for customers)
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('requests')
-        .where('status', isEqualTo: 'pending')
-        .snapshots()
-        .listen((snapshot) {
-          for (var change in snapshot.docChanges) {
-            if (change.type == DocumentChangeType.added) {
-              final data = change.doc.data() as Map<String, dynamic>;
-              final providerName = data['providerName'] ?? 'A service provider';
+    // Cancel any existing listeners first
+    cancelFirestoreListeners();
 
-              onNewRequest(
-                'New Service Request',
-                '$providerName has sent you a service request',
-              );
+    // Listen for new requests in the user's collection (for customers)
+    _firestoreSubscriptions.add(
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('requests')
+          .where('status', isEqualTo: 'pending')
+          .snapshots()
+          .listen((snapshot) {
+            for (var change in snapshot.docChanges) {
+              if (change.type == DocumentChangeType.added) {
+                final data = change.doc.data() as Map<String, dynamic>;
+                final providerName =
+                    data['providerName'] ?? 'A service provider';
+
+                onNewRequest(
+                  'New Service Request',
+                  '$providerName has sent you a service request',
+                );
+              }
             }
-          }
-        });
+          }),
+    );
 
     // Listen for new requests in the service provider's collection (for providers)
-    FirebaseFirestore.instance
-        .collection('services')
-        .doc(userId)
-        .collection('requests')
-        .where('status', isEqualTo: 'pending')
-        .snapshots()
-        .listen((snapshot) {
-          for (var change in snapshot.docChanges) {
-            if (change.type == DocumentChangeType.added) {
-              final data = change.doc.data() as Map<String, dynamic>;
-              final userName = data['userName'] ?? 'A user';
+    _firestoreSubscriptions.add(
+      FirebaseFirestore.instance
+          .collection('services')
+          .doc(userId)
+          .collection('requests')
+          .where('status', isEqualTo: 'pending')
+          .snapshots()
+          .listen((snapshot) {
+            for (var change in snapshot.docChanges) {
+              if (change.type == DocumentChangeType.added) {
+                final data = change.doc.data() as Map<String, dynamic>;
+                final userName = data['userName'] ?? 'A user';
 
-              onNewRequest(
-                'New Service Request',
-                '$userName has requested your service',
-              );
+                onNewRequest(
+                  'New Service Request',
+                  '$userName has requested your service',
+                );
+              }
             }
-          }
-        });
+          }),
+    );
 
     // Listen for new bookings in the service provider's collection (for providers)
-    FirebaseFirestore.instance
-        .collection('services')
-        .doc(userId)
-        .collection('bookings')
-        .where('status', isEqualTo: 'pending')
-        .snapshots()
-        .listen((snapshot) {
-          for (var change in snapshot.docChanges) {
-            if (change.type == DocumentChangeType.added) {
-              final data = change.doc.data() as Map<String, dynamic>;
-              final userName = data['userName'] ?? 'A user';
+    _firestoreSubscriptions.add(
+      FirebaseFirestore.instance
+          .collection('services')
+          .doc(userId)
+          .collection('bookings')
+          .where('status', isEqualTo: 'pending')
+          .snapshots()
+          .listen((snapshot) {
+            for (var change in snapshot.docChanges) {
+              if (change.type == DocumentChangeType.added) {
+                final data = change.doc.data() as Map<String, dynamic>;
+                final userName = data['userName'] ?? 'A user';
 
-              onNewRequest(
-                'New Booking Request',
-                '$userName has booked your service',
-              );
+                onNewRequest(
+                  'New Booking Request',
+                  '$userName has booked your service',
+                );
+              }
             }
-          }
-        });
+          }),
+    );
   }
 }

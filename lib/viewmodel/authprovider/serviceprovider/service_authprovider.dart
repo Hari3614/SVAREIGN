@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -31,15 +33,18 @@ class ServiceAuthprovider extends ChangeNotifier {
     _password = password;
 
     try {
+      final completer = Completer<void>();
       await _auth.verifyPhoneNumber(
         phoneNumber: _phonenumber!,
         verificationCompleted: (PhoneAuthCredential credential) async {
           print('Auto verification completed');
+          if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (FirebaseAuthException e) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text("OTP FAILED: $e")));
+          if (!completer.isCompleted) completer.complete();
         },
         codeSent: (String verificationID, int? resendToken) {
           _verificationId = verificationID;
@@ -48,40 +53,44 @@ class ServiceAuthprovider extends ChangeNotifier {
             context,
             MaterialPageRoute(
               builder:
-                  (context) => FutureBuilder<Position>(
-                    future: _locationService.getCurrentLocation(context),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Scaffold(
-                          body: Center(child: CircularProgressIndicator()),
-                        );
-                      } else if (snapshot.hasError) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please allow location access"),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                          Navigator.pop(context);
-                        });
-                        return const Scaffold(body: SizedBox());
-                      } else if (snapshot.hasData) {
-                        return OtpServiceScreen(
-                          verificationId: verificationID,
-                          name: name,
-                          email: email,
-                          phoneNumber: _phonenumber!,
-                          location: snapshot.data!,
-                        );
-                      } else {
-                        return const Scaffold(
-                          body: Center(child: Text('Unexpected error')),
-                        );
-                      }
-                    },
+                  (context) => OtpServiceScreen(
+                    verificationId: verificationID,
+                    name: name,
+                    email: email,
+                    phoneNumber: _phonenumber!,
                   ),
             ),
+          );
+          if (!completer.isCompleted) completer.complete();
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+        },
+      );
+      await completer.future;
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error sending OTP ")));
+    }
+  }
+
+  // Resend OTP without navigating or overwriting password
+  Future<void> resendServiceOtp({required BuildContext context}) async {
+    if (_phonenumber == null) return;
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: _phonenumber!,
+        verificationCompleted: (PhoneAuthCredential credential) async {},
+        verificationFailed: (FirebaseAuthException e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Resend failed: ${e.message}')),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _verificationId = verificationId;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('OTP resent successfully')),
           );
         },
         codeAutoRetrievalTimeout: (String verificationId) {
@@ -91,7 +100,7 @@ class ServiceAuthprovider extends ChangeNotifier {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Error sending OTP ")));
+      ).showSnackBar(SnackBar(content: Text("Error resending OTP: $e")));
     }
   }
 
@@ -124,7 +133,6 @@ class ServiceAuthprovider extends ChangeNotifier {
             'name': _name,
             'email': _email,
             'phone': normalisedphonenumber,
-            'password': _password,
             'role': role,
             'location': {
               'latitude': position.latitude,

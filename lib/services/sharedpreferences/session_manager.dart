@@ -72,7 +72,7 @@ class SessionManager {
   static Future<void> removeAccount(String uid, String role) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> accounts = prefs.getStringList(accountsKey) ?? [];
-    accounts.removeWhere((e) => e == '$uid:$role');
+    accounts.removeWhere((e) => e.startsWith('$uid:$role'));
     await prefs.setStringList(accountsKey, accounts);
   }
 }

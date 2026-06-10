@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/forgetpasswordscreen/forgetotpscreen.dart';
 
 class ForgetPasswordscreen extends StatefulWidget {
@@ -20,8 +21,10 @@ class _ForgetPasswordscreenState extends State<ForgetPasswordscreen> {
       return;
     }
 
+    final normalisedPhone = normalisephonenumber(phone);
+
     await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: '+91$phone',
+      phoneNumber: normalisedPhone,
       verificationCompleted: (PhoneAuthCredential credential) async {},
       verificationFailed: (FirebaseAuthException e) {
         showMessage("Verification failed: ${e.message}");

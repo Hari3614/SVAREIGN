@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 
 class Forgetotpscreen extends StatefulWidget {
   final String verificationId;
@@ -78,8 +79,9 @@ class _ForgetotpscreenState extends State<Forgetotpscreen> {
   }
 
   void resendOTP() async {
+    final normalisedPhone = normalisephonenumber(widget.phone);
     await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: '+91${widget.phone}',
+      phoneNumber: normalisedPhone,
       verificationCompleted: (PhoneAuthCredential credential) {},
       verificationFailed: (FirebaseAuthException e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -102,7 +104,7 @@ class _ForgetotpscreenState extends State<Forgetotpscreen> {
 
   @override
   void dispose() {
-    //  otpController.dispose();
+    otpController.dispose();
     newPasswordController.dispose();
     super.dispose();
   }

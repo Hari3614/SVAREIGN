@@ -1,9 +1,6 @@
-import 'dart:math';
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/authprovider/customer/authprovider.dart';
@@ -15,14 +12,12 @@ class OtpScreen extends StatefulWidget {
     required this.name,
     required this.email,
     required this.phoneNumber,
-    required this.location,
   });
 
   final String verificationId;
   final String name;
   final String email;
   final String phoneNumber;
-  final Position location;
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -65,9 +60,9 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   void dispose() {
-    super.dispose();
-    // otpcontrollerr.dispose();
     timer?.cancel();
+    timer = null;
+    super.dispose();
   }
 
   // final String location;
@@ -131,35 +126,36 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: _isVerifying
-                      ? null
-                      : () async {
-                          if (otpcontrollerr.text.length == 6) {
-                            setState(() {
-                              _isVerifying = true;
-                            });
-                            try {
-                              await context
-                                  .read<Authprovider>()
-                                  .verifyotpandsignup(
-                                    otp: otpcontrollerr.text,
-                                    context: context,
-                                  );
-                            } finally {
-                              if (mounted) {
-                                setState(() {
-                                  _isVerifying = false;
-                                });
+                  onPressed:
+                      _isVerifying
+                          ? null
+                          : () async {
+                            if (otpcontrollerr.text.length == 6) {
+                              setState(() {
+                                _isVerifying = true;
+                              });
+                              try {
+                                await context
+                                    .read<Authprovider>()
+                                    .verifyotpandsignup(
+                                      otp: otpcontrollerr.text,
+                                      context: context,
+                                    );
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _isVerifying = false;
+                                  });
+                                }
                               }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Please enter a valid OTP"),
+                                ),
+                              );
                             }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Please enter a valid OTP"),
-                              ),
-                            );
-                          }
-                        },
+                          },
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, height * 0.065),
                     backgroundColor: _isVerifying ? Colors.grey : Colors.blue,
@@ -167,19 +163,20 @@ class _OtpScreenState extends State<OtpScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: _isVerifying
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
+                  child:
+                      _isVerifying
+                          ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                          : const Text(
+                            'Verify',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
-                        )
-                      : const Text(
-                          'Verify',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
                 ),
                 SizedBox(height: 10),
                 Row(
@@ -196,48 +193,45 @@ class _OtpScreenState extends State<OtpScreen> {
                       onPressed:
                           (_isResendenabled && !_isResending && !_isVerifying)
                               ? () async {
-                                  setState(() {
-                                    _isResending = true;
-                                  });
-                                  try {
-                                    await context.read<Authprovider>().sendotp(
-                                      name: widget.name,
-                                      email: widget.email,
-                                      phonenumber: widget.phoneNumber,
-                                      password: '',
-                                      context: context,
-                                    );
-                                  } finally {
-                                    if (mounted) {
-                                      setState(() {
-                                        _isResending = false;
-                                      });
-                                      starttimer();
-                                    }
+                                setState(() {
+                                  _isResending = true;
+                                });
+                                try {
+                                  await context.read<Authprovider>().resendOtp(
+                                    context: context,
+                                  );
+                                } finally {
+                                  if (mounted) {
+                                    setState(() {
+                                      _isResending = false;
+                                    });
+                                    starttimer();
                                   }
                                 }
+                              }
                               : null,
-                      child: _isResending
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                      child:
+                          _isResending
+                              ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : Text(
+                                _isResendenabled
+                                    ? 'Resend code'
+                                    : "Resend in $start sec",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      _isResendenabled
+                                          ? Colors.blue
+                                          : Colors.black,
+                                ),
                               ),
-                            )
-                          : Text(
-                              _isResendenabled
-                                  ? 'Resend code'
-                                  : "Resend in $start sec",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color:
-                                    _isResendenabled
-                                        ? Colors.blue
-                                        : Colors.black,
-                              ),
-                            ),
                     ),
                   ],
                 ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,24 +26,36 @@ class _SplashscreenState extends State<Splashscreen> {
     await Future.delayed(const Duration(seconds: 2)); // Splash effect delay
 
     try {
-      User? user = FirebaseAuth.instance.currentUser;
-
-      // Only wait for auth state if we don't already have a user
-      if (user == null) {
-        user = await FirebaseAuth.instance.authStateChanges().first;
-      }
-
       SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool isLoggedIn = prefs.getBool('IsloggedIn') ?? false;
       String? role = prefs.getString('role');
 
       Widget nextScreen;
 
-      if (user != null && role != null) {
-        if (role == 'customer') {
-          nextScreen = const HomeContainer();
-        } else if (role == 'service provider') {
-          nextScreen = const Servicehomecontainer();
+      if (isLoggedIn && role != null) {
+        // Session exists - check if Firebase user is still valid
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user == null) {
+          // Wait briefly for Firebase to restore auth state
+          user = await FirebaseAuth.instance.authStateChanges().first.timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => null,
+          );
+        }
+
+        if (user != null) {
+          if (role == 'customer') {
+            nextScreen = const HomeContainer();
+          } else if (role == 'service provider') {
+            nextScreen = const Servicehomecontainer();
+          } else {
+            nextScreen = const Loginscreen();
+          }
         } else {
+          // Firebase session expired - clear local session
+          await prefs.remove('IsloggedIn');
+          await prefs.remove('uid');
+          await prefs.remove('role');
           nextScreen = const Loginscreen();
         }
       } else {
