@@ -43,9 +43,11 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
         bookings.where((b) => b.status == 'pending').toList();
     final acceptedBookings =
         bookings.where((b) => b.status == 'Accepted').toList();
+    final completedBookings =
+        bookings.where((b) => b.status == 'completed').toList();
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('My Bookings'),
@@ -56,13 +58,18 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
             indicatorColor: Colors.white,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
-            tabs: [Tab(text: 'Requests'), Tab(text: 'Accepted')],
+            tabs: [
+              Tab(text: 'Requests'),
+              Tab(text: 'Accepted'),
+              Tab(text: 'Completed'),
+            ],
           ),
         ),
         body: TabBarView(
           children: [
             _buildBookingList(requestedBookings, 'No new requests'),
             _buildBookingList(acceptedBookings, 'No accepted bookings'),
+            _buildBookingList(completedBookings, 'No completed bookings'),
           ],
         ),
       ),
@@ -163,11 +170,12 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: () {
-                          final Uri callUri = Uri(
-                            scheme: 'tel',
-                            path: booking.phoneNumber,
+                          final cleaned = booking.phoneNumber.trim();
+                          final Uri callUri = Uri(scheme: 'tel', path: cleaned);
+                          launchUrl(
+                            callUri,
+                            mode: LaunchMode.externalApplication,
                           );
-                          launchUrl(callUri);
                         },
                         icon: Icon(Icons.call, color: Colors.white),
                         label: Text(
@@ -181,10 +189,15 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                       const SizedBox(width: 10),
                       ElevatedButton.icon(
                         onPressed: () {
+                          final cleaned =
+                              booking.phoneNumber.replaceAll('+', '').trim();
                           final Uri whatsappUri = Uri.parse(
-                            "https://wa.me/${booking.phoneNumber}",
+                            "https://wa.me/$cleaned",
                           );
-                          launchUrl(whatsappUri);
+                          launchUrl(
+                            whatsappUri,
+                            mode: LaunchMode.externalApplication,
+                          );
                         },
                         icon: Icon(Icons.chat, color: Colors.white),
                         label: Text(

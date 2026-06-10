@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/customer/fetchserviceprovider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobads/jobadsprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
@@ -172,7 +173,40 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    final phone = post.phonenumber;
+                                    if (phone.isEmpty) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Phone number not available",
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    final cleaned =
+                                        phone.replaceAll('+', '').trim();
+                                    final uri = Uri.parse(
+                                      "https://wa.me/$cleaned",
+                                    );
+                                    if (!await launchUrl(
+                                      uri,
+                                      mode: LaunchMode.externalApplication,
+                                    )) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Failed to open WhatsApp",
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
                                   icon: const Icon(
                                     Icons.chat,
                                     color: Colors.white,

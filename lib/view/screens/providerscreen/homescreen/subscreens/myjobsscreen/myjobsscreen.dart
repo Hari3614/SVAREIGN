@@ -8,24 +8,26 @@ class Myjobsscreen extends StatelessWidget {
   const Myjobsscreen({super.key});
 
   Future<void> _launchPhone(String phoneNumber, BuildContext context) async {
-    final phonenumber = phoneNumber.replaceAll('+', "").trim();
-    final uri = Uri.parse("tel:$phonenumber");
+    final cleaned = phoneNumber.trim();
+    // tel: scheme works best with + prefix for international numbers
+    final uri = Uri(scheme: 'tel', path: cleaned);
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("failed to call")));
+      ).showSnackBar(SnackBar(content: Text("Failed to call")));
     }
   }
 
   Future<void> _launchWhatsApp(String phoneNumber, BuildContext context) async {
-    final phonenumber = phoneNumber.replaceAll('+', "").trim();
-    final uri = Uri.parse("https://wa.me/$phonenumber");
+    // WhatsApp requires number without + prefix
+    final cleaned = phoneNumber.replaceAll('+', '').trim();
+    final uri = Uri.parse("https://wa.me/$cleaned");
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("failed to call")));
+      ).showSnackBar(SnackBar(content: Text("Failed to open WhatsApp")));
     }
   }
 
@@ -176,7 +178,7 @@ class Myjobsscreen extends StatelessWidget {
             FirebaseFirestore.instance
                 .collection('requests')
                 .where('providerId', isEqualTo: providerId)
-                .where("status", isEqualTo: "Accepted")
+                .where("status", whereIn: ["Accepted", "Completed"])
                 .snapshots(),
         builder: (context, snapshot) {
           debugPrint(
@@ -294,6 +296,8 @@ class Myjobsscreen extends StatelessWidget {
                           workdata['minbudget'] ?? workdata['budget'] ?? "0";
                       final maxbudget = workdata['maxbudget'] ?? "0";
                       final duration = workdata['duration'] ?? "N/A";
+                      final jobStatus = data['status'] ?? 'Accepted';
+                      final isCompleted = jobStatus == 'Completed';
 
                       return Card(
                         margin: const EdgeInsets.all(10),
@@ -339,50 +343,86 @@ class Myjobsscreen extends StatelessWidget {
                               // Text("Phone: $userPhone"),
                               const SizedBox(height: 10),
 
-                              // Call & WhatsApp row
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  ElevatedButton.icon(
-                                    onPressed:
-                                        () => _launchPhone(userPhone, context),
-                                    icon: const Icon(Icons.call),
-                                    label: const Text("Call"),
+                              if (isCompleted) ...[
+                                // Show completed status badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
                                   ),
-                                  ElevatedButton.icon(
-                                    onPressed:
-                                        () =>
-                                            _launchWhatsApp(userPhone, context),
-                                    icon: const Icon(Icons.chat),
-                                    label: const Text("WhatsApp"),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.green),
                                   ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              // Complete button below row
-                              Align(
-                                alignment: Alignment.center,
-                                child: ElevatedButton.icon(
-                                  onPressed:
-                                      () => _showpaymentdialogue(
-                                        context,
-                                        requestDocId,
-                                        userDocPath,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                        size: 18,
                                       ),
-                                  icon: const Icon(Icons.check_circle),
-                                  label: const Text("Mark as Complete"),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
+                                      SizedBox(width: 6),
+                                      Text(
+                                        "Completed",
+                                        style: TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ] else ...[
+                                // Call & WhatsApp row
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed:
+                                          () =>
+                                              _launchPhone(userPhone, context),
+                                      icon: const Icon(Icons.call),
+                                      label: const Text("Call"),
+                                    ),
+                                    ElevatedButton.icon(
+                                      onPressed:
+                                          () => _launchWhatsApp(
+                                            userPhone,
+                                            context,
+                                          ),
+                                      icon: const Icon(Icons.chat),
+                                      label: const Text("WhatsApp"),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                // Complete button below row
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: ElevatedButton.icon(
+                                    onPressed:
+                                        () => _showpaymentdialogue(
+                                          context,
+                                          requestDocId,
+                                          userDocPath,
+                                        ),
+                                    icon: const Icon(Icons.check_circle),
+                                    label: const Text("Mark as Complete"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 12,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),

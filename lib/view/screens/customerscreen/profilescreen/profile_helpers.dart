@@ -112,16 +112,40 @@ class ProfileWidget extends StatelessWidget {
                           }
                         }
                       },
-                      child: CircleAvatar(
-                        radius: 60,
-                        backgroundImage:
-                            user?.imageurl != null
-                                ? NetworkImage(user!.imageurl!)
-                                : null,
-                        child:
-                            user?.imageurl == null
-                                ? const Icon(Icons.person, size: 50)
-                                : null,
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 60,
+                            backgroundImage:
+                                user?.imageurl != null
+                                    ? NetworkImage(user!.imageurl!)
+                                    : null,
+                            child:
+                                user?.imageurl == null
+                                    ? const Icon(Icons.person, size: 50)
+                                    : null,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 10),

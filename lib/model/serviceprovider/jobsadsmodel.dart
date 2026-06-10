@@ -11,6 +11,7 @@ class Jobsadsmodel {
   final String endtime;
   final DateTime postedtime;
   final DateTime expirytime;
+  final String phonenumber;
   Jobsadsmodel({
     this.id = '',
     required this.providerid,
@@ -22,6 +23,7 @@ class Jobsadsmodel {
     required this.endtime,
     required this.postedtime,
     required this.expirytime,
+    this.phonenumber = '',
   });
   factory Jobsadsmodel.fromMap(String documentId, Map<String, dynamic> map) {
     return Jobsadsmodel(
@@ -38,6 +40,7 @@ class Jobsadsmodel {
       endtime: map['endtime'],
       postedtime: (map['postedtime'] as Timestamp).toDate(),
       expirytime: (map['expirytime'] as Timestamp).toDate(),
+      phonenumber: map['phonenumber'] ?? '',
     );
   }
 

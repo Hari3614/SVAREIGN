@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:svareign/model/customer/addwork._model.dart';
 
 class Workprovider extends ChangeNotifier {
@@ -38,15 +39,33 @@ class Workprovider extends ChangeNotifier {
     }
 
     final userDoc = await _firestore.collection('users').doc(user.uid).get();
-    final userplace = userDoc.data()?['place'];
+    String? userplace = userDoc.data()?['place'];
     final userLocation = userDoc.data()?['location'];
-    if (userplace == null) {
-      throw Exception('User place is not available in profile');
+
+    // If place is not set, compute it from location coordinates
+    if (userplace == null && userLocation != null) {
+      try {
+        final lat = userLocation['latitude'];
+        final lng = userLocation['longitude'];
+        if (lat != null && lng != null) {
+          final placemarks = await placemarkFromCoordinates(lat, lng);
+          if (placemarks.isNotEmpty) {
+            final p = placemarks.first;
+            userplace = '${p.locality},${p.administrativeArea}';
+            // Save place to user doc for future use
+            await _firestore.collection('users').doc(user.uid).set({
+              'place': userplace,
+            }, SetOptions(merge: true));
+          }
+        }
+      } catch (e) {
+        debugPrint('Error computing place from location: $e');
+      }
     }
 
     final workmap = {
       ...work.tomap(),
-      'place': userplace,
+      if (userplace != null) 'place': userplace,
       'userId': user.uid,
       "userphone": user.phoneNumber,
       'status': 'active',
@@ -64,7 +83,7 @@ class Workprovider extends ChangeNotifier {
         .doc(globaldoc.id)
         .set({
           ...work.tomap(),
-          'place': userplace,
+          if (userplace != null) 'place': userplace,
           'status': 'active',
           if (userLocation != null) 'location': userLocation,
         });

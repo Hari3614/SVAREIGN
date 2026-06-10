@@ -27,7 +27,7 @@
 
     <application
         android:name="${applicationName}"
-        android:label="svareign"
+        android:label="Svareign"
         android:icon="@mipmap/ic_launcher">
 
         <!-- Google Maps API Key -->

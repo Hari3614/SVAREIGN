@@ -435,9 +435,8 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: () async {
-                              final cleanednumber =
-                                  req.phonenumber.replaceAll("+", "").trim();
-                              final url = Uri.parse('tel:$cleanednumber');
+                              final cleaned = req.phonenumber.trim();
+                              final url = Uri(scheme: 'tel', path: cleaned);
                               if (!await launchUrl(
                                 url,
                                 mode: LaunchMode.externalApplication,
