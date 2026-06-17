@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/customerscreen/cartscreen/widgets/bookingscreen.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
+import 'package:svareign/widgets/cached_image.dart';
 
 class Cartscreen extends StatefulWidget {
   const Cartscreen({super.key});
@@ -36,20 +38,13 @@ class _CartscreenState extends State<Cartscreen> {
     final cartitems = cartprovider.cartitems;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        foregroundColor: Colors.black,
         title: const Text(
           "My Cart",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
         ),
       ),
       body:
@@ -111,7 +106,9 @@ class _CartscreenState extends State<Cartscreen> {
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 12),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color:
+                                        Theme.of(context).cardTheme.color ??
+                                        Theme.of(context).cardColor,
                                     borderRadius: BorderRadius.circular(14),
                                     boxShadow: [
                                       BoxShadow(
@@ -131,11 +128,13 @@ class _CartscreenState extends State<Cartscreen> {
                                           borderRadius: BorderRadius.circular(
                                             10,
                                           ),
-                                          child: Image.network(
-                                            item.imagepath,
+                                          child: AppCachedImage(
+                                            imageUrl: item.imagepath,
                                             width: 65,
                                             height: 65,
-                                            fit: BoxFit.cover,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(width: 12),
@@ -158,7 +157,11 @@ class _CartscreenState extends State<Cartscreen> {
                                                 item.role.join(', '),
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: Colors.grey[600],
+                                                  color:
+                                                      Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.color,
                                                 ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
@@ -182,9 +185,13 @@ class _CartscreenState extends State<Cartscreen> {
                                                   },
                                                   style: ElevatedButton.styleFrom(
                                                     backgroundColor:
-                                                        Colors.black87,
+                                                        Theme.of(
+                                                          context,
+                                                        ).colorScheme.primary,
                                                     foregroundColor:
-                                                        Colors.white,
+                                                        Theme.of(
+                                                          context,
+                                                        ).colorScheme.onPrimary,
                                                     elevation: 0,
                                                     padding:
                                                         const EdgeInsets.symmetric(
@@ -244,8 +251,10 @@ class _CartscreenState extends State<Cartscreen> {
                         child: TextButton.icon(
                           onPressed: () {
                             cartprovider.clearcart();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Cart cleared")),
+                            Fluttertoast.showToast(
+                              msg: 'Cart cleared',
+                              backgroundColor: Colors.green,
+                              textColor: Colors.white,
                             );
                           },
                           icon: const Icon(

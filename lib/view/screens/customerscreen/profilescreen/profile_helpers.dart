@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/services/sharedpreferences/session_manager.dart';
+import 'package:svareign/widgets/cached_image.dart';
 import 'package:svareign/view/screens/Authentication/customer_signup_screen/signupscreen.dart';
 import 'package:svareign/view/screens/Authentication/roleselectionpage/role_selection_page.dart';
 import 'package:svareign/view/screens/Authentication/serivice_provider/service_signup_screen.dart';
@@ -43,7 +45,7 @@ class ProfileWidget extends StatelessWidget {
             Container(
               width: width,
               height: height * 0.26,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
             ),
             Padding(
               padding: const EdgeInsets.only(
@@ -57,9 +59,18 @@ class ProfileWidget extends StatelessWidget {
                 width: width,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
-                  color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 3)],
-                  border: Border.all(color: Colors.black87),
+                  color: Theme.of(context).cardTheme.color,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 3,
+                    ),
+                  ],
+                  border: Border.all(
+                    color:
+                        Theme.of(context).dividerTheme.color ??
+                        Colors.grey.shade300,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -97,34 +108,24 @@ class ProfileWidget extends StatelessWidget {
                                 );
                             profileViewModel.updateImageUrl(imageurl);
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Profile picture updated'),
-                              ),
+                            Fluttertoast.showToast(
+                              msg: 'Profile picture updated',
+                              backgroundColor: Colors.green,
+                              textColor: Colors.white,
                             );
                           } catch (e) {
                             print("Error uploading image :$e");
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Upload image failed"),
-                              ),
+                            Fluttertoast.showToast(
+                              msg: 'Upload image failed',
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
                             );
                           }
                         }
                       },
                       child: Stack(
                         children: [
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundImage:
-                                user?.imageurl != null
-                                    ? NetworkImage(user!.imageurl!)
-                                    : null,
-                            child:
-                                user?.imageurl == null
-                                    ? const Icon(Icons.person, size: 50)
-                                    : null,
-                          ),
+                          AppCachedAvatar(imageUrl: user?.imageurl, radius: 60),
                           Positioned(
                             bottom: 0,
                             right: 0,
@@ -170,10 +171,10 @@ class ProfileWidget extends StatelessWidget {
                             onPressed: () {
                               final uidText = "user@${user?.uid ?? '1234'}";
                               Clipboard.setData(ClipboardData(text: uidText));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Copied to clipboard'),
-                                ),
+                              Fluttertoast.showToast(
+                                msg: 'Copied to clipboard',
+                                backgroundColor: Colors.green,
+                                textColor: Colors.white,
                               );
                             },
                           ),
@@ -260,8 +261,13 @@ class ProfileWidget extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: Colors.grey.shade200,
-                    child: const Icon(Icons.add, size: 22, color: Colors.black),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child: Icon(
+                      Icons.add,
+                      size: 22,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
 
                   const SizedBox(width: 16),
@@ -297,7 +303,10 @@ class ProfileWidget extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.switch_account, color: Colors.black),
+                  Icon(
+                    Icons.switch_account,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                   const SizedBox(width: 16),
                   const Text(
                     'Switch account',
@@ -320,7 +329,7 @@ class ProfileWidget extends StatelessWidget {
 
   Widget buildProfileTile(IconData icon, String title, BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: Colors.black87),
+      leading: Icon(icon),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: () {
@@ -413,7 +422,10 @@ class ProfileWidget extends StatelessWidget {
                             ),
                       );
                     },
-                    child: const Icon(Icons.info_outline, color: Colors.black),
+                    child: Icon(
+                      Icons.info_outline,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -458,7 +470,16 @@ class ProfileWidget extends StatelessWidget {
 
   void showAccountSwitcher(BuildContext context) async {
     final accounts = await SessionManager.getAllAccounts();
-    if (accounts.length <= 1) return;
+    if (accounts.length <= 1) {
+      Fluttertoast.showToast(
+        msg: 'No other accounts to switch to',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
 
     showModalBottomSheet(
       context: context,
@@ -480,50 +501,83 @@ class ProfileWidget extends StatelessWidget {
                 final uid = acc['uid']!;
                 final role = acc['role']!;
                 final name = acc['name']!;
+                final isCurrentAccount = uid == currentUid;
+                final displayName = name.isNotEmpty ? name : 'Unknown';
+                final roleLabel =
+                    role == 'customer' ? 'Customer' : 'Service Provider';
                 return Card(
                   child: ListTile(
-                    leading: const Icon(Icons.account_circle),
-                    title: Text("UID: ${uid.substring(0, 6)}..."),
-                    subtitle: Text("Role: $role"),
+                    leading: CircleAvatar(
+                      backgroundColor:
+                          isCurrentAccount
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                      child: Text(
+                        displayName[0].toUpperCase(),
+                        style: TextStyle(
+                          color:
+                              isCurrentAccount
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      displayName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color:
+                            isCurrentAccount
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '$roleLabel${isCurrentAccount ? ' (Active)' : ''}',
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.switch_account),
-                          onPressed: () async {
-                            await SessionManager.SaveUserSession(
-                              uid: uid,
-                              role: role,
-                              name: name,
-                            );
-                            Navigator.pop(context); // Close the sheet
-                            if (role == "customer") {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => HomeContainer(),
-                                ),
+                        if (!isCurrentAccount)
+                          IconButton(
+                            icon: const Icon(Icons.switch_account),
+                            onPressed: () async {
+                              await SessionManager.SaveUserSession(
+                                uid: uid,
+                                role: role,
+                                name: name,
                               );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Servicehomecontainer(),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            await SessionManager.removeAccount(uid, role);
-                            Navigator.pop(
-                              context,
-                            ); // Close and reopen to refresh
-                            showAccountSwitcher(context);
-                          },
-                        ),
+                              Navigator.pop(context);
+                              if (role == "customer") {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HomeContainer(),
+                                  ),
+                                );
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => Servicehomecontainer(),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        if (!isCurrentAccount)
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              await SessionManager.removeAccount(uid, role);
+                              Navigator.pop(context);
+                              showAccountSwitcher(context);
+                            },
+                          ),
                       ],
                     ),
                   ),

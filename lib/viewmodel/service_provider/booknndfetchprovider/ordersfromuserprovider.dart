@@ -26,7 +26,7 @@ class Ordersfromuserprovider with ChangeNotifier {
         .snapshots()
         .listen(
           (snapshot) async {
-            _bookings.clear();
+            final List<Bookingmodel> tempBookings = [];
 
             for (var doc in snapshot.docs) {
               final data = doc.data() as Map<String, dynamic>;
@@ -54,9 +54,10 @@ class Ordersfromuserprovider with ChangeNotifier {
                 phoneNumber: userdata['phone'] ?? '',
               );
 
-              _bookings.add(booking);
+              tempBookings.add(booking);
             }
 
+            _bookings = tempBookings;
             notifyListeners();
           },
           onError: (error) {

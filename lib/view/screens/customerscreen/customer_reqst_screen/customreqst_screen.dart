@@ -2,11 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/reqstmodel.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovider/reviewprovider.dart';
+import 'package:svareign/widgets/cached_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CustomreqstScreen extends StatefulWidget {
@@ -117,8 +119,10 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                   );
                   final review = reviewcontroller.text.trim();
                   if (review.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("please give a review")),
+                    Fluttertoast.showToast(
+                      msg: 'Please give a review',
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
                     );
                   }
                   await provider.addReview(
@@ -178,7 +182,7 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: const [
                     BoxShadow(
@@ -196,23 +200,12 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            req.imagepath ?? '',
+                          child: AppCachedImage(
+                            imageUrl: req.imagepath ?? '',
                             width: width * 0.18,
                             height: height * 0.08,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              // Show a placeholder if image fails to load
-                              return Container(
-                                width: width * 0.18,
-                                height: height * 0.08,
-                                color: Colors.grey[300],
-                                child: const Icon(
-                                  Icons.person,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            },
+                            errorIcon: Icons.person,
+                            errorIconSize: 30,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -441,10 +434,10 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                                 url,
                                 mode: LaunchMode.externalApplication,
                               )) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Failed to call"),
-                                  ),
+                                Fluttertoast.showToast(
+                                  msg: 'Failed to call',
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
                                 );
                               }
                             },
@@ -462,10 +455,10 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                                 url,
                                 mode: LaunchMode.externalApplication,
                               )) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Failed to open WhatsApp"),
-                                  ),
+                                Fluttertoast.showToast(
+                                  msg: 'Failed to open WhatsApp',
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
                                 );
                               }
                             },

@@ -13,7 +13,7 @@ class ServicePostProvider with ChangeNotifier {
   Future<void> fetchServicePosts({
     required double userLat,
     required double userLng,
-    double radiusinKm = 20,
+    double radiusinKm = 100,
   }) async {
     _isLoading = true;
     notifyListeners();

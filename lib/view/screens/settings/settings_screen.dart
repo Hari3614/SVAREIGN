@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/helperfunctions/delete_helper.dart';
 import 'package:svareign/services/notification/notification_service.dart';
@@ -25,27 +26,20 @@ class SettingsScreen extends StatelessWidget {
     final setupProfileProvider = Provider.of<Profileprovider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
           "Settings",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           /// ---------- General ----------
           buildSectionHeader("General"),
-          buildSettingsCard([
+          buildSettingsCard(context, [
             buildSettingsTile(
               icon: Icons.edit_outlined,
               iconBg: Colors.indigo.shade100,
@@ -55,26 +49,25 @@ class SettingsScreen extends StatelessWidget {
                 final profile = profileProvider.profile;
 
                 if (profile == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "No profile found. Please create one first.",
-                      ),
-                    ),
+                  Fluttertoast.showToast(
+                    msg: 'No profile found. Please create one first.',
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
                   );
                   return;
                 }
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EditProfileScreen(
-                      currentName: profile.fullname,
-                      currentUpi: profile.upiId,
-                      currentImageUrl: profile.imageurl,
-                      currentpayment: profile.payment,
-                      currentPhoneNumber: setupProfileProvider.phoneNumber,
-                      currentEmail: setupProfileProvider.email,
-                    ),
+                    builder:
+                        (context) => EditProfileScreen(
+                          currentName: profile.fullname,
+                          currentUpi: profile.upiId,
+                          currentImageUrl: profile.imageurl,
+                          currentpayment: profile.payment,
+                          currentPhoneNumber: setupProfileProvider.phoneNumber,
+                          currentEmail: setupProfileProvider.email,
+                        ),
                   ),
                 ).then((_) {
                   // 🔄 Refresh after returning from EditProfileScreen
@@ -95,10 +88,13 @@ class SettingsScreen extends StatelessWidget {
               iconBg: Colors.blue.shade100,
               iconColor: Colors.blue.shade700,
               title: "Privacy Policy",
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
-              ),
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PrivacyPolicyScreen(),
+                    ),
+                  ),
             ),
             buildDivider(),
             buildSettingsTile(
@@ -106,12 +102,13 @@ class SettingsScreen extends StatelessWidget {
               iconBg: Colors.green.shade100,
               iconColor: Colors.green.shade700,
               title: "Customer Support",
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CustomerSupportScreen(),
-                ),
-              ),
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CustomerSupportScreen(),
+                    ),
+                  ),
             ),
             buildDivider(),
             buildSettingsTile(
@@ -119,12 +116,13 @@ class SettingsScreen extends StatelessWidget {
               iconBg: Colors.orange.shade100,
               iconColor: Colors.orange.shade700,
               title: "Customer Agreements",
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CustomerAgreementsScreen(),
-                ),
-              ),
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CustomerAgreementsScreen(),
+                    ),
+                  ),
             ),
           ]),
 
@@ -132,16 +130,17 @@ class SettingsScreen extends StatelessWidget {
 
           /// ---------- App Info ----------
           buildSectionHeader("App Info"),
-          buildSettingsCard([
+          buildSettingsCard(context, [
             buildSettingsTile(
               icon: Icons.info_outline,
               iconBg: Colors.purple.shade100,
               iconColor: Colors.purple.shade700,
               title: "About",
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AboutScreen()),
-              ),
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AboutScreen()),
+                  ),
             ),
             buildDivider(),
             buildSettingsTile(
@@ -150,10 +149,10 @@ class SettingsScreen extends StatelessWidget {
               iconColor: Colors.teal.shade700,
               title: "Check for Updates",
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("You are on the latest version"),
-                  ),
+                Fluttertoast.showToast(
+                  msg: 'You are on the latest version',
+                  backgroundColor: Colors.green,
+                  textColor: Colors.white,
                 );
               },
             ),
@@ -166,23 +165,24 @@ class SettingsScreen extends StatelessWidget {
               onTap: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text("Logout"),
-                    content: const Text("Are you sure you want to logout?"),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Cancel"),
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text("Logout"),
+                        content: const Text("Are you sure you want to logout?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text(
+                              "Logout",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text(
-                          "Logout",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
                 );
 
                 if (confirm == true) {
@@ -214,8 +214,9 @@ class SettingsScreen extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) =>
-                        DeleteAccountScreen(role: 'serviceprovider'),
+                    builder:
+                        (context) =>
+                            DeleteAccountScreen(role: 'serviceprovider'),
                   ),
                 );
               },
@@ -232,20 +233,16 @@ class SettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Text(
         text,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.bold,
-          color: Colors.black54,
-        ),
+        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
       ),
     );
   }
 
   /// Card Container
-  Widget buildSettingsCard(List<Widget> children) {
+  Widget buildSettingsCard(BuildContext context, List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(

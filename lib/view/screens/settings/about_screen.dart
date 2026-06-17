@@ -7,15 +7,12 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
           "About",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
+        elevation: 0,
         centerTitle: true,
       ),
       body: Padding(
@@ -23,7 +20,7 @@ class AboutScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -46,17 +43,13 @@ class AboutScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 12),
-              Text("Version: 1.0.0", style: TextStyle(color: Colors.black54)),
+              Text("Version: 1.0.9"),
               SizedBox(height: 20),
               Text(
                 "Developed by the Svareign Team.\n"
                 "We connect customers with trusted service providers easily and securely.",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.6,
-                  color: Colors.black87,
-                ),
+                style: TextStyle(fontSize: 15, height: 1.6),
               ),
             ],
           ),

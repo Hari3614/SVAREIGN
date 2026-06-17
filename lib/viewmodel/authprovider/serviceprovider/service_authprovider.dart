@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:svareign/services/location_services/location_services.dart';
 import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
 import 'package:svareign/view/screens/Authentication/serivice_provider/otp_service_screen/otp_service_screen.dart';
@@ -15,7 +15,6 @@ import 'package:svareign/view/screens/providerscreen/serviceaddprofile/servicead
 class ServiceAuthprovider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-  final LocationService _locationService = LocationService();
 
   String? _name, _email, _phonenumber, _password;
   String _verificationId = "";
@@ -41,25 +40,23 @@ class ServiceAuthprovider extends ChangeNotifier {
           if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (FirebaseAuthException e) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("OTP FAILED: $e")));
+          Fluttertoast.showToast(
+            msg: 'OTP Failed: ${e.message}',
+            backgroundColor: Colors.red,
+          );
           if (!completer.isCompleted) completer.complete();
         },
         codeSent: (String verificationID, int? resendToken) {
           _verificationId = verificationID;
 
-          Navigator.push(
+          if (!context.mounted) return;
+
+          OtpServiceScreen.show(
             context,
-            MaterialPageRoute(
-              builder:
-                  (context) => OtpServiceScreen(
-                    verificationId: verificationID,
-                    name: name,
-                    email: email,
-                    phoneNumber: _phonenumber!,
-                  ),
-            ),
+            verificationId: verificationID,
+            name: name,
+            email: email,
+            phoneNumber: _phonenumber!,
           );
           if (!completer.isCompleted) completer.complete();
         },
@@ -69,9 +66,10 @@ class ServiceAuthprovider extends ChangeNotifier {
       );
       await completer.future;
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error sending OTP ")));
+      Fluttertoast.showToast(
+        msg: 'Error sending OTP',
+        backgroundColor: Colors.red,
+      );
     }
   }
 
@@ -83,14 +81,16 @@ class ServiceAuthprovider extends ChangeNotifier {
         phoneNumber: _phonenumber!,
         verificationCompleted: (PhoneAuthCredential credential) async {},
         verificationFailed: (FirebaseAuthException e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Resend failed: ${e.message}')),
+          Fluttertoast.showToast(
+            msg: 'Resend failed: ${e.message}',
+            backgroundColor: Colors.red,
           );
         },
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('OTP resent successfully')),
+          Fluttertoast.showToast(
+            msg: 'OTP resent successfully',
+            backgroundColor: Colors.green,
           );
         },
         codeAutoRetrievalTimeout: (String verificationId) {
@@ -98,9 +98,10 @@ class ServiceAuthprovider extends ChangeNotifier {
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error resending OTP: $e")));
+      Fluttertoast.showToast(
+        msg: 'Error resending OTP: $e',
+        backgroundColor: Colors.red,
+      );
     }
   }
 
@@ -122,7 +123,21 @@ class ServiceAuthprovider extends ChangeNotifier {
         password: _password!,
       );
       await user!.linkWithCredential(emailcredential);
-      Position position = await _locationService.getCurrentLocation(context);
+
+      // Get location silently (permission already requested at splash)
+      Map<String, dynamic>? locationData;
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        locationData = {
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+        };
+      } catch (_) {
+        // Location unavailable — save without it
+      }
+
       final normalisedphonenumber = normalisephonenumber(_phonenumber!);
       final String role = "service provider";
       await _firebaseFirestore
@@ -134,10 +149,7 @@ class ServiceAuthprovider extends ChangeNotifier {
             'email': _email,
             'phone': normalisedphonenumber,
             'role': role,
-            'location': {
-              'latitude': position.latitude,
-              'longitude': position.longitude,
-            },
+            if (locationData != null) 'location': locationData,
             'createdAt': Timestamp.now(),
           });
       await SessionManager.SaveUserSession(
@@ -147,14 +159,19 @@ class ServiceAuthprovider extends ChangeNotifier {
       );
       //   await saveFcmtoken(userCredential.user!.uid);
       // setupTokenRefreshListener(userCredential.user!.uid);
+      if (context.mounted) {
+        // Close the OTP bottom sheet
+        Navigator.of(context).pop();
+      }
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Serviceaddprofie()),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Signup failed: $e')));
+      Fluttertoast.showToast(
+        msg: 'Signup failed: $e',
+        backgroundColor: Colors.red,
+      );
     }
   }
 
@@ -211,8 +228,10 @@ class ServiceAuthprovider extends ChangeNotifier {
       final userdoc =
           await _firebaseFirestore.collection('services').doc(uid).get();
       if (!userdoc.exists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("No account Found With this e-mail")),
+        Fluttertoast.showToast(
+          msg: 'No account found with this email',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
         );
         return;
       }
@@ -237,9 +256,11 @@ class ServiceAuthprovider extends ChangeNotifier {
         message = e.message ?? "Login failed";
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      Fluttertoast.showToast(
+        msg: message,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     } catch (e) {
       String message = "Login failed. Please try again.";
       if (e.toString().contains('network') ||
@@ -247,9 +268,11 @@ class ServiceAuthprovider extends ChangeNotifier {
         message = "Network error. Please check your internet connection.";
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      Fluttertoast.showToast(
+        msg: message,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     }
   }
 }

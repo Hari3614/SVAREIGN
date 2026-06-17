@@ -1,9 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/authprovider/customer/authprovider.dart';
 import 'package:svareign/core/colors/app_theme_color.dart';
-import 'package:svareign/utils/elevatedbutton/elevatedbutton.dart';
-import 'package:svareign/utils/textformfield/textfieldwidget.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/viewmodel/passwordvisiblity/password_visiblity_provider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
@@ -16,269 +15,381 @@ class Signupwidget extends StatefulWidget {
 }
 
 class _SignupwidgetState extends State<Signupwidget> {
-  final TextEditingController namecontroller = TextEditingController();
-  final TextEditingController emailcontroller = TextEditingController();
-  final TextEditingController phonecontroller = TextEditingController();
-  final TextEditingController passwordcontroller = TextEditingController();
-  final TextEditingController confirmcontroller = TextEditingController();
+  final namecontroller = TextEditingController();
+  final emailcontroller = TextEditingController();
+  final phonecontroller = TextEditingController();
+  final passwordcontroller = TextEditingController();
+  final confirmcontroller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
   @override
+  void dispose() {
+    namecontroller.dispose();
+    emailcontroller.dispose();
+    phonecontroller.dispose();
+    passwordcontroller.dispose();
+    confirmcontroller.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _glassInput({
+    required String label,
+    required IconData icon,
+    Widget? suffix,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white70, fontSize: 14),
+      prefixIcon: Icon(icon, color: Colors.white70, size: 20),
+      suffixIcon: suffix,
+      filled: true,
+      fillColor: Colors.white.withOpacity(0.12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.25)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: kPrimaryAccent.withOpacity(0.8),
+          width: 1.5,
+        ),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.red.shade300),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.red.shade300, width: 1.5),
+      ),
+      errorStyle: TextStyle(color: Colors.red.shade300, fontSize: 12),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
-    final width = MediaQuery.sizeOf(context).width;
 
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: height * 0.24,
-              width: width * 1,
-              child: Image.asset('assets/images/app_icon1.png'),
-            ),
-            Text(
-              'Create New Account',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
-            ),
-            SizedBox(height: 30),
-
-            // Name
-            Textfieldwidget(
-              controller: namecontroller,
-              labeltext: 'Name',
-              hinttext: 'Enter Name',
-              color: kblackcolor,
-              preffixicon: Icons.person,
-              obscuretext: false,
-
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your name';
-                }
-                return null;
-              },
-              onchanged: (value) {
-                Provider.of<Signupformprovide>(
-                  context,
-                  listen: false,
-                ).updatefield('name', value!);
-                return null;
-              },
-            ),
-            SizedBox(height: 30),
-
-            // Email
-            Textfieldwidget(
-              controller: emailcontroller,
-              labeltext: 'E-mail',
-              hinttext: 'Enter your e-mail address',
-              color: kblackcolor,
-              preffixicon: Icons.email,
-              obscuretext: false,
-              // errortext: "please",
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your email';
-                } else if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                  return 'Enter a valid email address';
-                }
-                return null;
-              },
-              onchanged: (value) {
-                Provider.of<Signupformprovide>(
-                  context,
-                  listen: false,
-                ).updatefield('email', value!);
-                return null;
-              },
-            ),
-            SizedBox(height: 30),
-
-            // Phone
-            Textfieldwidget(
-              controller: phonecontroller,
-              labeltext: 'Mobile Number',
-              hinttext: 'Enter the Mobile Number',
-              color: kblackcolor,
-              preffixicon: Icons.phone,
-              obscuretext: false,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Enter your phone number';
-                } else if (value.length != 10) {
-                  return 'Phone number must be 10 digits';
-                }
-                return null;
-              },
-              onchanged: (value) {
-                Provider.of<Signupformprovide>(
-                  context,
-                  listen: false,
-                ).updatefield("phone", value!);
-                return null;
-              },
-            ),
-            SizedBox(height: 30),
-
-            // Password
-            Consumer<PasswordVisiblityProvider>(
-              builder: (context, visiblityprovider, child) {
-                return Textfieldwidget(
-                  controller: passwordcontroller,
-                  labeltext: 'Password',
-                  hinttext: 'Enter the Password',
-                  color: kblackcolor,
-                  preffixicon: Icons.password,
-                  obscuretext: visiblityprovider.isobscured,
-                  suffixicon: IconButton(
-                    onPressed: () {
-                      visiblityprovider.togglevisiblity();
-                    },
-                    icon: Icon(
-                      visiblityprovider.isobscured
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Enter password';
-                    } else if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                  onchanged: (value) {
-                    Provider.of<Signupformprovide>(
-                      context,
-                      listen: false,
-                    ).updatefield("password", value!);
-                    _formKey.currentState!.validate();
-                    return null;
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 30),
-
-            // Confirm Password
-            Consumer<PasswordVisiblityProvider>(
-              builder: (context, visiblity, child) {
-                return Textfieldwidget(
-                  controller: confirmcontroller,
-                  labeltext: 'Confirm Password',
-                  hinttext: 'Re-enter the Password',
-                  color: kblackcolor,
-                  preffixicon: Icons.fingerprint,
-                  obscuretext: visiblity.isobscured,
-                  suffixicon: IconButton(
-                    onPressed: () {
-                      visiblity.togglevisiblity();
-                    },
-                    icon: Icon(
-                      visiblity.isobscured
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value != passwordcontroller.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
-                  onchanged: (value) {
-                    Provider.of<Signupformprovide>(
-                      listen: false,
-                      context,
-                    ).updatefield("confirmpassword", value!);
-                    _formKey.currentState!.validate();
-                    return null;
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 30),
-
-            // Signup Button
-            Consumer<Signupformprovide>(
-              builder: (context, signupprovider, child) {
-                return Elevatedbuttonwidget(
-                  onpressed: _isLoading
-                      ? null
-                      : () async {
-                          if (_formKey.currentState!.validate()) {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                            final authProvider = Provider.of<Authprovider>(
-                              context,
-                              listen: false,
-                            );
-
-                            try {
-                              await authProvider.sendotp(
-                                name: namecontroller.text.trim(),
-                                email: emailcontroller.text.trim(),
-                                phonenumber: phonecontroller.text.trim(),
-                                password: passwordcontroller.text.trim(),
-                                context: context,
-                              );
-                            } finally {
-                              if (mounted) {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
-                            }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Please fix the errors in the form'),
-                              ),
-                            );
-                          }
-                        },
-                  widht: width * 0.4,
-                  height: height * 0.054,
-                  color:
-                      signupprovider.areAllFieldsFilled
-                          ? Colors.black
-                          : Colors.grey,
-                  textsize: 16,
-                  buttontext: 'Signup',
-                  isLoading: _isLoading,
-                );
-              },
-            ),
-            SizedBox(height: 10),
-
-            // Already have an account
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return Container(
+      decoration: const BoxDecoration(gradient: kAuthGradient),
+      child: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
               children: [
-                Text(
-                  'Already have an account ?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                SizedBox(height: height * 0.03),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white70,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Loginscreen()),
-                    );
-                  },
-                  child: Text(
-                    'Login',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                SizedBox(height: height * 0.015),
+                const Text(
+                  'Create Account',
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
+                const SizedBox(height: 6),
+                Text(
+                  'Sign up as a Customer',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.5),
+                  ),
+                ),
+                SizedBox(height: height * 0.025),
+
+                // Glass form card
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(0.18),
+                            Colors.white.withOpacity(0.08),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.25),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: namecontroller,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: _glassInput(
+                              label: 'Full Name',
+                              icon: Icons.person_outline,
+                            ),
+                            validator:
+                                (v) =>
+                                    (v == null || v.isEmpty)
+                                        ? 'Enter your name'
+                                        : null,
+                            onChanged:
+                                (v) => Provider.of<Signupformprovide>(
+                                  context,
+                                  listen: false,
+                                ).updatefield('name', v),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: emailcontroller,
+                            keyboardType: TextInputType.emailAddress,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: _glassInput(
+                              label: 'Email',
+                              icon: Icons.email_outlined,
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Enter email';
+                              if (!RegExp(r'\S+@\S+\.\S+').hasMatch(v)) {
+                                return 'Enter a valid email';
+                              }
+                              return null;
+                            },
+                            onChanged:
+                                (v) => Provider.of<Signupformprovide>(
+                                  context,
+                                  listen: false,
+                                ).updatefield('email', v),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: phonecontroller,
+                            keyboardType: TextInputType.phone,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: _glassInput(
+                              label: 'Mobile Number',
+                              icon: Icons.phone_outlined,
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Enter phone';
+                              if (v.length != 10) return 'Must be 10 digits';
+                              return null;
+                            },
+                            onChanged:
+                                (v) => Provider.of<Signupformprovide>(
+                                  context,
+                                  listen: false,
+                                ).updatefield('phone', v),
+                          ),
+                          const SizedBox(height: 16),
+                          Consumer<PasswordVisiblityProvider>(
+                            builder: (context, vis, _) {
+                              return TextFormField(
+                                controller: passwordcontroller,
+                                obscureText: vis.isobscured,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: _glassInput(
+                                  label: 'Password',
+                                  icon: Icons.lock_outline,
+                                  suffix: IconButton(
+                                    onPressed: vis.togglevisiblity,
+                                    icon: Icon(
+                                      vis.isobscured
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: Colors.white54,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.isEmpty)
+                                    return 'Enter password';
+                                  if (v.length < 6) return 'Min 6 characters';
+                                  return null;
+                                },
+                                onChanged: (v) {
+                                  Provider.of<Signupformprovide>(
+                                    context,
+                                    listen: false,
+                                  ).updatefield('password', v);
+                                  _formKey.currentState!.validate();
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Consumer<PasswordVisiblityProvider>(
+                            builder: (context, vis, _) {
+                              return TextFormField(
+                                controller: confirmcontroller,
+                                obscureText: vis.isobscured,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: _glassInput(
+                                  label: 'Confirm Password',
+                                  icon: Icons.lock_person_outlined,
+                                  suffix: IconButton(
+                                    onPressed: vis.togglevisiblity,
+                                    icon: Icon(
+                                      vis.isobscured
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: Colors.white54,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                                validator: (v) {
+                                  if (v != passwordcontroller.text) {
+                                    return 'Passwords do not match';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (v) {
+                                  Provider.of<Signupformprovide>(
+                                    context,
+                                    listen: false,
+                                  ).updatefield('confirmpassword', v);
+                                  _formKey.currentState!.validate();
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 28),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed:
+                                  _isLoading
+                                      ? null
+                                      : () async {
+                                        if (_formKey.currentState!.validate()) {
+                                          setState(() => _isLoading = true);
+                                          try {
+                                            await Provider.of<Authprovider>(
+                                              context,
+                                              listen: false,
+                                            ).sendotp(
+                                              name: namecontroller.text.trim(),
+                                              email:
+                                                  emailcontroller.text.trim(),
+                                              phonenumber:
+                                                  phonecontroller.text.trim(),
+                                              password:
+                                                  passwordcontroller.text
+                                                      .trim(),
+                                              context: context,
+                                            );
+                                          } finally {
+                                            if (mounted)
+                                              setState(
+                                                () => _isLoading = false,
+                                              );
+                                          }
+                                        }
+                                      },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: kPrimaryAccent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child:
+                                  _isLoading
+                                      ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                      : const Text(
+                                        'Sign Up',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account? ',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 14,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap:
+                          () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const Loginscreen(),
+                            ),
+                          ),
+                      child: const Text(
+                        'Sign In',
+                        style: TextStyle(
+                          color: kSecondaryAccent,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height * 0.04),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

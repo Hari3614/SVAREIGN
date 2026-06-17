@@ -16,11 +16,7 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     final notificationProvider = Provider.of<NotificationProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Notification Demo'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: Text('Notification Demo')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

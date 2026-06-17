@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/customerprovider/customer/profile_view_model.dart';
@@ -62,7 +63,6 @@ class EditProfileDialog extends StatelessWidget {
             // Save button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
                 minimumSize: const Size.fromHeight(45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -80,14 +80,16 @@ class EditProfileDialog extends StatelessWidget {
                     _nameController.clear();
                     Navigator.pop(context);
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Name updated successfully"),
-                      ),
+                    Fluttertoast.showToast(
+                      msg: 'Name updated successfully',
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
                     );
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Failed to update name")),
+                    Fluttertoast.showToast(
+                      msg: 'Failed to update name',
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
                     );
                   }
                 }

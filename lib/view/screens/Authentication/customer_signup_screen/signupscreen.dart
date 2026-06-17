@@ -7,6 +7,9 @@ class Signupscreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: SafeArea(child: Signupwidget()));
+    return const Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Signupwidget(),
+    );
   }
 }

@@ -16,7 +16,6 @@ class Completedjobs extends StatelessWidget {
           "Completed Jobs",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.lightGreen,
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -70,13 +69,7 @@ class Completedjobs extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        description,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
+                      Text(description, style: const TextStyle(fontSize: 14)),
                       const SizedBox(height: 8),
                       Text(
                         "Amount Paid: ₹$finalAmount",

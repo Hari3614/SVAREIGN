@@ -7,15 +7,12 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
           "Privacy Policy",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
+        elevation: 0,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -23,7 +20,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -33,8 +30,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: const Text(
-            '''
+          child: const Text('''
 Privacy Policy for Svareign  
 Effective Date: 16-08-2025  
 
@@ -75,9 +71,7 @@ We may update this Privacy Policy with a new date.
 
 9. Contact Us  
 📧 teamsvareign@gmail.com  
-            ''',
-            style: TextStyle(fontSize: 15, height: 1.6, color: Colors.black87),
-          ),
+            ''', style: TextStyle(fontSize: 15, height: 1.6)),
         ),
       ),
     );

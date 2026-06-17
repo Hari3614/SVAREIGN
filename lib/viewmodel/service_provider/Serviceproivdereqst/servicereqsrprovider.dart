@@ -12,9 +12,10 @@ class Servicereqsrprovider extends ChangeNotifier {
     // Cancel any existing subscription
     _requestsSubscription?.cancel();
 
-    // Listen to requests in the global collection where this provider is involved
+    // Listen to requests for this provider from any requests subcollection
+    // This covers global requests and user-specific requests under users/{userId}/requests.
     _requestsSubscription = FirebaseFirestore.instance
-        .collection('requests')
+        .collectionGroup('requests')
         .where('providerId', isEqualTo: providerId)
         .snapshots()
         .listen(
@@ -69,6 +70,10 @@ class Servicereqsrprovider extends ChangeNotifier {
               .limit(1)
               .get();
 
+      // Also fetch phone from main service doc (profile subcollection may not have it)
+      final serviceDoc =
+          await _firebaseFirestore.collection('services').doc(providerId).get();
+
       String providerName = '';
       String providerImage = '';
       String providerPhone = '';
@@ -79,6 +84,11 @@ class Servicereqsrprovider extends ChangeNotifier {
         providerImage =
             profileData['imageurl'] ?? profileData['imagepath'] ?? '';
         providerPhone = profileData['phone'] ?? '';
+      }
+
+      // Fallback: get phone from main service doc if profile didn't have it
+      if (providerPhone.isEmpty && serviceDoc.exists) {
+        providerPhone = (serviceDoc.data()?['phone'] as String?) ?? '';
       }
 
       // Create the request data

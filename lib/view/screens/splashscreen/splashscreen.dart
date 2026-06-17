@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:lottie/lottie.dart';
+import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
@@ -22,8 +24,25 @@ class _SplashscreenState extends State<Splashscreen> {
     navigateToNext();
   }
 
+  Future<void> _requestLocationPermission() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        await Geolocator.requestPermission();
+      }
+    } catch (_) {
+      // Non-blocking — permission will be re-requested later if needed
+    }
+  }
+
   Future<void> navigateToNext() async {
     await Future.delayed(const Duration(seconds: 2)); // Splash effect delay
+
+    // Request location permission early so it doesn't interrupt signup
+    await _requestLocationPermission();
 
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -84,22 +103,51 @@ class _SplashscreenState extends State<Splashscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Lottie.asset('assets/lottie/Animation - 1745218778865.json'),
-            const SizedBox(height: 16),
-            const Text(
-              'S V A R E I G N',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 30,
-                fontWeight: FontWeight.w600,
+      body: Container(
+        decoration: const BoxDecoration(gradient: kAuthGradient),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 180,
+                width: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: kPrimaryAccent.withOpacity(0.3),
+                      blurRadius: 40,
+                      spreadRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Lottie.asset(
+                  'assets/lottie/Animation - 1745218778865.json',
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              const Text(
+                'S V A R E I G N',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 6,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Premium Services, Delivered',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.5),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 2,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

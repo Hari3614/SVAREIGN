@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/widgets/cached_image.dart';
 import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/view/screens/Authentication/customer_signup_screen/signupscreen.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
@@ -61,7 +63,9 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                   Container(
                     width: width,
                     height: height * 0.26,
-                    color: Colors.lightGreen,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.15),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(
@@ -75,11 +79,18 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                       width: width,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(15),
-                        color: Colors.white,
-                        boxShadow: const [
-                          BoxShadow(color: Colors.grey, blurRadius: 3),
+                        color: Theme.of(context).cardTheme.color,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 3,
+                          ),
                         ],
-                        border: Border.all(color: Colors.black87),
+                        border: Border.all(
+                          color:
+                              Theme.of(context).dividerTheme.color ??
+                              Colors.grey.shade300,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -97,18 +108,9 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                                 print('Selected image: ${pickedFile.path}');
                               }
                             },
-                            child: CircleAvatar(
+                            child: AppCachedAvatar(
+                              imageUrl: profile.imageurl,
                               radius: 60,
-                              backgroundImage:
-                                  (profile.imageurl != null &&
-                                          profile.imageurl!.isNotEmpty)
-                                      ? NetworkImage(profile.imageurl!)
-                                      : null,
-                              child:
-                                  (profile.imageurl == null ||
-                                          profile.imageurl!.isEmpty)
-                                      ? const Icon(Icons.person, size: 50)
-                                      : null,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -134,10 +136,10 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                                   Clipboard.setData(
                                     ClipboardData(text: uidText),
                                   );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Copied to clipboard'),
-                                    ),
+                                  Fluttertoast.showToast(
+                                    msg: 'Copied to clipboard',
+                                    backgroundColor: Colors.green,
+                                    textColor: Colors.white,
                                   );
                                 },
                               ),
@@ -245,18 +247,25 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                       horizontal: 16,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(
+                        color:
+                            Theme.of(context).dividerTheme.color ??
+                            Colors.grey.shade300,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 18,
-                          backgroundColor: Colors.grey.shade200,
-                          child: const Icon(
+                          backgroundColor:
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          child: Icon(
                             Icons.settings,
                             size: 22,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -295,18 +304,25 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                       horizontal: 16,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(
+                        color:
+                            Theme.of(context).dividerTheme.color ??
+                            Colors.grey.shade300,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 18,
-                          backgroundColor: Colors.grey.shade200,
-                          child: const Icon(
+                          backgroundColor:
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          child: Icon(
                             Icons.add,
                             size: 22,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -347,7 +363,7 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.switch_account, color: Colors.black),
+                        const Icon(Icons.switch_account),
                         const SizedBox(width: 16),
                         const Text(
                           'Switch account',
@@ -439,7 +455,7 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                             ),
                       );
                     },
-                    child: const Icon(Icons.info_outline, color: Colors.black),
+                    child: const Icon(Icons.info_outline),
                   ),
                 ],
               ),
@@ -484,7 +500,16 @@ class _ProfilehelpersState extends State<Profilehelpers> {
 
   void showAccountSwitcher(BuildContext context) async {
     final accounts = await SessionManager.getAllAccounts();
-    if (accounts.length <= 1) return;
+    if (accounts.length <= 1) {
+      Fluttertoast.showToast(
+        msg: 'No other accounts to switch to',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
 
     showModalBottomSheet(
       context: context,
@@ -506,50 +531,83 @@ class _ProfilehelpersState extends State<Profilehelpers> {
                 final uid = acc['uid']!;
                 final role = acc['role']!;
                 final name = acc['name']!;
+                final isCurrentAccount = uid == currentUid;
+                final displayName = name.isNotEmpty ? name : 'Unknown';
+                final roleLabel =
+                    role == 'customer' ? 'Customer' : 'Service Provider';
                 return Card(
                   child: ListTile(
-                    leading: const Icon(Icons.account_circle),
-                    title: Text("UID: ${uid.substring(0, 6)}..."),
-                    subtitle: Text("Role: $role"),
+                    leading: CircleAvatar(
+                      backgroundColor:
+                          isCurrentAccount
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                      child: Text(
+                        displayName[0].toUpperCase(),
+                        style: TextStyle(
+                          color:
+                              isCurrentAccount
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      displayName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color:
+                            isCurrentAccount
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '$roleLabel${isCurrentAccount ? ' (Active)' : ''}',
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.switch_account),
-                          onPressed: () async {
-                            await SessionManager.SaveUserSession(
-                              uid: uid,
-                              role: role,
-                              name: name,
-                            );
-                            Navigator.pop(context); // Close the sheet
-                            if (role == "customer") {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => HomeContainer(),
-                                ),
+                        if (!isCurrentAccount)
+                          IconButton(
+                            icon: const Icon(Icons.switch_account),
+                            onPressed: () async {
+                              await SessionManager.SaveUserSession(
+                                uid: uid,
+                                role: role,
+                                name: name,
                               );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Servicehomecontainer(),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            await SessionManager.removeAccount(uid, role);
-                            Navigator.pop(
-                              context,
-                            ); // Close and reopen to refresh
-                            showAccountSwitcher(context);
-                          },
-                        ),
+                              Navigator.pop(context);
+                              if (role == "customer") {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HomeContainer(),
+                                  ),
+                                );
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => Servicehomecontainer(),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        if (!isCurrentAccount)
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              await SessionManager.removeAccount(uid, role);
+                              Navigator.pop(context);
+                              showAccountSwitcher(context);
+                            },
+                          ),
                       ],
                     ),
                   ),
@@ -569,7 +627,7 @@ class _ProfilehelpersState extends State<Profilehelpers> {
     VoidCallback ontap,
   ) {
     return ListTile(
-      leading: Icon(icon, color: Colors.black87),
+      leading: Icon(icon),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: ontap,

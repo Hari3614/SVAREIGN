@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -143,11 +144,10 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
   }
 
   void _showmsg(String msg, {bool success = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: success ? Colors.green : null,
-      ),
+    Fluttertoast.showToast(
+      msg: msg,
+      backgroundColor: success ? Colors.green : Colors.red,
+      textColor: Colors.white,
     );
   }
 
@@ -156,18 +156,12 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
         centerTitle: true,
         title: Text(
           "Post a work",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -272,8 +266,6 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                     width: width,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shadowColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -291,7 +283,6 @@ class _FloatingActionWidgetState extends State<FloatingActionWidget> {
                               : Text(
                                 "Post",
                                 style: TextStyle(
-                                  color: Colors.white,
                                   fontSize: 20,
                                   fontWeight: FontWeight.w600,
                                 ),

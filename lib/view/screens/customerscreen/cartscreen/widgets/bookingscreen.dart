@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/model/customer/fetchserviceprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/bookingprovider/bookingprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
@@ -87,11 +89,10 @@ class _BookingscreenState extends State<Bookingscreen> {
                         if (selecteddate == null ||
                             selectedtime == null ||
                             descriptioncontroller.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: Colors.red,
-                              content: Text("All fields are required"),
-                            ),
+                          Fluttertoast.showToast(
+                            msg: 'All fields are required',
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
                           );
                           return;
                         }
@@ -116,11 +117,10 @@ class _BookingscreenState extends State<Bookingscreen> {
                             cartprovider: cartprovider,
                           );
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Booking succesfull"),
-                              backgroundColor: Colors.green,
-                            ),
+                          Fluttertoast.showToast(
+                            msg: 'Booking successful',
+                            backgroundColor: Colors.green,
+                            textColor: Colors.white,
                           );
                         } catch (E) {
                           String errorMessage = "Booking failed";
@@ -132,16 +132,15 @@ class _BookingscreenState extends State<Bookingscreen> {
                               errorMessage = E.message ?? errorMessage;
                             }
                           }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(errorMessage),
-                              backgroundColor: Colors.red,
-                            ),
+                          Fluttertoast.showToast(
+                            msg: errorMessage,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
                           );
                         }
                       },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.lightGreen,
+                backgroundColor: kPrimaryAccent,
                 fixedSize: Size(width * 0.9, height * 0.06),
               ),
               child:

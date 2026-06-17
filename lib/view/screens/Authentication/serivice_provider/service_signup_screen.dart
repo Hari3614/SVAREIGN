@@ -6,6 +6,9 @@ class ServiceSignupScreen extends StatelessWidget {
   const ServiceSignupScreen({super.key, required this.usertype});
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: SafeArea(child: ServiceSignupWidget()));
+    return const Scaffold(
+      backgroundColor: Colors.transparent,
+      body: ServiceSignupWidget(),
+    );
   }
 }

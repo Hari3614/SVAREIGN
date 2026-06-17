@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/customer/fetchserviceprovider.dart';
@@ -19,7 +21,7 @@ import 'package:svareign/viewmodel/customerprovider/searchprovider/searchprovide
 import 'package:svareign/viewmodel/customerprovider/servicepostprovider/servicepostprovider.dart';
 import 'package:svareign/services/notification/notification_service.dart';
 import 'package:svareign/viewmodel/notification/notification_provider.dart';
-import 'package:svareign/widgets/notification_banner.dart';
+import 'package:svareign/widgets/cached_image.dart';
 
 class HomeHelpersScreen extends StatefulWidget {
   const HomeHelpersScreen({super.key});
@@ -35,6 +37,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   bool _isLoadingMore = false;
   bool _showNoProvidersMessage = false;
   bool _showall = false;
+  double _searchRadiusKm = 100;
 
   bool isloading = true;
   @override
@@ -119,7 +122,11 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
         await Provider.of<Availablityservice>(
           context,
           listen: false,
-        ).fetchavailableProvider(userLat: lat, userlng: long, radiusinKm: 20);
+        ).fetchavailableProvider(
+          userLat: lat,
+          userlng: long,
+          radiusinKm: _searchRadiusKm,
+        );
       }
     } catch (E) {
       debugPrint('error locationn fetching :$E');
@@ -142,10 +149,49 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
         await Provider.of<ServicePostProvider>(
           context,
           listen: false,
-        ).fetchServicePosts(userLat: lat, userLng: long, radiusinKm: 20);
+        ).fetchServicePosts(
+          userLat: lat,
+          userLng: long,
+          radiusinKm: _searchRadiusKm,
+        );
       }
     } catch (e) {
       debugPrint('error fetching service posts with radius: $e');
+    }
+  }
+
+  Future<void> _refreshRadiusBasedResults() async {
+    try {
+      final userid = FirebaseAuth.instance.currentUser!.uid;
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userid)
+              .get();
+      if (!snapshot.exists) return;
+      final data = snapshot.data();
+      final lat = data?['location']?['latitude'];
+      final long = data?['location']?['longitude'];
+      if (lat != null && long != null) {
+        await Provider.of<Availablityservice>(
+          context,
+          listen: false,
+        ).fetchavailableProvider(
+          userLat: lat,
+          userlng: long,
+          radiusinKm: _searchRadiusKm,
+        );
+        await Provider.of<ServicePostProvider>(
+          context,
+          listen: false,
+        ).fetchServicePosts(
+          userLat: lat,
+          userLng: long,
+          radiusinKm: _searchRadiusKm,
+        );
+      }
+    } catch (e) {
+      debugPrint('error refreshing radius-based results: $e');
     }
   }
 
@@ -376,551 +422,528 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     final notificationProvider = Provider.of<NotificationProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        toolbarHeight: 0,
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
-          statusBarIconBrightness: Brightness.dark,
+      appBar: AppBar(elevation: 0, toolbarHeight: 0),
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.04,
+          vertical: size.height * 0.00,
         ),
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            controller: _scrollController,
-            padding: EdgeInsets.symmetric(
-              horizontal: size.width * 0.04,
-              vertical: size.height * 0.00,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Location and Cart
-                GestureDetector(
-                  onTap: _showlocationoption,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Location and Cart
+            GestureDetector(
+              onTap: _showlocationoption,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.location_on_outlined, color: Colors.green),
-                          const SizedBox(width: 5),
-                          FutureBuilder<String?>(
-                            future: userservice.getuseraddress(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Text(
-                                  "Loading ...",
-                                  style: TextStyle(color: Colors.black54),
-                                );
-                              } else if (snapshot.hasError) {
-                                return const Text(
-                                  "Unknown error",
-                                  style: TextStyle(color: Colors.black54),
-                                );
-                              } else if (snapshot.data == null) {
-                                return const Text(
-                                  "Location Not available",
-                                  style: TextStyle(color: Colors.black54),
-                                );
-                              } else {
-                                return Text(
-                                  snapshot.data!,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      Consumer<Cartprovider>(
-                        builder: (context, cartProvider, child) {
-                          final itemCount = cartProvider.cartitems.length;
-                          return IconButton(
-                            icon: Badge(
-                              isLabelVisible: itemCount > 0,
-                              label: Text(
-                                itemCount.toString(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                ),
+                      Icon(Icons.location_on_outlined, color: Colors.green),
+                      const SizedBox(width: 5),
+                      FutureBuilder<String?>(
+                        future: userservice.getuseraddress(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Text(
+                              "Loading ...",
+                              style: TextStyle(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return const Text(
+                              "Unknown error",
+                              style: TextStyle(),
+                            );
+                          } else if (snapshot.data == null) {
+                            return const Text(
+                              "Location Not available",
+                              style: TextStyle(),
+                            );
+                          } else {
+                            return Text(
+                              snapshot.data!,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
                               ),
-                              child: const Icon(Icons.shopping_cart_outlined),
-                            ),
-                            color: Colors.black,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Cartscreen(),
-                                ),
-                              );
-                            },
-                          );
+                            );
+                          }
                         },
                       ),
                     ],
                   ),
-                ),
-                SizedBox(height: size.height * 0.02),
-
-                // Search Bar
-                TextField(
-                  keyboardType: TextInputType.emailAddress,
-                  controller: serarchcontroller,
-                  onChanged: (value) {
-                    final userplace = searchprovider.userPlace;
-                    if (value.trim().isNotEmpty &&
-                        searchprovider.userPlace != null) {
-                      searchprovider.debouncesearch(value.trim(), userplace!);
-                    }
-                  },
-                  decoration: InputDecoration(
-                    hintText: "Search for services...",
-                    hintStyle: const TextStyle(color: Colors.black54),
-                    prefixIcon: const Icon(Icons.search, color: Colors.black),
-                    suffixIcon: Container(
-                      margin: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.tune, color: Colors.white),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.black12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade100,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Consumer<Searchprovider>(
-                  builder: (context, provider, _) {
-                    final results = provider.searchresults;
-
-                    if (serarchcontroller.text.isNotEmpty && results.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.only(top: 16.0),
-                        child: Center(
-                          child: Text("No service providers found."),
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: results.length,
-                      itemBuilder: (context, index) {
-                        final data = results[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          elevation: 5,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage:
-                                  data['imageurl'] != null
-                                      ? NetworkImage(data['imageurl'])
-                                      : null,
-                              backgroundColor: Colors.grey.shade300,
-                            ),
-                            title: Text(data['name'] ?? ''),
-                            subtitle: Text(
-                              "Jobs: ${data['Jobs'].join(',')}",
-                              style: TextStyle(fontWeight: FontWeight.w500),
-                            ),
-                            trailing: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Text(data['phonenumber'] ?? ''),
-                                // if (data['experience'] != null)
-                                //   Text("${data['experience']} yrs"),
-                              ],
-                            ),
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    title: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 25,
-                                          backgroundImage:
-                                              data['imageurl'] != null
-                                                  ? NetworkImage(
-                                                    data['imageurl'],
-                                                  )
-                                                  : null,
-                                          backgroundColor: Colors.grey.shade300,
-                                        ),
-                                        const SizedBox(width: 20),
-                                        Expanded(
-                                          child: Text(
-                                            data['name'] ?? "",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (data['description'] != null)
-                                          Text(
-                                            data['description'],
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        const SizedBox(height: 8),
-                                        if (data['experience'] != null)
-                                          Text(
-                                            "Experience: ${data['experience']}",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        const SizedBox(height: 16),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            ElevatedButton.icon(
-                                              onPressed: () {
-                                                final cartprovider =
-                                                    Provider.of<Cartprovider>(
-                                                      context,
-                                                      listen: false,
-                                                    );
-                                                final serviceModel =
-                                                    Fetchserviceprovidermodel(
-                                                      serviceId:
-                                                          data['uid'] ?? '',
-                                                      name: data['name'] ?? '',
-                                                      imagepath:
-                                                          data['imageurl'] ??
-                                                          '',
-                                                      role:
-                                                          data['Jobs'] is List
-                                                              ? List<
-                                                                String
-                                                              >.from(
-                                                                data['Jobs'],
-                                                              )
-                                                              : data['Jobs'] !=
-                                                                  null
-                                                              ? [
-                                                                data['Jobs']
-                                                                    .toString(),
-                                                              ]
-                                                              : [],
-                                                      description:
-                                                          data['description'] ??
-                                                          '',
-                                                      hourlypayment: '',
-                                                    );
-                                                print(
-                                                  "servicemodel: $serviceModel",
-                                                );
-                                                cartprovider.addtocart(
-                                                  serviceModel,
-                                                );
-                                                Navigator.of(context).pop();
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    backgroundColor:
-                                                        Colors.green,
-                                                    content: Text(
-                                                      'Added to cart',
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              label: Text('Add to Cart'),
-                                              icon: Icon(Icons.shopping_cart),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-
-                SizedBox(height: size.height * 0.03),
-
-                _sectionHeader("All Categories"),
-                SizedBox(height: size.height * 0.015),
-                _buildCategoryRow(size, context),
-
-                SizedBox(height: size.height * 0.03),
-
-                _sectionHeader(
-                  "Best Services",
-                  onpressed: () {
-                    setState(() {
-                      _showall = !_showall;
-                    });
-                  },
-                  showall: _showall,
-                ),
-
-                SizedBox(height: size.height * 0.015),
-
-                FutureBuilder<List<Map<String, dynamic>>>(
-                  future: Provider.of<ReviewProvider>(
-                    context,
-                    listen: false,
-                  ).fetchBestProvidersByLocation(
-                    Provider.of<Searchprovider>(
-                          context,
-                          listen: false,
-                        ).userPlace ??
-                        "",
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Text("No top services found");
-                    }
-
-                    final providers = snapshot.data!;
-                    final visibleprovider =
-                        _showall ? providers : providers.take(3).toList();
-
-                    return Column(
-                      children:
-                          visibleprovider.map((data) {
-                            final imageurl = data['imageurl'] ?? "";
-                            return _buildServiceCard(
-                              providerData: data,
-                              size: size,
-                              imagePath: imageurl,
-
-                              title:
-                                  (data['categories'] as List?)?.join(", ") ??
-                                  "Service",
-                              providerName: data['fullname'] ?? data['name'],
-                              rating:
-                                  ((data['avgRating'] ?? 0.0) as double)
-                                      .round(),
-                              reviews: data['reviewCount'] ?? 0,
-                            );
-                          }).toList(),
-                    );
-                  },
-                ),
-
-                SizedBox(height: 20),
-                _sectionHeader(
-                  'Available Providers',
-                  onpressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AllProviderScreen(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 10),
-                SizedBox(
-                  height: 230,
-                  child: Consumer<Availablityservice>(
-                    builder: (context, provider, _) {
-                      if (provider.isloading) {
-                        return const Text("No Service Provider Available");
-                      }
-                      return ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: provider.availableProvider.length,
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          final providermodel =
-                              provider.availableProvider[index];
-                          return Container(
-                            width: 160,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
+                  Consumer<Cartprovider>(
+                    builder: (context, cartProvider, child) {
+                      final itemCount = cartProvider.cartitems.length;
+                      return IconButton(
+                        icon: Badge(
+                          isLabelVisible: itemCount > 0,
+                          label: Text(
+                            itemCount.toString(),
+                            style: const TextStyle(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
+                              fontSize: 10,
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(14),
-                                  ),
-                                  child: Image.network(
-                                    providermodel.imagepath,
-                                    height: 100,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 8,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          providermodel.name,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          providermodel.role.join(', '),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "₹${providermodel.hourlypayment}/hr",
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: 28,
-                                              width: 28,
-                                              child: IconButton(
-                                                padding: EdgeInsets.zero,
-                                                onPressed: () {
-                                                  final cartprovider =
-                                                      Provider.of<Cartprovider>(
-                                                        context,
-                                                        listen: false,
-                                                      );
-                                                  final isalreadycart =
-                                                      cartprovider.cartitems
-                                                          .any(
-                                                            (e) =>
-                                                                e.serviceId ==
-                                                                providermodel
-                                                                    .serviceId,
-                                                          );
-                                                  if (isalreadycart) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          "Already added to the cart",
-                                                        ),
-                                                        backgroundColor:
-                                                            Colors.orange,
-                                                      ),
-                                                    );
-                                                  } else {
-                                                    cartprovider.addtocart(
-                                                      providermodel,
-                                                    );
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          "${providermodel.name} added to the cart",
-                                                        ),
-                                                        backgroundColor:
-                                                            Colors.lightGreen,
-                                                      ),
-                                                    );
-                                                  }
-                                                },
-                                                icon: const Icon(
-                                                  Icons.add_circle,
-                                                  size: 24,
-                                                  color: Colors.black87,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          ),
+                          child: const Icon(Icons.shopping_cart_outlined),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Cartscreen(),
                             ),
                           );
                         },
                       );
                     },
                   ),
+                ],
+              ),
+            ),
+            SizedBox(height: size.height * 0.02),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Search radius: ${_searchRadiusKm.round()} km',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                Slider.adaptive(
+                  value: _searchRadiusKm,
+                  min: 10,
+                  max: 200,
+                  divisions: 19,
+                  label: '${_searchRadiusKm.round()} km',
+                  onChanged: (value) {
+                    setState(() {
+                      _searchRadiusKm = value;
+                    });
+                  },
+                  onChangeEnd: (_) {
+                    _refreshRadiusBasedResults();
+                  },
                 ),
               ],
             ),
-          ),
-          // Notification overlay
-          if (notificationProvider.hasNewNotifications &&
-              notificationProvider.notifications.isNotEmpty)
-            Positioned(
-              top: kToolbarHeight + 10, // Position below app bar
-              left: 0,
-              right: 0,
-              child: _buildNotificationBanner(),
+            SizedBox(height: size.height * 0.02),
+
+            // Search Bar
+            TextField(
+              keyboardType: TextInputType.emailAddress,
+              controller: serarchcontroller,
+              onChanged: (value) {
+                final userplace = searchprovider.userPlace;
+                if (value.trim().isNotEmpty &&
+                    searchprovider.userPlace != null) {
+                  searchprovider.debouncesearch(value.trim(), userplace!);
+                }
+              },
+              decoration: InputDecoration(
+                hintText: "Search for services...",
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.tune, color: Colors.white),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black12),
+                ),
+                filled: true,
+              ),
             ),
-        ],
+            const SizedBox(height: 10),
+            Consumer<Searchprovider>(
+              builder: (context, provider, _) {
+                final results = provider.searchresults;
+
+                if (serarchcontroller.text.isNotEmpty && results.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 16.0),
+                    child: Center(child: Text("No service providers found.")),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: results.length,
+                  itemBuilder: (context, index) {
+                    final data = results[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      elevation: 5,
+                      child: ListTile(
+                        leading: AppCachedAvatar(
+                          imageUrl: data['imageurl'],
+                          radius: 20,
+                        ),
+                        title: Text(data['name'] ?? ''),
+                        subtitle: Text(
+                          "Jobs: ${data['Jobs'].join(',')}",
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        trailing: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Text(data['phonenumber'] ?? ''),
+                            // if (data['experience'] != null)
+                            //   Text("${data['experience']} yrs"),
+                          ],
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                title: Row(
+                                  children: [
+                                    AppCachedAvatar(
+                                      imageUrl: data['imageurl'],
+                                      radius: 25,
+                                    ),
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      child: Text(
+                                        data['name'] ?? "",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (data['description'] != null)
+                                      Text(
+                                        data['description'],
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 8),
+                                    if (data['experience'] != null)
+                                      Text(
+                                        "Experience: ${data['experience']}",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            final cartprovider =
+                                                Provider.of<Cartprovider>(
+                                                  context,
+                                                  listen: false,
+                                                );
+                                            final serviceModel =
+                                                Fetchserviceprovidermodel(
+                                                  serviceId: data['uid'] ?? '',
+                                                  name: data['name'] ?? '',
+                                                  imagepath:
+                                                      data['imageurl'] ?? '',
+                                                  role:
+                                                      data['Jobs'] is List
+                                                          ? List<String>.from(
+                                                            data['Jobs'],
+                                                          )
+                                                          : data['Jobs'] != null
+                                                          ? [
+                                                            data['Jobs']
+                                                                .toString(),
+                                                          ]
+                                                          : [],
+                                                  description:
+                                                      data['description'] ?? '',
+                                                  hourlypayment: '',
+                                                );
+                                            print(
+                                              "servicemodel: $serviceModel",
+                                            );
+                                            cartprovider.addtocart(
+                                              serviceModel,
+                                            );
+                                            Navigator.of(context).pop();
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                backgroundColor: Colors.green,
+                                                content: Text('Added to cart'),
+                                              ),
+                                            );
+                                          },
+                                          label: Text('Add to Cart'),
+                                          icon: Icon(Icons.shopping_cart),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+
+            SizedBox(height: size.height * 0.03),
+
+            // Notification banner (inline, scrolls with content)
+            if (notificationProvider.hasNewNotifications &&
+                notificationProvider.notifications.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildNotificationBanner(),
+              ),
+
+            _sectionHeader("All Categories"),
+            SizedBox(height: size.height * 0.015),
+            _buildCategoryRow(size, context),
+
+            SizedBox(height: size.height * 0.03),
+
+            _sectionHeader(
+              "Best Services",
+              onpressed: () {
+                setState(() {
+                  _showall = !_showall;
+                });
+              },
+              showall: _showall,
+            ),
+
+            SizedBox(height: size.height * 0.015),
+
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: Provider.of<ReviewProvider>(
+                context,
+                listen: false,
+              ).fetchBestProvidersByLocation(
+                Provider.of<Searchprovider>(context, listen: false).userPlace ??
+                    "",
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text("No top services found");
+                }
+
+                final providers = snapshot.data!;
+                final visibleprovider =
+                    _showall ? providers : providers.take(3).toList();
+
+                return Column(
+                  children:
+                      visibleprovider.map((data) {
+                        final imageurl = data['imageurl'] ?? "";
+                        return _buildServiceCard(
+                          providerData: data,
+                          size: size,
+                          imagePath: imageurl,
+
+                          title:
+                              (data['categories'] as List?)?.join(", ") ??
+                              "Service",
+                          providerName: data['fullname'] ?? data['name'],
+                          rating:
+                              ((data['avgRating'] ?? 0.0) as double).round(),
+                          reviews: data['reviewCount'] ?? 0,
+                        );
+                      }).toList(),
+                );
+              },
+            ),
+
+            SizedBox(height: 20),
+            _sectionHeader(
+              'Available Providers',
+              onpressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AllProviderScreen()),
+                );
+              },
+            ),
+            SizedBox(height: 10),
+            SizedBox(
+              height: 230,
+              child: Consumer<Availablityservice>(
+                builder: (context, provider, _) {
+                  if (provider.isloading) {
+                    return const Text("No Service Provider Available");
+                  }
+                  return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: provider.availableProvider.length,
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final providermodel = provider.availableProvider[index];
+                      return Container(
+                        width: 160,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardTheme.color,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(14),
+                              ),
+                              child: AppCachedImage(
+                                imageUrl: providermodel.imagepath,
+                                height: 100,
+                                width: double.infinity,
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      providermodel.name,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      providermodel.role.join(', '),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall?.color,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "₹${providermodel.hourlypayment}/hr",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 28,
+                                          width: 28,
+                                          child: IconButton(
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () {
+                                              final cartprovider =
+                                                  Provider.of<Cartprovider>(
+                                                    context,
+                                                    listen: false,
+                                                  );
+                                              final isalreadycart = cartprovider
+                                                  .cartitems
+                                                  .any(
+                                                    (e) =>
+                                                        e.serviceId ==
+                                                        providermodel.serviceId,
+                                                  );
+                                              if (isalreadycart) {
+                                                Fluttertoast.showToast(
+                                                  msg:
+                                                      "Already added to the cart",
+                                                  backgroundColor:
+                                                      Colors.orange,
+                                                  textColor: Colors.white,
+                                                );
+                                              } else {
+                                                cartprovider.addtocart(
+                                                  providermodel,
+                                                );
+                                                Fluttertoast.showToast(
+                                                  msg:
+                                                      "${providermodel.name} added to the cart",
+                                                  backgroundColor: Colors.green,
+                                                  textColor: Colors.white,
+                                                );
+                                              }
+                                            },
+                                            icon: Icon(
+                                              Icons.add_circle,
+                                              size: 24,
+                                              color:
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -936,11 +959,11 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.3),
+            color: Colors.black.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: Offset(0, 2),
@@ -954,10 +977,16 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
           notificationProvider.removeNotification(latestNotification);
         },
         child: ListTile(
-          leading: Icon(Icons.notifications_active, color: Colors.blue),
+          leading: Icon(
+            Icons.notifications_active,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           title: Text(
             latestNotification.title,
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           subtitle: Text(
             latestNotification.message,
@@ -988,18 +1017,11 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.black,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         TextButton(
           onPressed: onpressed,
-          child: Text(
-            showall ? "Show Less" : "See All",
-            style: TextStyle(color: Colors.black54, fontSize: 14),
-          ),
+          child: Text(showall ? "Show Less" : "See All"),
         ),
       ],
     );
@@ -1017,81 +1039,89 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
       ["Men’s Salon", Icons.content_cut],
     ];
 
-    return Wrap(
-      spacing: size.width * 0.05,
-      runSpacing: size.height * 0.02,
-      children:
-          categories.map((cat) {
-            return SizedBox(
-              width: size.width * 0.18,
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      final selectedcategory = cat[0] as String;
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                        barrierDismissible: false,
-                      );
-                      final place =
-                          Provider.of<Searchprovider>(
-                            context,
-                            listen: false,
-                          ).userPlace;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 8,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        final cat = categories[index];
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            InkWell(
+              onTap: () async {
+                final selectedcategory = cat[0] as String;
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) =>
+                          const Center(child: CircularProgressIndicator()),
+                  barrierDismissible: false,
+                );
+                final place =
+                    Provider.of<Searchprovider>(
+                      context,
+                      listen: false,
+                    ).userPlace;
 
-                      // Get user location for radius-based search
-                      final userid = FirebaseAuth.instance.currentUser!.uid;
-                      final userDoc =
-                          await FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(userid)
-                              .get();
-                      final lat = userDoc.data()?['location']?['latitude'];
-                      final lng = userDoc.data()?['location']?['longitude'];
+                // Get user location for radius-based search
+                final userid = FirebaseAuth.instance.currentUser!.uid;
+                final userDoc =
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userid)
+                        .get();
+                final lat = userDoc.data()?['location']?['latitude'];
+                final lng = userDoc.data()?['location']?['longitude'];
 
-                      if (lat != null && lng != null) {
-                        await Provider.of<Availablityservice>(
-                          context,
-                          listen: false,
-                        ).fetchproviderbycategoryandplace(
-                          userLat: (lat as num).toDouble(),
-                          userlng: (lng as num).toDouble(),
+                if (lat != null && lng != null) {
+                  await Provider.of<Availablityservice>(
+                    context,
+                    listen: false,
+                  ).fetchproviderbycategoryandplace(
+                    userLat: (lat as num).toDouble(),
+                    userlng: (lng as num).toDouble(),
+                    category: selectedcategory,
+                    radiusinKm: _searchRadiusKm,
+                  );
+                }
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => Serviceproviders(
                           category: selectedcategory,
-                          radiusinKm: 10,
-                        );
-                      }
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => Serviceproviders(
-                                category: selectedcategory,
-                                place: place ?? '',
-                              ),
+                          place: place ?? '',
                         ),
-                      );
-                    },
-                    child: CircleAvatar(
-                      radius: size.width * 0.08,
-                      backgroundColor: Colors.grey.shade200,
-                      child: Icon(cat[1] as IconData, color: Colors.black),
-                    ),
                   ),
-                  const SizedBox(height: 5),
-                  Text(
-                    cat[0] as String,
-                    style: const TextStyle(fontSize: 12, color: Colors.black),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                );
+              },
+              child: CircleAvatar(
+                radius: size.width * 0.08,
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Icon(
+                  cat[1] as IconData,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
-            );
-          }).toList(),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              cat[0] as String,
+              style: const TextStyle(fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1107,7 +1137,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -1127,7 +1157,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  image: NetworkImage(imagePath),
+                  image: CachedNetworkImageProvider(imagePath),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -1160,7 +1190,6 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
-                      color: Colors.black87,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1171,14 +1200,15 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                     children: [
                       Text(
                         providerName,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                          fontSize: 13,
+                        ),
                       ),
                       SizedBox(
                         height: 32,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black87,
-                            foregroundColor: Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             shape: RoundedRectangleBorder(
@@ -1210,21 +1240,17 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                             );
 
                             if (alreadyInCart) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Already added to the cart"),
-                                  backgroundColor: Colors.orange,
-                                ),
+                              Fluttertoast.showToast(
+                                msg: 'Already added to the cart',
+                                backgroundColor: Colors.orange,
+                                textColor: Colors.white,
                               );
                             } else {
                               cartprovider.addtocart(serviceModel);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "${serviceModel.name} added to the cart",
-                                  ),
-                                  backgroundColor: Colors.lightGreen,
-                                ),
+                              Fluttertoast.showToast(
+                                msg: '${serviceModel.name} added to the cart',
+                                backgroundColor: Colors.green,
+                                textColor: Colors.white,
                               );
                             }
                           },

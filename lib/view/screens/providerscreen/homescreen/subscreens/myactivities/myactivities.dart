@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:svareign/viewmodel/service_provider/booknndfetchprovider/ordersfromuserprovider.dart';
+import 'package:svareign/widgets/cached_image.dart';
 
 class ProviderBookingsScreen extends StatefulWidget {
   const ProviderBookingsScreen({super.key});
@@ -52,7 +53,6 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
         appBar: AppBar(
           title: const Text('My Bookings'),
           centerTitle: true,
-          backgroundColor: Colors.lightGreen,
           automaticallyImplyLeading: false,
           bottom: const TabBar(
             indicatorColor: Colors.white,
@@ -94,10 +94,7 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
           ),
           child: ListTile(
             contentPadding: const EdgeInsets.all(12),
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(booking.imagePath),
-              radius: 30,
-            ),
+            leading: AppCachedAvatar(imageUrl: booking.imagePath, radius: 30),
             title: Text(
               booking.name,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),

@@ -3,10 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/model/customer/fetchserviceprovider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobads/jobadsprovider.dart';
+import 'package:svareign/widgets/cached_image.dart';
 import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
 
 class AdswatchingScreen extends StatefulWidget {
@@ -57,7 +59,6 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: true,
@@ -65,13 +66,12 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
           'Service Posts',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
         ),
-        backgroundColor: Colors.white,
       ),
       body: Consumer<Jobadsprovider>(
         builder: (context, provider, _) {
           if (provider.isloading) {
             return const Center(
-              child: CircularProgressIndicator(color: Colors.lightGreen),
+              child: CircularProgressIndicator(color: kPrimaryAccent),
             );
           }
 
@@ -100,22 +100,10 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
                         child: CarouselSlider(
                           items:
                               post.imageurl.map((imageUrl) {
-                                return Image.network(
-                                  imageUrl,
+                                return AppCachedImage(
+                                  imageUrl: imageUrl,
                                   width: double.infinity,
                                   height: 180,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, progress) {
-                                    if (progress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  },
-                                  errorBuilder:
-                                      (context, error, stackTrace) =>
-                                          const Center(
-                                            child: Icon(Icons.broken_image),
-                                          ),
                                 );
                               }).toList(),
                           options: CarouselOptions(
@@ -130,7 +118,10 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
                       Container(
                         height: 180,
                         width: double.infinity,
-                        color: Colors.grey[300],
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                         child: const Center(child: Icon(Icons.image, size: 40)),
                       ),
                     Padding(
@@ -156,10 +147,7 @@ class _AdswatchingScreenState extends State<AdswatchingScreen> {
                           const SizedBox(height: 6),
                           Text(
                             "Available Time: ${post.starttime} - ${post.endtime}",
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.black54,
-                            ),
+                            style: const TextStyle(fontSize: 13),
                           ),
                           const SizedBox(height: 10),
                           Column(

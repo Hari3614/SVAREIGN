@@ -13,11 +13,7 @@ class AddWorkUserScreen extends StatelessWidget {
         centerTitle: true,
         title: Text(
           "Active Tasks",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
         ),
       ),
       body: AddWorkWidget(),

@@ -7,15 +7,12 @@ class CustomerSupportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
           "Customer Support",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
+        elevation: 0,
         centerTitle: true,
       ),
       body: Padding(
@@ -23,7 +20,7 @@ class CustomerSupportScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -43,7 +40,7 @@ class CustomerSupportScreen extends StatelessWidget {
               const SizedBox(height: 12),
               const Text(
                 "Our support team is here to assist you. Reach out through the following:",
-                style: TextStyle(color: Colors.black87, fontSize: 15),
+                style: TextStyle(fontSize: 15),
               ),
               const SizedBox(height: 20),
               ListTile(

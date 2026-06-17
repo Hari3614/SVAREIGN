@@ -7,15 +7,12 @@ class CustomerAgreementsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
           "Customer Agreements",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
+        elevation: 0,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -23,7 +20,7 @@ class CustomerAgreementsScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -33,8 +30,7 @@ class CustomerAgreementsScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: const Text(
-            '''
+          child: const Text('''
 Customer Agreements  
 
 1. Users must provide accurate details while booking services.  
@@ -44,9 +40,7 @@ Customer Agreements
 5. Any disputes will be handled under the laws of your country.  
 
 By using Svareign, you agree to these terms.  
-            ''',
-            style: TextStyle(fontSize: 15, height: 1.6, color: Colors.black87),
-          ),
+            ''', style: TextStyle(fontSize: 15, height: 1.6)),
         ),
       ),
     );

@@ -7,9 +7,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.black87,
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -17,7 +15,7 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.only(top: 20),
           child: Text(
             "My Profile",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ),

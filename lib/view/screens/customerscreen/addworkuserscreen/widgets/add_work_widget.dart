@@ -16,9 +16,7 @@ class AddWorkWidget extends StatelessWidget {
       stream: workprovider.getworks(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Colors.black),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
@@ -92,7 +90,11 @@ class AddWorkWidget extends StatelessWidget {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          const Icon(Icons.access_time, size: 13, color: Colors.orange),
+                          const Icon(
+                            Icons.access_time,
+                            size: 13,
+                            color: Colors.orange,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             "Expires ${timeago.format(work.expirytime, allowFromNow: true)}",
@@ -128,7 +130,6 @@ class AddWorkWidget extends StatelessWidget {
                               text: "₹${work.minbudget}-${work.maxbudget}",
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
                               ),
                             ),
                           ],
@@ -142,7 +143,7 @@ class AddWorkWidget extends StatelessWidget {
                         work.description,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.black54),
+                        style: const TextStyle(),
                       ),
 
                       const Divider(height: 20),

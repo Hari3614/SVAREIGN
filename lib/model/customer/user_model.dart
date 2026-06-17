@@ -18,7 +18,10 @@ class UserModel {
       name: data['name'] ?? '',
       email: data['email'] ?? '',
       phone: data['phone'] ?? '',
-      imageurl: data['imageurl'] ?? "",
+      imageurl:
+          (data['imageurl'] != null && data['imageurl'].toString().isNotEmpty)
+              ? data['imageurl']
+              : null,
     );
   }
 

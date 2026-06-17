@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
@@ -38,9 +39,11 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   Future<void> deleteAccount(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("No user logged in")));
+      Fluttertoast.showToast(
+        msg: 'No user logged in',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return;
     }
 
@@ -84,17 +87,23 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
         (route) => false,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Account deleted successfully")),
+      Fluttertoast.showToast(
+        msg: 'Account deleted successfully',
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
       );
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? "Auth error")));
+      Fluttertoast.showToast(
+        msg: e.message ?? 'Auth error',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      Fluttertoast.showToast(
+        msg: 'Error: $e',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     } finally {
       setState(() => isLoading = false);
     }

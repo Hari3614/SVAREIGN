@@ -43,19 +43,25 @@ class Textfieldwidget extends StatelessWidget {
         decoration: InputDecoration(
           label: Text(labeltext, style: TextStyle(color: color, fontSize: 16)),
           hintText: hinttext,
-          hintStyle: TextStyle(color: color),
+          hintStyle: color != null ? TextStyle(color: color) : null,
           prefixIcon:
               preffixicon != null ? Icon(preffixicon, color: color) : null,
           suffixIcon: suffixicon,
           errorText: errortext,
           floatingLabelBehavior: FloatingLabelBehavior.never,
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20), // rounded corners
-            borderSide: BorderSide(color: color ?? Colors.black),
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(
+              color:
+                  color ?? Theme.of(context).dividerTheme.color ?? Colors.grey,
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide(color: color ?? Colors.grey, width: 2),
+            borderSide: BorderSide(
+              color: color ?? Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
           ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
           fillColor: color,

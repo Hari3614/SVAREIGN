@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/widgets/cached_image.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
 
@@ -17,19 +19,12 @@ class _AllProviderScreenState extends State<AllProviderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black,
         title: const Text(
           "Available Providers",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
         ),
         elevation: 0,
       ),
@@ -40,7 +35,7 @@ class _AllProviderScreenState extends State<AllProviderScreen> {
             AnimatedContainer(
               duration: Duration(milliseconds: 300),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardTheme.color,
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
@@ -121,7 +116,7 @@ class _AllProviderScreenState extends State<AllProviderScreen> {
                       final providermodel = filteredprovider[index];
                       return Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardTheme.color,
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
@@ -139,11 +134,10 @@ class _AllProviderScreenState extends State<AllProviderScreen> {
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(14),
                               ),
-                              child: Image.network(
-                                providermodel.imagepath,
+                              child: AppCachedImage(
+                                imageUrl: providermodel.imagepath,
                                 height: 120,
                                 width: double.infinity,
-                                fit: BoxFit.cover,
                               ),
                             ),
                             Expanded(
@@ -183,7 +177,6 @@ class _AllProviderScreenState extends State<AllProviderScreen> {
                                           "₹${providermodel.hourlypayment}/hr",
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w600,
-                                            color: Colors.black87,
                                             fontSize: 13,
                                           ),
                                         ),
@@ -218,22 +211,15 @@ class _AllProviderScreenState extends State<AllProviderScreen> {
                                                 cartprovider.addtocart(
                                                   providermodel,
                                                 );
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
+                                                Fluttertoast.showToast(
+                                                  msg:
                                                       "${providermodel.name} added to cart",
-                                                    ),
-                                                    backgroundColor:
-                                                        Colors.lightGreen,
-                                                  ),
+                                                  backgroundColor: Colors.green,
+                                                  textColor: Colors.white,
                                                 );
                                               }
                                             },
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.black87,
-                                              foregroundColor: Colors.white,
                                               elevation: 0,
                                               padding:
                                                   const EdgeInsets.symmetric(

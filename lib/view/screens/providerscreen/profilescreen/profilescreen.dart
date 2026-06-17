@@ -8,7 +8,6 @@ class Serviceprofilesceen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.lightGreen,
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -16,7 +15,7 @@ class Serviceprofilesceen extends StatelessWidget {
           padding: const EdgeInsets.only(top: 20),
           child: Text(
             "My Profile",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ),

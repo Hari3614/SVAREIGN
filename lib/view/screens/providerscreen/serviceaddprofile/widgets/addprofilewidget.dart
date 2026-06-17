@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/setup_profilemodel.dart';
@@ -97,15 +98,42 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
           const SizedBox(height: 15),
           InkWell(
             onTap: pickImage,
-            child: CircleAvatar(
-              radius: 60,
-              backgroundImage:
-                  _pickedImage != null
-                      ? FileImage(_pickedImage!)
-                      : const AssetImage(
-                            "assets/images/pngtree-icon-add-people-profile-new-button-vector-png-image_26219400.jpg",
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                  backgroundImage:
+                      _pickedImage != null ? FileImage(_pickedImage!) : null,
+                  child:
+                      _pickedImage == null
+                          ? Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.5),
                           )
-                          as ImageProvider,
+                          : null,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(Icons.add, size: 18, color: Colors.white),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 30),
@@ -113,7 +141,6 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
             controller: _nameController,
             labeltext: "Full Name",
             obscuretext: false,
-            color: Colors.black,
             hinttext: "Enter your name",
             preffixicon: Icons.person,
             inputType: TextInputType.name,
@@ -161,12 +188,10 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
                           if (_selectedCategories.length < 3) {
                             _selectedCategories.add(category);
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "You can select up to 3 categories",
-                                ),
-                              ),
+                            Fluttertoast.showToast(
+                              msg: 'You can select up to 3 categories',
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
                             );
                           }
                         } else {
@@ -240,7 +265,6 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
       labeltext: "Payment",
       obscuretext: false,
       hinttext: "payment/hour",
-      color: Colors.black,
       inputType: TextInputType.number,
     );
   }
@@ -248,7 +272,6 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
   Widget _buildSubmitButton(BuildContext context, double width, double height) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black87,
         fixedSize: Size(width * 0.9, height * 0.06),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
@@ -286,6 +309,8 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
                     );
                     final imageUrl = await uploadImage(_pickedImage!);
                     final uid = FirebaseAuth.instance.currentUser!.uid;
+                    final userPhone =
+                        FirebaseAuth.instance.currentUser!.phoneNumber ?? '';
 
                     final profile = Profile(
                       id: uid,
@@ -296,6 +321,7 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
                       imageurl: imageUrl,
                       payment: payment,
                       upiId: upiId,
+                      phone: userPhone,
                     );
 
                     await Provider.of<Profileprovider>(
@@ -339,11 +365,10 @@ class _AddprofilewidgetState extends State<Addprofilewidget> {
   }
 
   void _showMessage(String message, {bool success = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: success ? Colors.green : Colors.red,
-      ),
+    Fluttertoast.showToast(
+      msg: message,
+      backgroundColor: success ? Colors.green : Colors.red,
+      textColor: Colors.white,
     );
   }
 }

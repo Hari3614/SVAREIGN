@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Myjobsscreen extends StatelessWidget {
@@ -58,11 +59,10 @@ class Myjobsscreen extends StatelessWidget {
                 onPressed: () async {
                   final amount = amountcontroller.text.trim();
                   if (amount.isEmpty || double.tryParse(amount) == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Please Enter a valid amount"),
-                        backgroundColor: Colors.red,
-                      ),
+                    Fluttertoast.showToast(
+                      msg: 'Please enter a valid amount',
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
                     );
                     return;
                   }
@@ -73,11 +73,10 @@ class Myjobsscreen extends StatelessWidget {
                     finalamount,
                   );
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Job Marked as complete"),
-                      backgroundColor: Colors.green,
-                    ),
+                  Fluttertoast.showToast(
+                    msg: 'Job marked as complete',
+                    backgroundColor: Colors.green,
+                    textColor: Colors.white,
                   );
                 },
                 child: Text("Submit"),
@@ -170,7 +169,6 @@ class Myjobsscreen extends StatelessWidget {
           "My Jobs",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
         ),
-        backgroundColor: Colors.lightGreen,
         automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<QuerySnapshot>(

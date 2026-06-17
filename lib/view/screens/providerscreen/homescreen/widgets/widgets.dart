@@ -16,6 +16,9 @@ import 'package:svareign/viewmodel/appstate/appstate.dart';
 import 'package:svareign/viewmodel/service_provider/jobstatprovider/jobstatprovider.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
 import 'package:svareign/viewmodel/notification/notification_provider.dart';
+import 'package:svareign/viewmodel/themeprovider/theme_provider.dart';
+import 'package:svareign/core/colors/app_theme_color.dart';
+import 'package:svareign/widgets/cached_image.dart';
 import 'package:svareign/services/notification/notification_service.dart';
 
 class Homewidget extends StatefulWidget {
@@ -294,6 +297,7 @@ class _HomewidgetState extends State<Homewidget> {
     final imagepath = profileprovider.profile?.imageurl ?? "";
     final width = MediaQuery.sizeOf(context).width;
     final notificationProvider = Provider.of<NotificationProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -301,7 +305,11 @@ class _HomewidgetState extends State<Homewidget> {
         centerTitle: false,
         title: Row(
           children: [
-            Icon(Icons.home, color: Colors.deepPurpleAccent, size: 28),
+            Icon(
+              Icons.home,
+              color: Theme.of(context).colorScheme.primary,
+              size: 28,
+            ),
             SizedBox(width: width * 0.02),
             Text(
               "Home",
@@ -312,115 +320,109 @@ class _HomewidgetState extends State<Homewidget> {
             ),
           ],
         ),
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  JobStatsCard(
-                    onlocationtap: _showlocationoption,
-                    providerName: profilename ?? "Unknown",
-                    isAvailable: isAvailable,
-                    imagepath: imagepath,
-                    location: "",
-                    onToggle: (value) {
-                      setState(() {
-                        isAvailable = value;
-                      });
-                      handleavailablitytoggle(value);
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  Recentactivitycard(),
-                  const Divider(height: 30),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      "Quick Stats",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Statcard(
-                        label: "Jobs Today",
-                        value:
-                            jobstats.isloading
-                                ? "..."
-                                : jobstats.jobtodaycount.toString(),
-                      ),
-                      Statcard(
-                        label: 'Completed',
-                        value:
-                            jobstats.isloading
-                                ? "..."
-                                : jobstats.completedjobcount.toString(),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 30),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      "Quick Actions",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 3 / 2,
-                      children: const [
-                        Quickactionboard(
-                          icon: Icons.assignment,
-                          label: "My Jobs",
-                        ),
-                        Quickactionboard(icon: Icons.reviews, label: "Reviews"),
-                        Quickactionboard(
-                          icon: Icons.assignment_turned_in,
-                          label: "Completed Jobs",
-                        ),
-                        Quickactionboard(
-                          icon: Icons.settings,
-                          label: "Settings",
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+        actions: [
+          IconButton(
+            onPressed: () => themeProvider.toggleTheme(),
+            icon: Icon(
+              themeProvider.isDark
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+              color: themeProvider.isDark ? kSecondaryAccent : Colors.green,
             ),
           ),
-          // Notification overlay
-          if (notificationProvider.hasNewNotifications &&
-              notificationProvider.notifications.isNotEmpty)
-            Positioned(
-              top: kToolbarHeight + 10, // Position below app bar
-              left: 0,
-              right: 0,
-              child: _buildNotificationBanner(),
-            ),
+          const SizedBox(width: 8),
         ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Notification banner (inline, scrolls with content)
+              if (notificationProvider.hasNewNotifications &&
+                  notificationProvider.notifications.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _buildNotificationBanner(),
+                ),
+              JobStatsCard(
+                onlocationtap: _showlocationoption,
+                providerName: profilename ?? "Unknown",
+                isAvailable: isAvailable,
+                imagepath: imagepath,
+                location: "",
+                onToggle: (value) {
+                  setState(() {
+                    isAvailable = value;
+                  });
+                  handleavailablitytoggle(value);
+                },
+              ),
+              const SizedBox(height: 10),
+              Recentactivitycard(),
+              const Divider(height: 30),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  "Quick Stats",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Statcard(
+                    label: "Jobs Today",
+                    value:
+                        jobstats.isloading
+                            ? "..."
+                            : jobstats.jobtodaycount.toString(),
+                  ),
+                  Statcard(
+                    label: 'Completed',
+                    value:
+                        jobstats.isloading
+                            ? "..."
+                            : jobstats.completedjobcount.toString(),
+                  ),
+                ],
+              ),
+              const Divider(height: 30),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  "Quick Actions",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 3 / 2,
+                  children: const [
+                    Quickactionboard(icon: Icons.assignment, label: "My Jobs"),
+                    Quickactionboard(icon: Icons.reviews, label: "Reviews"),
+                    Quickactionboard(
+                      icon: Icons.assignment_turned_in,
+                      label: "Completed Jobs",
+                    ),
+                    Quickactionboard(icon: Icons.settings, label: "Settings"),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -436,11 +438,11 @@ class _HomewidgetState extends State<Homewidget> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.3),
+            color: Colors.black.withOpacity(0.05),
             spreadRadius: 1,
             blurRadius: 4,
             offset: Offset(0, 2),
@@ -454,10 +456,16 @@ class _HomewidgetState extends State<Homewidget> {
           notificationProvider.removeNotification(latestNotification);
         },
         child: ListTile(
-          leading: Icon(Icons.notifications_active, color: Colors.blue),
+          leading: Icon(
+            Icons.notifications_active,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           title: Text(
             latestNotification.title,
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           subtitle: Text(
             latestNotification.message,
@@ -502,7 +510,7 @@ class JobStatsCard extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5EDF9),
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
@@ -536,25 +544,15 @@ class JobStatsCard extends StatelessWidget {
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const Text(
-                                "Loading....",
-                                style: TextStyle(color: Colors.black),
-                              );
+                              return const Text("Loading....");
                             } else if (snapshot.hasError) {
-                              return const Text(
-                                'Unknown error',
-                                style: TextStyle(color: Colors.black),
-                              );
+                              return const Text('Unknown error');
                             } else if (snapshot.data == null) {
-                              return const Text(
-                                "Location Not available",
-                                style: TextStyle(color: Colors.black),
-                              );
+                              return const Text("Location Not available");
                             } else {
                               return Text(
                                 snapshot.data!,
                                 style: const TextStyle(
-                                  color: Colors.black,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -590,15 +588,7 @@ class JobStatsCard extends StatelessWidget {
               ],
             ),
           ),
-          CircleAvatar(
-            radius: 40,
-            backgroundImage:
-                imagepath.isNotEmpty
-                    ? NetworkImage(imagepath)
-                    : AssetImage(
-                      "assets/images/pngtree-icon-add-people-profile-new-button-vector-png-image_26219400.jpg",
-                    ),
-          ),
+          AppCachedAvatar(imageUrl: imagepath, radius: 40),
         ],
       ),
     );

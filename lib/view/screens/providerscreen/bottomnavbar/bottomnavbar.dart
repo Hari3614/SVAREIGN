@@ -13,8 +13,8 @@ class Custombottomnavbar extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(70),
         child: BottomAppBar(
-          color: kblackcolor,
-          elevation: 20,
+          color: Theme.of(context).bottomAppBarTheme.color,
+          elevation: 0,
           height: 60,
           shape: const CircularNotchedRectangle(),
           notchMargin: 6.0,
@@ -49,7 +49,10 @@ class Custombottomnavbar extends StatelessWidget {
       onPressed: () => provider.changeIndex(index),
       icon: Icon(
         icon,
-        color: nav.currentIndex == index ? Colors.green : Colors.grey,
+        color:
+            nav.currentIndex == index
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurface.withOpacity(0.35),
       ),
     );
   }

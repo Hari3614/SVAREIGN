@@ -12,7 +12,7 @@ class Availablityservice with ChangeNotifier {
   Future<void> fetchavailableProvider({
     required double userLat,
     required double userlng,
-    double radiusinKm = 20,
+    double radiusinKm = 100,
   }) async {
     _isloading = true;
     notifyListeners();
@@ -71,7 +71,7 @@ class Availablityservice with ChangeNotifier {
     required double userLat,
     required double userlng,
     required String category,
-    double radiusinKm = 20,
+    double radiusinKm = 100,
   }) async {
     try {
       _isloading = true;

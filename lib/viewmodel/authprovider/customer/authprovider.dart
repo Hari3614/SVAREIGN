@@ -3,17 +3,16 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:svareign/services/sharedpreferences/session_manager.dart';
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/utils/phonenumbernormalise/normalise_phonenumber.dart';
-import '../../../services/location_services/location_services.dart';
 import '../../../view/screens/Authentication/customer_signup_screen/otpscreen/otp_screen.dart';
 
 class Authprovider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final LocationService locationservice = LocationService();
 
   String? _name, _email, _phone, _password;
   String _verificationId = "";
@@ -40,11 +39,10 @@ class Authprovider with ChangeNotifier {
           if (!completer.isCompleted) completer.complete();
         },
         verificationFailed: (FirebaseAuthException e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('OTP Failed: ${e.message}')));
-          }
+          Fluttertoast.showToast(
+            msg: 'OTP Failed: ${e.message}',
+            backgroundColor: Colors.red,
+          );
           if (!completer.isCompleted) completer.complete();
         },
         codeSent: (String verificationId, int? resendToken) async {
@@ -52,17 +50,12 @@ class Authprovider with ChangeNotifier {
 
           if (!context.mounted) return;
 
-          Navigator.push(
+          OtpScreen.show(
             context,
-            MaterialPageRoute(
-              builder:
-                  (context) => OtpScreen(
-                    verificationId: verificationId,
-                    name: name,
-                    email: email,
-                    phoneNumber: phonenumber,
-                  ),
-            ),
+            verificationId: verificationId,
+            name: name,
+            email: email,
+            phoneNumber: phonenumber,
           );
           if (!completer.isCompleted) completer.complete();
         },
@@ -73,11 +66,10 @@ class Authprovider with ChangeNotifier {
       );
       await completer.future;
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error sending OTP: $e")));
-      }
+      Fluttertoast.showToast(
+        msg: 'Error sending OTP: $e',
+        backgroundColor: Colors.red,
+      );
     }
   }
 
@@ -89,30 +81,27 @@ class Authprovider with ChangeNotifier {
         phoneNumber: _phone!,
         verificationCompleted: (PhoneAuthCredential credential) async {},
         verificationFailed: (FirebaseAuthException e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Resend failed: ${e.message}')),
-            );
-          }
+          Fluttertoast.showToast(
+            msg: 'Resend failed: ${e.message}',
+            backgroundColor: Colors.red,
+          );
         },
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('OTP resent successfully')),
-            );
-          }
+          Fluttertoast.showToast(
+            msg: 'OTP resent successfully',
+            backgroundColor: Colors.green,
+          );
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
         },
       );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error resending OTP: $e")));
-      }
+      Fluttertoast.showToast(
+        msg: 'Error resending OTP: $e',
+        backgroundColor: Colors.red,
+      );
     }
   }
 
@@ -137,7 +126,20 @@ class Authprovider with ChangeNotifier {
       );
       await user!.linkWithCredential(emailCredential);
 
-      Position position = await locationservice.getCurrentLocation(context);
+      // Get location silently (permission already requested at splash)
+      Map<String, dynamic>? locationData;
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        locationData = {
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+        };
+      } catch (_) {
+        // Location unavailable — save without it
+      }
+
       final normalisedphone = normalisephonenumber(_phone!);
       final String role = "customer";
 
@@ -148,10 +150,7 @@ class Authprovider with ChangeNotifier {
         'email': _email,
         'phone': normalisedphone,
         'role': role,
-        'location': {
-          'latitude': position.latitude,
-          'longitude': position.longitude,
-        },
+        if (locationData != null) 'location': locationData,
         'createdAt': Timestamp.now(),
       });
 
@@ -162,6 +161,8 @@ class Authprovider with ChangeNotifier {
       );
 
       if (context.mounted) {
+        // Close the OTP bottom sheet
+        Navigator.of(context).pop();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomeContainer()),
@@ -169,11 +170,10 @@ class Authprovider with ChangeNotifier {
       }
     } catch (e) {
       print('error :$e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Signup failed: $e')));
-      }
+      Fluttertoast.showToast(
+        msg: 'Signup failed: $e',
+        backgroundColor: Colors.red,
+      );
     }
   }
 
@@ -194,8 +194,10 @@ class Authprovider with ChangeNotifier {
 
       if (!userDoc.exists) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("No account found with this email")),
+          Fluttertoast.showToast(
+            msg: 'No account found with this email',
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
           );
         }
         return;
@@ -224,9 +226,11 @@ class Authprovider with ChangeNotifier {
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
+        Fluttertoast.showToast(
+          msg: message,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
     } catch (e) {
       String message = "Login failed. Please try again.";
@@ -236,9 +240,11 @@ class Authprovider with ChangeNotifier {
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
+        Fluttertoast.showToast(
+          msg: message,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
     }
   }

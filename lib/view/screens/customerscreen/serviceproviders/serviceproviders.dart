@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
+import 'package:svareign/widgets/cached_image.dart';
 
 class Serviceproviders extends StatelessWidget {
   final String category;
@@ -19,10 +21,7 @@ class Serviceproviders extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "$category Providers",
-          style: TextStyle(color: Colors.black),
-        ),
+        title: Text("$category Providers"),
         centerTitle: true,
         elevation: 0,
         // backgroundColor: Colors.black87,
@@ -76,14 +75,9 @@ class Serviceproviders extends StatelessWidget {
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(16),
                             ),
-                            child: Image.network(
-                              model.imagepath,
-                              fit: BoxFit.cover,
+                            child: AppCachedImage(
+                              imageUrl: model.imagepath,
                               width: double.infinity,
-                              errorBuilder:
-                                  (context, error, stackTrace) => const Center(
-                                    child: Icon(Icons.image_not_supported),
-                                  ),
                             ),
                           ),
                         ),
@@ -154,23 +148,17 @@ class Serviceproviders extends StatelessWidget {
                                           element.serviceId == model.serviceId,
                                     );
                                 if (isalreadycart) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        "${model.name} is already in the cart",
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
+                                  Fluttertoast.showToast(
+                                    msg: '${model.name} is already in the cart',
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
                                   );
                                 } else {
                                   cartprovider.addtocart(model);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${model.name} added to cart',
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ),
+                                  Fluttertoast.showToast(
+                                    msg: '${model.name} added to cart',
+                                    backgroundColor: Colors.green,
+                                    textColor: Colors.white,
                                   );
                                 }
                               },

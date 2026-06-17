@@ -34,7 +34,6 @@ class _ReviewscreenState extends State<Reviewscreen> {
         ),
         centerTitle: true,
         automaticallyImplyLeading: true,
-        backgroundColor: Colors.lightGreen,
       ),
       body: Consumer<ReviewProvider>(
         builder: (context, reviewprovider, child) {

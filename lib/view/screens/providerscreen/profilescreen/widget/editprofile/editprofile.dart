@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_provider.dart';
@@ -66,14 +67,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           imageUrl: imageUrl,
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profile updated successfully")),
+        Fluttertoast.showToast(
+          msg: 'Profile updated successfully',
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
         );
         Navigator.pop(context);
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Update failed: $e")));
+        Fluttertoast.showToast(
+          msg: 'Update failed',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
     }
   }

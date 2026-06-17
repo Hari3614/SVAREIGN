@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:svareign/model/serviceprovider/bookingmodel.dart';
 import 'package:svareign/viewmodel/customerprovider/bookingprovider/bookingprovider.dart';
+import 'package:svareign/widgets/cached_image.dart';
 import 'package:svareign/viewmodel/customerprovider/paymentprovider/upiredirectprovider.dart';
 
 class MyOrders extends StatefulWidget {
@@ -28,11 +31,10 @@ class _MyOrdersState extends State<MyOrders>
         // Show error message to user
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Failed to load bookings. Please try again."),
-                backgroundColor: Colors.red,
-              ),
+            Fluttertoast.showToast(
+              msg: 'Failed to load bookings. Please try again.',
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
             );
           }
         });
@@ -102,8 +104,10 @@ class _MyOrdersState extends State<MyOrders>
                         });
 
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Review submitted")),
+                    Fluttertoast.showToast(
+                      msg: 'Review submitted',
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -136,24 +140,14 @@ class _MyOrdersState extends State<MyOrders>
         final allBookings = bookingProvider.bookings;
 
         return Scaffold(
-          backgroundColor: Colors.white,
           appBar: AppBar(
             title: const Text("My Orders"),
             bottom: TabBar(
               controller: _tabController,
               tabs: const [
-                Tab(
-                  icon: Icon(Icons.pending_actions, color: Colors.lightGreen),
-                  text: "Orders",
-                ),
-                Tab(
-                  icon: Icon(Icons.check_circle, color: Colors.lightGreen),
-                  text: "Completed",
-                ),
-                Tab(
-                  icon: Icon(Icons.cancel, color: Colors.lightGreen),
-                  text: "Rejected",
-                ),
+                Tab(icon: Icon(Icons.pending_actions), text: "Orders"),
+                Tab(icon: Icon(Icons.check_circle), text: "Completed"),
+                Tab(icon: Icon(Icons.cancel), text: "Rejected"),
               ],
             ),
           ),
@@ -208,9 +202,7 @@ class _MyOrdersState extends State<MyOrders>
           ),
           elevation: 4,
           child: ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(booking.imagePath),
-            ),
+            leading: AppCachedAvatar(imageUrl: booking.imagePath),
             title: Text(booking.name),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,12 +216,11 @@ class _MyOrdersState extends State<MyOrders>
               onTap:
                   isCompleted
                       ? () {
-                        // Show snackbar when payment button is clicked
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("This is under progress"),
-                            duration: Duration(seconds: 2),
-                          ),
+                        // Show toast when payment button is clicked
+                        Fluttertoast.showToast(
+                          msg: 'This is under progress',
+                          backgroundColor: Colors.orange,
+                          textColor: Colors.white,
                         );
 
                         // TODO: Implement actual payment functionality

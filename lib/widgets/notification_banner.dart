@@ -69,12 +69,14 @@ class _NotificationBannerState extends State<NotificationBanner>
       child: Container(
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: widget.backgroundColor ?? Colors.blue[50],
+          color:
+              widget.backgroundColor ??
+              Theme.of(context).colorScheme.primary.withOpacity(0.12),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.3),
-              spreadRadius: 2,
+              color: Colors.black.withValues(alpha: 0.15),
+              spreadRadius: 1,
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),
@@ -88,19 +90,21 @@ class _NotificationBannerState extends State<NotificationBanner>
             leading: Container(
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.2),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 Icons.notifications_active,
-                color: widget.textColor ?? Colors.blue,
+                color:
+                    widget.textColor ?? Theme.of(context).colorScheme.primary,
               ),
             ),
             title: Text(
               widget.title,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: widget.textColor ?? Colors.blue,
+                color:
+                    widget.textColor ?? Theme.of(context).colorScheme.onSurface,
                 fontSize: 16,
               ),
             ),
@@ -109,12 +113,19 @@ class _NotificationBannerState extends State<NotificationBanner>
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: widget.textColor ?? Colors.blue,
+                color:
+                    widget.textColor ??
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 fontSize: 14,
               ),
             ),
             trailing: IconButton(
-              icon: Icon(Icons.close, color: widget.textColor ?? Colors.blue),
+              icon: Icon(
+                Icons.close,
+                color:
+                    widget.textColor ??
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              ),
               onPressed: _dismiss,
             ),
             onTap: _dismiss,

@@ -95,6 +95,31 @@ class Bookingprovider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Prevent duplicate bookings for the same provider, date, and time
+      final existing =
+          await FirebaseFirestore.instance
+              .collection('bookings')
+              .where('userId', isEqualTo: userid)
+              .where('providerId', isEqualTo: service.serviceId)
+              .where(
+                'bookingDate',
+                isEqualTo:
+                    '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+              )
+              .where(
+                'bookingTime',
+                isEqualTo:
+                    '${selectedTime.hour}:${selectedTime.minute.toString().padLeft(2, '0')}',
+              )
+              .limit(1)
+              .get();
+
+      if (existing.docs.isNotEmpty) {
+        isloading = false;
+        notifyListeners();
+        return;
+      }
+
       await FirebaseFirestore.instance.collection('bookings').add({
         'userId': userid,
         'providerId': service.serviceId,

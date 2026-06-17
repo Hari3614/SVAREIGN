@@ -2,10 +2,13 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:svareign/core/colors/app_theme_color.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/view/screens/providerscreen/servicepostscreen/widgets/servieaddwidgetscreen.dart';
 import 'package:svareign/viewmodel/service_provider/jobads/jobadsprovider.dart';
 import 'package:svareign/model/serviceprovider/jobsadsmodel.dart';
+import 'package:svareign/widgets/cached_image.dart';
 
 class Serviceadscreen extends StatefulWidget {
   const Serviceadscreen({super.key});
@@ -64,20 +67,18 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
                   try {
                     await provider.deletePost(post.id, user.uid);
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Post deleted successfully"),
-                          backgroundColor: Colors.green,
-                        ),
+                      Fluttertoast.showToast(
+                        msg: 'Post deleted successfully',
+                        backgroundColor: Colors.green,
+                        textColor: Colors.white,
                       );
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Error deleting post: ${e.toString()}"),
-                          backgroundColor: Colors.red,
-                        ),
+                      Fluttertoast.showToast(
+                        msg: 'Error deleting post',
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
                       );
                     }
                   }
@@ -121,7 +122,6 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: true,
-        backgroundColor: Colors.lightGreen,
         title: const Text(
           "Service Posts",
           style: TextStyle(fontSize: 19, fontWeight: FontWeight.w500),
@@ -131,7 +131,7 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
         builder: (context, provider, _) {
           if (provider.isloading) {
             return const Center(
-              child: CircularProgressIndicator(color: Colors.lightGreen),
+              child: CircularProgressIndicator(color: kPrimaryAccent),
             );
           }
 
@@ -160,26 +160,10 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
                         child: CarouselSlider(
                           items:
                               posts.imageurl.map((imageUrl) {
-                                return Image.network(
-                                  imageUrl,
+                                return AppCachedImage(
+                                  imageUrl: imageUrl,
                                   width: double.infinity,
                                   height: 180,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (
-                                    context,
-                                    child,
-                                    loadingProgress,
-                                  ) {
-                                    if (loadingProgress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  },
-                                  errorBuilder:
-                                      (context, error, stackTrace) =>
-                                          const Center(
-                                            child: Icon(Icons.broken_image),
-                                          ),
                                 );
                               }).toList(),
                           options: CarouselOptions(
@@ -194,7 +178,10 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
                       Container(
                         height: 180,
                         width: double.infinity,
-                        color: Colors.grey[300],
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                         child: const Center(child: Icon(Icons.image, size: 40)),
                       ),
                     Padding(
@@ -227,10 +214,7 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
                           const SizedBox(height: 6),
                           Text(
                             "Available Time: ${posts.starttime} - ${posts.endtime}",
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.black54,
-                            ),
+                            style: const TextStyle(fontSize: 13),
                           ),
                           const SizedBox(height: 6),
                           Text(
@@ -270,14 +254,13 @@ class _ServiceadscreenState extends State<Serviceadscreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.lightGreen,
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const Serviceaddwidget()),
           );
         },
-        child: const Icon(Icons.add, color: Colors.black),
+        child: const Icon(Icons.add),
       ),
     );
   }

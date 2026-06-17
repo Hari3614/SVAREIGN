@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:svareign/core/colors/app_themes.dart';
 import 'package:svareign/viewmodel/authprovider/customer/authprovider.dart';
 import 'package:svareign/firebase_options.dart';
 import 'package:svareign/viewmodel/authprovider/serviceprovider/service_authprovider.dart';
@@ -28,6 +30,7 @@ import 'package:svareign/viewmodel/service_provider/setupprofile/setupprofile_pr
 import 'package:svareign/viewmodel/customerprovider/servicepostprovider/servicepostprovider.dart';
 import 'package:svareign/viewmodel/signupformprovider/form_provider.dart';
 import 'package:svareign/viewmodel/notification/notification_provider.dart';
+import 'package:svareign/viewmodel/themeprovider/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +66,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Searchprovider()),
         ChangeNotifierProvider(create: (_) => ServicePostProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         // ChangeNotifierProvider(create: (_) => Upiredirectprovider()),
       ],
       child: const MyApp(),
@@ -75,6 +79,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: Splashscreen());
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDark;
+
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor:
+            isDark ? const Color(0xFF0D0D2B) : Colors.white,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+      ),
+    );
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      themeMode: themeProvider.themeMode,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      home: const Splashscreen(),
+    );
   }
 }

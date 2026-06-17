@@ -61,6 +61,50 @@ class Profileprovider extends ChangeNotifier {
       final serviceData = serviceSnapshot.data() as Map<String, dynamic>;
       _phoneNumber = serviceData['phone'] as String?;
       _email = serviceData['email'] as String?;
+
+      // If no profile subcollection, create a basic Profile from root doc
+      if (_profile == null) {
+        final name = serviceData['name'] as String? ?? 'Unknown';
+        _profile = Profile(
+          fullname: name,
+          imageurl: serviceData['imageurl'] as String?,
+          payment: '',
+          upiId: '',
+          phone: _phoneNumber,
+        );
+      }
+    } else {
+      // Fallback: try users collection
+      final userSnapshot =
+          await _firebaseFirestore.collection('users').doc(uid).get();
+      if (userSnapshot.exists) {
+        final userData = userSnapshot.data() as Map<String, dynamic>;
+        _phoneNumber = userData['phone'] as String?;
+        _email = userData['email'] as String?;
+        if (_profile == null) {
+          _profile = Profile(
+            fullname: userData['name'] as String? ?? 'Unknown',
+            imageurl: userData['imageurl'] as String?,
+            payment: '',
+            upiId: '',
+            phone: _phoneNumber,
+          );
+        }
+      } else {
+        // Final fallback: Firebase Auth user info
+        final user = FirebaseAuth.instance.currentUser;
+        _phoneNumber = user?.phoneNumber;
+        _email = user?.email;
+        if (_profile == null) {
+          _profile = Profile(
+            fullname: user?.displayName ?? 'Unknown',
+            imageurl: user?.photoURL,
+            payment: '',
+            upiId: '',
+            phone: _phoneNumber,
+          );
+        }
+      }
     }
 
     notifyListeners();

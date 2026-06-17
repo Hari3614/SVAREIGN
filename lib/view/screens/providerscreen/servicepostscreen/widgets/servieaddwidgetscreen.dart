@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/jobsadsmodel.dart';
@@ -66,8 +67,10 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
         setState(() {
           selectedImages.addAll(images.take(remaining));
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("You can only select up to 3 images")),
+        Fluttertoast.showToast(
+          msg: 'You can only select up to 3 images',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
         );
       } else {
         setState(() {
@@ -93,11 +96,7 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
         centerTitle: true,
         title: Text(
           "Add Your Posts",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
@@ -138,10 +137,7 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: selectedImages.length >= 3 ? null : _pickimages,
-                child: Text(
-                  "Add Images Max 3",
-                  style: TextStyle(color: Colors.black),
-                ),
+                child: Text("Add Images Max 3"),
               ),
               SizedBox(height: 10),
               if (selectedImages.isNotEmpty)
@@ -192,7 +188,11 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.black),
+                          border: Border.all(
+                            color:
+                                Theme.of(context).dividerTheme.color ??
+                                Colors.grey,
+                          ),
                         ),
                         child: Text(
                           startime != null
@@ -211,7 +211,11 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.black),
+                          border: Border.all(
+                            color:
+                                Theme.of(context).dividerTheme.color ??
+                                Colors.grey,
+                          ),
                         ),
                         child: Text(
                           endtime != null
@@ -246,12 +250,11 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                               startime == null ||
                               endtime == null ||
                               selectedImages.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  "Please fill all the fields and add at least one image",
-                                ),
-                              ),
+                            Fluttertoast.showToast(
+                              msg:
+                                  'Please fill all fields and add at least one image',
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
                             );
                             return;
                           }
@@ -284,11 +287,10 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                             ).addpost(post);
                             //  await Provider.of<Jobadsprovider>(context, listen: false).fetchglobalposts()
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: Colors.lightGreen,
-                                  content: Text("Posted Successfully"),
-                                ),
+                              Fluttertoast.showToast(
+                                msg: 'Posted Successfully',
+                                backgroundColor: Colors.green,
+                                textColor: Colors.white,
                               );
                               // ignore: use_build_context_synchronously
                               Navigator.of(context).pop();
@@ -296,13 +298,10 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
                           } catch (e) {
                             if (mounted) {
                               // ignore: use_build_context_synchronously
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: Colors.red,
-                                  content: Text(
-                                    "Failed to post: ${e.toString()}. Please try again.",
-                                  ),
-                                ),
+                              Fluttertoast.showToast(
+                                msg: 'Failed to post. Please try again.',
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
                               );
                             }
                           } finally {
