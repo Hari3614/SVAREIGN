@@ -8,7 +8,7 @@ class Addcommonscreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Offers'),
+        title: const Text('Offers'),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
@@ -16,28 +16,42 @@ class Addcommonscreen extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         children: const [
           Postcardwidget(
-            imageurl:
-                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.png",
-            description: "Offer upto 30%",
+            title: "New User Offer",
+            description:
+                "Get 30% off on your first booking! Use code WELCOME30",
+            icon: Icons.celebration,
+            gradientColors: [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
+            discount: "30% OFF",
           ),
           Postcardwidget(
-            imageurl:
-                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.png",
-            description: "Offer upto 20%",
+            title: "Weekend Special",
+            description: "Book any home service this weekend and save 20%",
+            icon: Icons.home_repair_service,
+            gradientColors: [Color(0xFF6C5CE7), Color(0xFFA29BFE)],
+            discount: "20% OFF",
           ),
           Postcardwidget(
-            imageurl:
-                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.png",
-            description: "Offer upto 20%",
+            title: "Refer & Earn",
+            description: "Refer a friend and both get ₹200 off on next booking",
+            icon: Icons.people,
+            gradientColors: [Color(0xFF00B894), Color(0xFF55E6C1)],
+            discount: "₹200",
           ),
           Postcardwidget(
-            imageurl: "assets/images/istockphoto-1155451635-612x612.jpg",
-            description: "Offer upto 10%",
+            title: "Cleaning Services",
+            description:
+                "Professional deep cleaning at flat 15% off this month",
+            icon: Icons.cleaning_services,
+            gradientColors: [Color(0xFF0984E3), Color(0xFF74B9FF)],
+            discount: "15% OFF",
           ),
           Postcardwidget(
-            imageurl:
-                "assets/images/sale-promotion-ad-poster-design-template_53876-57700.png",
-            description: "Offer upto 10%",
+            title: "Loyalty Reward",
+            description:
+                "Complete 5 bookings and get the 6th one absolutely free!",
+            icon: Icons.card_giftcard,
+            gradientColors: [Color(0xFFFD79A8), Color(0xFFE84393)],
+            discount: "FREE",
           ),
         ],
       ),

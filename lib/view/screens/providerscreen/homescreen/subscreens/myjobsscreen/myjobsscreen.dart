@@ -169,7 +169,6 @@ class Myjobsscreen extends StatelessWidget {
           "My Jobs",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
         ),
-        automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream:

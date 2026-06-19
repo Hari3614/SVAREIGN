@@ -22,8 +22,12 @@ class Servicereqsrprovider extends ChangeNotifier {
           (snapshot) {
             _requestedjobIds.clear();
             for (var doc in snapshot.docs) {
-              final jobId = doc['jobId'] as String;
-              _requestedjobIds.add(jobId);
+              final jobId =
+                  (doc.data() as Map<String, dynamic>?)?['jobId'] as String? ??
+                  '';
+              if (jobId.isNotEmpty) {
+                _requestedjobIds.add(jobId);
+              }
             }
             notifyListeners();
           },

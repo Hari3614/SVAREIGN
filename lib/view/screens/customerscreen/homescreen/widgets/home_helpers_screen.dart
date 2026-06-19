@@ -13,6 +13,7 @@ import 'package:svareign/services/location_services/location_services.dart';
 import 'package:svareign/view/screens/customerscreen/cartscreen/cartscreen.dart';
 import 'package:svareign/view/screens/customerscreen/homescreen/widgets/all_providerscreen.dart';
 import 'package:svareign/view/screens/customerscreen/serviceproviders/serviceproviders.dart';
+import 'package:svareign/view/screens/customerscreen/providerdetail/provider_detail_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovider/reviewprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
@@ -810,131 +811,146 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                     scrollDirection: Axis.horizontal,
                     itemBuilder: (context, index) {
                       final providermodel = provider.availableProvider[index];
-                      return Container(
-                        width: 160,
-                        margin: const EdgeInsets.only(right: 12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardTheme.color,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => ProviderDetailScreen(
+                                    provider: providermodel,
+                                  ),
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(14),
+                          );
+                        },
+                        child: Container(
+                          width: 160,
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardTheme.color,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
                               ),
-                              child: AppCachedImage(
-                                imageUrl: providermodel.imagepath,
-                                height: 100,
-                                width: double.infinity,
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 8,
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(14),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      providermodel.name,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      providermodel.role.join(', '),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall?.color,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "₹${providermodel.hourlypayment}/hr",
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
+                                child: AppCachedImage(
+                                  imageUrl: providermodel.imagepath,
+                                  height: 100,
+                                  width: double.infinity,
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        providermodel.name,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                        SizedBox(
-                                          height: 28,
-                                          width: 28,
-                                          child: IconButton(
-                                            padding: EdgeInsets.zero,
-                                            onPressed: () {
-                                              final cartprovider =
-                                                  Provider.of<Cartprovider>(
-                                                    context,
-                                                    listen: false,
-                                                  );
-                                              final isalreadycart = cartprovider
-                                                  .cartitems
-                                                  .any(
-                                                    (e) =>
-                                                        e.serviceId ==
-                                                        providermodel.serviceId,
-                                                  );
-                                              if (isalreadycart) {
-                                                Fluttertoast.showToast(
-                                                  msg:
-                                                      "Already added to the cart",
-                                                  backgroundColor:
-                                                      Colors.orange,
-                                                  textColor: Colors.white,
-                                                );
-                                              } else {
-                                                cartprovider.addtocart(
-                                                  providermodel,
-                                                );
-                                                Fluttertoast.showToast(
-                                                  msg:
-                                                      "${providermodel.name} added to the cart",
-                                                  backgroundColor: Colors.green,
-                                                  textColor: Colors.white,
-                                                );
-                                              }
-                                            },
-                                            icon: Icon(
-                                              Icons.add_circle,
-                                              size: 24,
-                                              color:
-                                                  Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        providermodel.role.join(', '),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).textTheme.bodySmall?.color,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "₹${providermodel.hourlypayment}/hr",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13,
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                          SizedBox(
+                                            height: 28,
+                                            width: 28,
+                                            child: IconButton(
+                                              padding: EdgeInsets.zero,
+                                              onPressed: () {
+                                                final cartprovider =
+                                                    Provider.of<Cartprovider>(
+                                                      context,
+                                                      listen: false,
+                                                    );
+                                                final isalreadycart =
+                                                    cartprovider.cartitems.any(
+                                                      (e) =>
+                                                          e.serviceId ==
+                                                          providermodel
+                                                              .serviceId,
+                                                    );
+                                                if (isalreadycart) {
+                                                  Fluttertoast.showToast(
+                                                    msg:
+                                                        "Already added to the cart",
+                                                    backgroundColor:
+                                                        Colors.orange,
+                                                    textColor: Colors.white,
+                                                  );
+                                                } else {
+                                                  cartprovider.addtocart(
+                                                    providermodel,
+                                                  );
+                                                  Fluttertoast.showToast(
+                                                    msg:
+                                                        "${providermodel.name} added to the cart",
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                    textColor: Colors.white,
+                                                  );
+                                                }
+                                              },
+                                              icon: Icon(
+                                                Icons.add_circle,
+                                                size: 24,
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -1134,138 +1150,166 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     required int reviews,
     required Map<String, dynamic> providerData,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+    return GestureDetector(
+      onTap: () {
+        final model = Fetchserviceprovidermodel(
+          serviceId: providerData['providerId'] ?? '',
+          name:
+              providerData['fullname'] ?? providerData['name'] ?? providerName,
+          imagepath: providerData['imageurl'] ?? imagePath,
+          role:
+              providerData['categories'] is List
+                  ? List<String>.from(providerData['categories'])
+                  : [],
+          description: providerData['description'] ?? '',
+          hourlypayment: providerData['payment'] ?? '',
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProviderDetailScreen(provider: model),
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              width: size.width * 0.22,
-              height: size.width * 0.22,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(imagePath),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      ...List.generate(
-                        rating,
-                        (_) => const Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "($reviews Reviews)",
-                        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        providerName,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          fontSize: 13,
-                        ),
-                      ),
-                      SizedBox(
-                        height: 32,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: () {
-                            final cartprovider = Provider.of<Cartprovider>(
-                              context,
-                              listen: false,
-                            );
-
-                            final serviceModel = Fetchserviceprovidermodel(
-                              serviceId: providerData['providerId'] ?? '',
-                              name: providerData['name'] ?? providerName,
-                              imagepath: providerData['imageurl'] ?? imagePath,
-                              role:
-                                  providerData['categories'] is List
-                                      ? List<String>.from(
-                                        providerData['categories'],
-                                      )
-                                      : [],
-                              description: providerData['description'] ?? '',
-                              hourlypayment: providerData['payment'] ?? '',
-                            );
-
-                            final alreadyInCart = cartprovider.cartitems.any(
-                              (e) => e.serviceId == serviceModel.serviceId,
-                            );
-
-                            if (alreadyInCart) {
-                              Fluttertoast.showToast(
-                                msg: 'Already added to the cart',
-                                backgroundColor: Colors.orange,
-                                textColor: Colors.white,
-                              );
-                            } else {
-                              cartprovider.addtocart(serviceModel);
-                              Fluttertoast.showToast(
-                                msg: '${serviceModel.name} added to the cart',
-                                backgroundColor: Colors.green,
-                                textColor: Colors.white,
-                              );
-                            }
-                          },
-                          child: const Text(
-                            "Add",
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: size.width * 0.22,
+                height: size.width * 0.22,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    image: CachedNetworkImageProvider(imagePath),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        ...List.generate(
+                          rating,
+                          (_) => const Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                            size: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "($reviews Reviews)",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          providerName,
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                            fontSize: 13,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 32,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () {
+                              final cartprovider = Provider.of<Cartprovider>(
+                                context,
+                                listen: false,
+                              );
+
+                              final serviceModel = Fetchserviceprovidermodel(
+                                serviceId: providerData['providerId'] ?? '',
+                                name: providerData['name'] ?? providerName,
+                                imagepath:
+                                    providerData['imageurl'] ?? imagePath,
+                                role:
+                                    providerData['categories'] is List
+                                        ? List<String>.from(
+                                          providerData['categories'],
+                                        )
+                                        : [],
+                                description: providerData['description'] ?? '',
+                                hourlypayment: providerData['payment'] ?? '',
+                              );
+
+                              final alreadyInCart = cartprovider.cartitems.any(
+                                (e) => e.serviceId == serviceModel.serviceId,
+                              );
+
+                              if (alreadyInCart) {
+                                Fluttertoast.showToast(
+                                  msg: 'Already added to the cart',
+                                  backgroundColor: Colors.orange,
+                                  textColor: Colors.white,
+                                );
+                              } else {
+                                cartprovider.addtocart(serviceModel);
+                                Fluttertoast.showToast(
+                                  msg: '${serviceModel.name} added to the cart',
+                                  backgroundColor: Colors.green,
+                                  textColor: Colors.white,
+                                );
+                              }
+                            },
+                            child: const Text(
+                              "Add",
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

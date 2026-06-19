@@ -26,41 +26,50 @@ class Jobpostprovider extends ChangeNotifier {
         .where('status', isEqualTo: 'active')
         .orderBy('postedtime', descending: true)
         .snapshots()
-        .listen((querySnapshots) {
-          final now = DateTime.now();
-          _jobPost =
-              querySnapshots.docs
-                  .where((doc) {
-                    final data = doc.data();
-                    // Filter by expiry
-                    final expiry =
-                        data['expirytime'] != null
-                            ? (data['expirytime'] as Timestamp).toDate()
-                            : (data['postedtime'] as Timestamp).toDate().add(
-                              const Duration(hours: 24),
-                            );
-                    if (!expiry.isAfter(now)) return false;
+        .listen(
+          (querySnapshots) {
+            final now = DateTime.now();
+            _jobPost =
+                querySnapshots.docs
+                    .where((doc) {
+                      final data = doc.data();
+                      // Filter by expiry
+                      final expiryRaw = data['expirytime'];
+                      final postedRaw = data['postedtime'];
+                      final expiry =
+                          expiryRaw is Timestamp
+                              ? expiryRaw.toDate()
+                              : (postedRaw is Timestamp
+                                  ? postedRaw.toDate().add(
+                                    const Duration(hours: 24),
+                                  )
+                                  : DateTime.now());
+                      if (!expiry.isAfter(now)) return false;
 
-                    // Filter by radius if location available
-                    final location = data['location'];
-                    if (location != null &&
-                        location['latitude'] != null &&
-                        location['longitude'] != null) {
-                      final distance = calculateDistance(
-                        providerLat,
-                        providerLng,
-                        (location['latitude'] as num).toDouble(),
-                        (location['longitude'] as num).toDouble(),
-                      );
-                      return distance <= radiusinKm;
-                    }
-                    // Include old posts without location (fallback)
-                    return true;
-                  })
-                  .map((doc) => Jobpost.fromfirestore(doc))
-                  .toList();
-          notifyListeners();
-        });
+                      // Filter by radius if location available
+                      final location = data['location'];
+                      if (location != null &&
+                          location['latitude'] != null &&
+                          location['longitude'] != null) {
+                        final distance = calculateDistance(
+                          providerLat,
+                          providerLng,
+                          (location['latitude'] as num).toDouble(),
+                          (location['longitude'] as num).toDouble(),
+                        );
+                        return distance <= radiusinKm;
+                      }
+                      // Include old posts without location (fallback)
+                      return true;
+                    })
+                    .map((doc) => Jobpost.fromfirestore(doc))
+                    .toList();
+            notifyListeners();
+          },
+          onError: (error) {
+            debugPrint('Error listening to jobs: $error');
+          },
+        );
   }
 
   @override

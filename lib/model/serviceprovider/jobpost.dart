@@ -26,13 +26,16 @@ class Jobpost {
     final data = doc.data() as Map<String, dynamic>;
     return Jobpost(
       id: doc.id,
-      userId: data['userId'],
+      userId: data['userId'] ?? '',
       tittle: data['worktittle'] ?? '',
       description: data['description'] ?? '',
-      maxbudget: data['maxbudget'],
-      minbudget: data['minbudget'] as double,
+      maxbudget: (data['maxbudget'] as num?)?.toDouble() ?? 0.0,
+      minbudget: (data['minbudget'] as num?)?.toDouble() ?? 0.0,
       duration: data['duration'] ?? '',
-      postedtime: (data['postedtime'] as Timestamp).toDate(),
+      postedtime:
+          data['postedtime'] != null
+              ? (data['postedtime'] as Timestamp).toDate()
+              : DateTime.now(),
       imagepath: data['imagepath'] ?? '',
     );
   }

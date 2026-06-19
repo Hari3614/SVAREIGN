@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:svareign/widgets/cached_image.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
+import 'package:svareign/view/screens/customerscreen/providerdetail/provider_detail_screen.dart';
 
 class AllProviderScreen extends StatefulWidget {
   const AllProviderScreen({super.key});
@@ -114,135 +115,151 @@ class _AllProviderScreenState extends State<AllProviderScreen> {
                     itemCount: filteredprovider.length,
                     itemBuilder: (context, index) {
                       final providermodel = filteredprovider[index];
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardTheme.color,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => ProviderDetailScreen(
+                                    provider: providermodel,
+                                  ),
                             ),
-                          ],
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(14),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardTheme.color,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
                               ),
-                              child: AppCachedImage(
-                                imageUrl: providermodel.imagepath,
-                                height: 120,
-                                width: double.infinity,
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 8,
+                            ],
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(14),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      providermodel.name,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      providermodel.role.join(', '),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "₹${providermodel.hourlypayment}/hr",
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
+                                child: AppCachedImage(
+                                  imageUrl: providermodel.imagepath,
+                                  height: 120,
+                                  width: double.infinity,
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        providermodel.name,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                        SizedBox(
-                                          height: 28,
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              final cartprovider =
-                                                  Provider.of<Cartprovider>(
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        providermodel.role.join(', '),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "₹${providermodel.hourlypayment}/hr",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 28,
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                final cartprovider =
+                                                    Provider.of<Cartprovider>(
+                                                      context,
+                                                      listen: false,
+                                                    );
+                                                final isalreadyincart =
+                                                    cartprovider.cartitems.any(
+                                                      (e) =>
+                                                          e.serviceId ==
+                                                          providermodel
+                                                              .serviceId,
+                                                    );
+                                                if (isalreadyincart) {
+                                                  ScaffoldMessenger.of(
                                                     context,
-                                                    listen: false,
-                                                  );
-                                              final isalreadyincart =
-                                                  cartprovider.cartitems.any(
-                                                    (e) =>
-                                                        e.serviceId ==
-                                                        providermodel.serviceId,
-                                                  );
-                                              if (isalreadyincart) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      "Already in the Cart",
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        "Already in the Cart",
+                                                      ),
+                                                      backgroundColor:
+                                                          Colors.orange,
                                                     ),
+                                                  );
+                                                } else {
+                                                  cartprovider.addtocart(
+                                                    providermodel,
+                                                  );
+                                                  Fluttertoast.showToast(
+                                                    msg:
+                                                        "${providermodel.name} added to cart",
                                                     backgroundColor:
-                                                        Colors.orange,
-                                                  ),
-                                                );
-                                              } else {
-                                                cartprovider.addtocart(
-                                                  providermodel,
-                                                );
-                                                Fluttertoast.showToast(
-                                                  msg:
-                                                      "${providermodel.name} added to cart",
-                                                  backgroundColor: Colors.green,
-                                                  textColor: Colors.white,
-                                                );
-                                              }
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              elevation: 0,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                  ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
+                                                        Colors.green,
+                                                    textColor: Colors.white,
+                                                  );
+                                                }
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                elevation: 0,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                ),
+                                              ),
+                                              child: const Text(
+                                                "Add",
+                                                style: TextStyle(fontSize: 11),
                                               ),
                                             ),
-                                            child: const Text(
-                                              "Add",
-                                              style: TextStyle(fontSize: 11),
-                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },

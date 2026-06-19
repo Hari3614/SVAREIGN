@@ -92,7 +92,6 @@ class _ServiceaddwidgetState extends State<Serviceaddwidget> {
     final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         centerTitle: true,
         title: Text(
           "Add Your Posts",

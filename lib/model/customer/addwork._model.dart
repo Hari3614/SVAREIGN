@@ -32,15 +32,19 @@ class Addworkmodel {
       status: map['status'] ?? "",
       userId: map['userId'] ?? "",
       worktittle: map['worktittle'] ?? '',
-      minbudget: map['minbudget'] as double,
-      maxbudget: map['maxbudget'] as double,
+      minbudget: (map['minbudget'] as num?)?.toDouble() ?? 0.0,
+      maxbudget: (map['maxbudget'] as num?)?.toDouble() ?? 0.0,
       description: map['description'] ?? '',
       duration: map['duration'] ?? '',
-      postedtime: (map['postedtime'] as Timestamp).toDate(),
+      postedtime:
+          map['postedtime'] != null
+              ? (map['postedtime'] as Timestamp).toDate()
+              : DateTime.now(),
       imagepath: map['imagepath'] ?? "",
-      expirytime: map['expirytime'] != null
-          ? (map['expirytime'] as Timestamp).toDate()
-          : null,
+      expirytime:
+          map['expirytime'] != null
+              ? (map['expirytime'] as Timestamp).toDate()
+              : null,
     );
   }
 

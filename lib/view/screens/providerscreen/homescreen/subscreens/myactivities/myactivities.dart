@@ -53,12 +53,13 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
         appBar: AppBar(
           title: const Text('My Bookings'),
           centerTitle: true,
-          automaticallyImplyLeading: false,
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: [
+          bottom: TabBar(
+            indicatorColor: Theme.of(context).colorScheme.primary,
+            labelColor: Theme.of(context).colorScheme.onSurface,
+            unselectedLabelColor: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
+            tabs: const [
               Tab(text: 'Requests'),
               Tab(text: 'Accepted'),
               Tab(text: 'Completed'),

@@ -9,8 +9,49 @@ class Jobadsprovider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   List<Jobsadsmodel> _globalposts = [];
   List<Jobsadsmodel> get globalposts => _globalposts;
+  List<Jobsadsmodel> _myposts = [];
+  List<Jobsadsmodel> get myposts => _myposts;
   bool isloading = false;
   bool get loading => isloading;
+  bool isMyPostsLoading = false;
+
+  Future<void> fetchMyPosts() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    isMyPostsLoading = true;
+    notifyListeners();
+    try {
+      final snapshot =
+          await _firebaseFirestore
+              .collection('services')
+              .doc(user.uid)
+              .collection('posts')
+              .orderBy('postedtime', descending: true)
+              .get();
+
+      final now = DateTime.now();
+      _myposts =
+          snapshot.docs
+              .where((doc) {
+                final data = doc.data();
+                if (data['expirytime'] != null) {
+                  final expiryTime = (data['expirytime'] as Timestamp).toDate();
+                  if (!expiryTime.isAfter(now)) return false;
+                }
+                return true;
+              })
+              .map((doc) {
+                final data = doc.data();
+                return Jobsadsmodel.fromMap(doc.id, data);
+              })
+              .toList();
+    } catch (e) {
+      debugPrint("error fetching my posts: $e");
+    }
+    isMyPostsLoading = false;
+    notifyListeners();
+  }
+
   Future<void> fetchglobalposts({
     required double userLat,
     required double userLng,
@@ -19,6 +60,7 @@ class Jobadsprovider extends ChangeNotifier {
     isloading = true;
     notifyListeners();
     try {
+      final currentUid = _auth.currentUser?.uid;
       final snapshot =
           await _firebaseFirestore
               .collection('posts')
@@ -30,6 +72,8 @@ class Jobadsprovider extends ChangeNotifier {
           snapshot.docs
               .where((doc) {
                 final data = doc.data();
+                // Exclude current user's posts (shown in My Posts tab)
+                if (data['providerId'] == currentUid) return false;
                 // Filter expired posts
                 if (data['expirytime'] != null) {
                   final expiryTime = (data['expirytime'] as Timestamp).toDate();
@@ -89,6 +133,7 @@ class Jobadsprovider extends ChangeNotifier {
         if (providerLocation != null) 'location': providerLocation,
       });
       print("post added successfully");
+      await fetchMyPosts();
       if (providerLocation != null) {
         await fetchglobalposts(
           userLat: (providerLocation['latitude'] as num).toDouble(),
@@ -116,6 +161,7 @@ class Jobadsprovider extends ChangeNotifier {
 
       // Remove from local list
       _globalposts.removeWhere((post) => post.id == postId);
+      _myposts.removeWhere((post) => post.id == postId);
       notifyListeners();
 
       print("post deleted successfully");

@@ -30,9 +30,6 @@ class Reqstmodel {
   });
 
   factory Reqstmodel.fromMap(String documentId, Map<String, dynamic> map) {
-    // Debug print to see what data we're getting
-    print("Creating Reqstmodel from map: $map");
-
     return Reqstmodel(
       upiId: map['upiId'] ?? '',
       userId: map['userId'] ?? '',

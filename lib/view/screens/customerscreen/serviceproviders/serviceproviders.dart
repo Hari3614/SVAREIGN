@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:svareign/viewmodel/customerprovider/cartprovider/cartprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/fetchserviceprovider/fetserviceprovider.dart';
+import 'package:svareign/view/screens/customerscreen/providerdetail/provider_detail_screen.dart';
 import 'package:svareign/widgets/cached_image.dart';
 
 class Serviceproviders extends StatelessWidget {
@@ -60,112 +61,125 @@ class Serviceproviders extends StatelessWidget {
                 ),
                 itemBuilder: (context, index) {
                   final model = provider.availableProvider[index];
-                  return Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Image
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(16),
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ProviderDetailScreen(provider: model),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Image
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
+                              child: AppCachedImage(
+                                imageUrl: model.imagepath,
+                                width: double.infinity,
+                              ),
                             ),
-                            child: AppCachedImage(
-                              imageUrl: model.imagepath,
+                          ),
+                          // Info
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  model.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "₹${model.hourlypayment}/hr",
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Add to cart button
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
                               width: double.infinity,
-                            ),
-                          ),
-                        ),
-                        // Info
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                model.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  backgroundColor: Colors.black87,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "₹${model.hourlypayment}/hr",
-                                style: TextStyle(
-                                  color: Colors.grey[700],
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Add to cart button
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                backgroundColor: Colors.black87,
-                              ),
-                              icon: const Icon(
-                                Icons.add_shopping_cart,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                              label: const Text(
-                                "Add to Cart",
-                                style: TextStyle(
-                                  fontSize: 14,
+                                icon: const Icon(
+                                  Icons.add_shopping_cart,
+                                  size: 18,
                                   color: Colors.white,
                                 ),
-                              ),
-                              onPressed: () async {
-                                final cartprovider = Provider.of<Cartprovider>(
-                                  context,
-                                  listen: false,
-                                );
-                                final isalreadycart = cartprovider.cartitems
-                                    .any(
-                                      (element) =>
-                                          element.serviceId == model.serviceId,
+                                label: const Text(
+                                  "Add to Cart",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  final cartprovider =
+                                      Provider.of<Cartprovider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  final isalreadycart = cartprovider.cartitems
+                                      .any(
+                                        (element) =>
+                                            element.serviceId ==
+                                            model.serviceId,
+                                      );
+                                  if (isalreadycart) {
+                                    Fluttertoast.showToast(
+                                      msg:
+                                          '${model.name} is already in the cart',
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
                                     );
-                                if (isalreadycart) {
-                                  Fluttertoast.showToast(
-                                    msg: '${model.name} is already in the cart',
-                                    backgroundColor: Colors.red,
-                                    textColor: Colors.white,
-                                  );
-                                } else {
-                                  cartprovider.addtocart(model);
-                                  Fluttertoast.showToast(
-                                    msg: '${model.name} added to cart',
-                                    backgroundColor: Colors.green,
-                                    textColor: Colors.white,
-                                  );
-                                }
-                              },
+                                  } else {
+                                    cartprovider.addtocart(model);
+                                    Fluttertoast.showToast(
+                                      msg: '${model.name} added to cart',
+                                      backgroundColor: Colors.green,
+                                      textColor: Colors.white,
+                                    );
+                                  }
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },

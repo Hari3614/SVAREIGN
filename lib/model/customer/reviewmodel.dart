@@ -21,11 +21,11 @@ class Reviewmodel {
   factory Reviewmodel.frommap(Map<String, dynamic> map, String documentId) {
     return Reviewmodel(
       id: documentId,
-      jobId: map['jobId'],
-      providerId: map['providerId'],
+      jobId: map['jobId'] ?? '',
+      providerId: map['providerId'] ?? '',
       rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
-      review: map['review'],
-      userId: map['userId'],
+      review: map['review'] ?? '',
+      userId: map['userId'] ?? '',
       timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }

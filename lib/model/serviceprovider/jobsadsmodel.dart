@@ -28,18 +28,21 @@ class Jobsadsmodel {
   factory Jobsadsmodel.fromMap(String documentId, Map<String, dynamic> map) {
     return Jobsadsmodel(
       id: documentId,
-      providerid: map['providerId'] ?? "", // Use providerId (uppercase I)
+      providerid: map['providerId'] ?? "",
       tittle: map['tittle'] ?? "",
       description: map['description'] ?? "",
-      budget:
-          map['budget'] is int
-              ? (map['budget'] as int).toDouble()
-              : map['budget'] as double,
-      imageurl: List<String>.from(map['imageurl']),
-      starttime: map['starttime'],
-      endtime: map['endtime'],
-      postedtime: (map['postedtime'] as Timestamp).toDate(),
-      expirytime: (map['expirytime'] as Timestamp).toDate(),
+      budget: (map['budget'] as num?)?.toDouble() ?? 0.0,
+      imageurl: List<String>.from(map['imageurl'] ?? []),
+      starttime: map['starttime'] ?? '',
+      endtime: map['endtime'] ?? '',
+      postedtime:
+          map['postedtime'] != null
+              ? (map['postedtime'] as Timestamp).toDate()
+              : DateTime.now(),
+      expirytime:
+          map['expirytime'] != null
+              ? (map['expirytime'] as Timestamp).toDate()
+              : DateTime.now().add(const Duration(hours: 24)),
       phonenumber: map['phonenumber'] ?? '',
     );
   }

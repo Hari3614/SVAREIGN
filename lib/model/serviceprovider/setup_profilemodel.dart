@@ -8,7 +8,7 @@ class Profile {
   final String? imageurl;
   final String upiId;
   final String? phone;
-  
+
   Profile({
     this.id,
     required this.fullname,
@@ -20,7 +20,7 @@ class Profile {
     required this.upiId,
     this.phone,
   });
-  
+
   Map<String, dynamic> tomap() {
     return {
       'serviceId': id,
@@ -38,13 +38,14 @@ class Profile {
   factory Profile.frommap(Map<String, dynamic> map) {
     return Profile(
       id: map['serviceId'],
-      fullname: map['fullname'],
+      fullname: map['fullname'] ?? '',
       description: map['description'],
       experience: map['experience'],
-      categories: map['categories'] is List ? List<String>.from(map['categories']) : [],
-      imageurl: map['imageurl'],
-      payment: map['payment'],
-      upiId: map['upiId'],
+      categories:
+          map['categories'] is List ? List<String>.from(map['categories']) : [],
+      imageurl: map['imageurl'] ?? '',
+      payment: map['payment'] ?? '',
+      upiId: map['upiId'] ?? '',
       phone: map['phone'],
     );
   }

@@ -55,9 +55,9 @@ class _SplashscreenState extends State<Splashscreen> {
         // Session exists - check if Firebase user is still valid
         User? user = FirebaseAuth.instance.currentUser;
         if (user == null) {
-          // Wait briefly for Firebase to restore auth state
+          // Wait for Firebase to restore auth state (can take time on cold start)
           user = await FirebaseAuth.instance.authStateChanges().first.timeout(
-            const Duration(seconds: 3),
+            const Duration(seconds: 10),
             onTimeout: () => null,
           );
         }
@@ -71,7 +71,7 @@ class _SplashscreenState extends State<Splashscreen> {
             nextScreen = const Loginscreen();
           }
         } else {
-          // Firebase session expired - clear local session
+          // Firebase session truly expired - clear local session
           await prefs.remove('IsloggedIn');
           await prefs.remove('uid');
           await prefs.remove('role');
