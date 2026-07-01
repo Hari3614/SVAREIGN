@@ -2,7 +2,7 @@ name: svareign
 description: "A new Flutter project."
 publish_to: 'none' 
 
-version: 1.0.9+15
+version: 1.0.9+16
 
 
 environment:
@@ -56,11 +56,23 @@ dependencies:
   cached_network_image: ^3.4.1
   flutter_google_places_sdk: ^0.4.2+1
 
+dependency_overrides:
+  flutter_google_places_sdk_android: ^0.3.0
+  flutter_google_places_sdk_platform_interface: ^0.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true

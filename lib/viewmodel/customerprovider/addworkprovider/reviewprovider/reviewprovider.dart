@@ -37,7 +37,26 @@ class ReviewProvider with ChangeNotifier {
     return snapshot.docs.length;
   }
 
-  Future<void> addReview({
+  Future<bool> hasUserReviewedJob({
+    required String providerId,
+    required String jobId,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('reviews')
+            .where('providerId', isEqualTo: providerId)
+            .where('jobId', isEqualTo: jobId)
+            .where('userId', isEqualTo: user.uid)
+            .limit(1)
+            .get();
+
+    return snapshot.docs.isNotEmpty;
+  }
+
+  Future<bool> addReview({
     required String providerId,
     required String jobId,
     required String reviewText,
@@ -47,7 +66,16 @@ class ReviewProvider with ChangeNotifier {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         print("User not logged in");
-        return;
+        return false;
+      }
+
+      // Check if user already reviewed this job
+      final alreadyReviewed = await hasUserReviewedJob(
+        providerId: providerId,
+        jobId: jobId,
+      );
+      if (alreadyReviewed) {
+        return false;
       }
 
       final firestore = FirebaseFirestore.instance;
@@ -63,10 +91,10 @@ class ReviewProvider with ChangeNotifier {
 
       if (profileSnapshot.docs.isEmpty) {
         print("Provider profile not found");
-        return;
+        return false;
       }
 
-      final profileData = profileSnapshot.docs.first.data()!;
+      final profileData = profileSnapshot.docs.first.data();
       final providerName = profileData['fullname'] ?? "Unknown";
       final hourlyPayment = profileData['payment'] ?? 0;
       final categories = profileData['categories'] ?? [];
@@ -102,9 +130,10 @@ class ReviewProvider with ChangeNotifier {
       // Update avg rating
       await _updateProviderRating(providerId);
 
-      print("Review added successfully with provider details");
+      return true;
     } catch (e) {
       print("Error adding review: $e");
+      return false;
     }
   }
 

@@ -38,6 +38,8 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   bool _isLoadingMore = false;
   bool _showNoProvidersMessage = false;
   bool _showall = false;
+  bool _showAllCategories = false;
+  String _sortBy = 'rating'; // 'rating', 'reviews', 'name'
   double _searchRadiusKm = 100;
 
   bool isloading = true;
@@ -549,13 +551,16 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
               decoration: InputDecoration(
                 hintText: "Search for services...",
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon: Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(8),
+                suffixIcon: GestureDetector(
+                  onTap: () => _showSortFilterSheet(),
+                  child: Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.tune, color: Colors.white),
                   ),
-                  child: const Icon(Icons.tune, color: Colors.white),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -727,7 +732,15 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                 child: _buildNotificationBanner(),
               ),
 
-            _sectionHeader("All Categories"),
+            _sectionHeader(
+              "All Categories",
+              onpressed: () {
+                setState(() {
+                  _showAllCategories = !_showAllCategories;
+                });
+              },
+              showall: _showAllCategories,
+            ),
             SizedBox(height: size.height * 0.015),
             _buildCategoryRow(size, context),
 
@@ -762,6 +775,29 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
                 }
 
                 final providers = snapshot.data!;
+
+                // Apply sort
+                providers.sort((a, b) {
+                  switch (_sortBy) {
+                    case 'rating':
+                      return ((b['avgRating'] ?? 0.0) as double).compareTo(
+                        (a['avgRating'] ?? 0.0) as double,
+                      );
+                    case 'reviews':
+                      return ((b['reviewCount'] ?? 0) as int).compareTo(
+                        (a['reviewCount'] ?? 0) as int,
+                      );
+                    case 'name':
+                      return (a['fullname'] ?? a['name'] ?? '')
+                          .toString()
+                          .compareTo(
+                            (b['fullname'] ?? b['name'] ?? '').toString(),
+                          );
+                    default:
+                      return 0;
+                  }
+                });
+
                 final visibleprovider =
                     _showall ? providers : providers.take(3).toList();
 
@@ -1023,6 +1059,82 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
     );
   }
 
+  void _showSortFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Sort Providers By",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  _sortOption(
+                    setModalState,
+                    icon: Icons.star,
+                    label: "Highest Rating",
+                    value: "rating",
+                  ),
+                  _sortOption(
+                    setModalState,
+                    icon: Icons.reviews,
+                    label: "Most Reviews",
+                    value: "reviews",
+                  ),
+                  _sortOption(
+                    setModalState,
+                    icon: Icons.sort_by_alpha,
+                    label: "Name (A-Z)",
+                    value: "name",
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _sortOption(
+    StateSetter setModalState, {
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    final isSelected = _sortBy == value;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? Colors.green : null),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? Colors.green : null,
+        ),
+      ),
+      trailing:
+          isSelected ? const Icon(Icons.check, color: Colors.green) : null,
+      onTap: () {
+        setModalState(() {});
+        setState(() {
+          _sortBy = value;
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
+
   Widget _sectionHeader(
     String title, {
     VoidCallback? onpressed,
@@ -1044,7 +1156,7 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
   }
 
   Widget _buildCategoryRow(Size size, BuildContext context) {
-    final categories = [
+    final allCategories = [
       ["Carpenter", Icons.handyman],
       ["Cleaner", Icons.cleaning_services],
       ["Painter", Icons.format_paint],
@@ -1054,6 +1166,9 @@ class _HomeHelpersScreenState extends State<HomeHelpersScreen> {
       ["Plumber", Icons.plumbing],
       ["Men’s Salon", Icons.content_cut],
     ];
+
+    final categories =
+        _showAllCategories ? allCategories : allCategories.take(4).toList();
 
     return GridView.builder(
       shrinkWrap: true,

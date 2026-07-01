@@ -21,21 +21,21 @@ class Userrequestprovider extends ChangeNotifier {
               .collection('profile')
               .limit(1)
               .get();
-              
+
       // Then fetch the phone number from the main service document
-      final serviceSnapshot = 
+      final serviceSnapshot =
           await FirebaseFirestore.instance
               .collection('services')
               .doc(providerId)
               .get();
-      
+
       Map<String, dynamic> combinedData = {};
-      
+
       // Add profile data if it exists
       if (profilesnapshot.docs.isNotEmpty) {
         combinedData.addAll(profilesnapshot.docs.first.data());
       }
-      
+
       // Add phone number from main service document if it exists
       if (serviceSnapshot.exists) {
         final serviceData = serviceSnapshot.data() as Map<String, dynamic>;
@@ -43,7 +43,7 @@ class Userrequestprovider extends ChangeNotifier {
           combinedData['phone'] = serviceData['phone'];
         }
       }
-      
+
       return combinedData.isEmpty ? null : combinedData;
     } catch (e) {
       debugPrint("error fetching provider profile: $e");
@@ -220,6 +220,21 @@ class Userrequestprovider extends ChangeNotifier {
           .collection('requests')
           .doc(reqstId)
           .update({'status': newstatus});
+
+      // When a provider is accepted, mark the work as assigned
+      // so it disappears from other providers' feeds
+      if (newstatus == "Accepted") {
+        await FirebaseFirestore.instance.collection('works').doc(workId).update(
+          {'status': 'assigned'},
+        );
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('works')
+            .doc(workId)
+            .update({'status': 'assigned'});
+      }
 
       if (newstatus == "Rejected") {
         _requests.removeWhere((req) => req.id == reqstId);

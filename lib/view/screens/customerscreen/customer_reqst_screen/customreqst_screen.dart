@@ -1,6 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -8,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:svareign/model/serviceprovider/reqstmodel.dart';
 import 'package:svareign/viewmodel/customerprovider/userrequestprovider/userrequestprovider.dart';
 import 'package:svareign/viewmodel/customerprovider/addworkprovider/reviewprovider/reviewprovider.dart';
+import 'package:svareign/model/customer/fetchserviceprovider.dart';
+import 'package:svareign/view/screens/customerscreen/providerdetail/provider_detail_screen.dart';
 import 'package:svareign/widgets/cached_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -124,14 +124,29 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                       backgroundColor: Colors.red,
                       textColor: Colors.white,
                     );
+                    return;
                   }
-                  await provider.addReview(
+                  final success = await provider.addReview(
                     providerId: req.providerid,
                     jobId: req.jobId,
                     reviewText: review,
                     rating: rating,
                   );
                   Navigator.pop(context);
+                  if (success) {
+                    Fluttertoast.showToast(
+                      msg: 'Review submitted',
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
+                    );
+                    setState(() {});
+                  } else {
+                    Fluttertoast.showToast(
+                      msg: 'You have already reviewed this task',
+                      backgroundColor: Colors.orange,
+                      textColor: Colors.white,
+                    );
+                  }
                 },
                 child: Text("Submit", style: TextStyle(color: Colors.white)),
               ),
@@ -195,87 +210,106 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: AppCachedImage(
-                            imageUrl: req.imagepath ?? '',
-                            width: width * 0.18,
-                            height: height * 0.08,
-                            errorIcon: Icons.person,
-                            errorIconSize: 30,
+                    GestureDetector(
+                      onTap: () {
+                        final model = Fetchserviceprovidermodel(
+                          serviceId: req.providerid,
+                          name: req.name ?? "Unknown",
+                          imagepath: req.imagepath ?? '',
+                          role: req.jobs ?? [],
+                          description: '',
+                          hourlypayment: req.hourlypayment ?? '',
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => ProviderDetailScreen(provider: model),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      req.name ?? "Unknown",
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                        );
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: AppCachedImage(
+                              imageUrl: req.imagepath ?? '',
+                              width: width * 0.18,
+                              height: height * 0.08,
+                              errorIcon: Icons.person,
+                              errorIconSize: 30,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        req.name ?? "Unknown",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  FutureBuilder<double>(
-                                    future: Future.microtask(() {
-                                      final reviewProvider =
-                                          Provider.of<ReviewProvider>(
-                                            context,
-                                            listen: false,
+                                    FutureBuilder<double>(
+                                      future: Future.microtask(() {
+                                        final reviewProvider =
+                                            Provider.of<ReviewProvider>(
+                                              context,
+                                              listen: false,
+                                            );
+                                        return reviewProvider.getAverageRating(
+                                          req.providerid,
+                                        );
+                                      }),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) {
+                                          return Row(
+                                            children: const [
+                                              Text("..."),
+                                              SizedBox(width: 4),
+                                              Icon(
+                                                Icons.star,
+                                                size: 18,
+                                                color: Color(0xFFF6C104),
+                                              ),
+                                            ],
                                           );
-                                      return reviewProvider.getAverageRating(
-                                        req.providerid,
-                                      );
-                                    }),
-                                    builder: (context, snapshot) {
-                                      if (!snapshot.hasData) {
+                                        }
+                                        final avgRating = snapshot.data!;
                                         return Row(
-                                          children: const [
-                                            Text("..."),
-                                            SizedBox(width: 4),
-                                            Icon(
+                                          children: [
+                                            Text(avgRating.toStringAsFixed(1)),
+                                            const SizedBox(width: 4),
+                                            const Icon(
                                               Icons.star,
                                               size: 18,
                                               color: Color(0xFFF6C104),
                                             ),
                                           ],
                                         );
-                                      }
-                                      final avgRating = snapshot.data!;
-                                      return Row(
-                                        children: [
-                                          Text(avgRating.toStringAsFixed(1)),
-                                          const SizedBox(width: 4),
-                                          const Icon(
-                                            Icons.star,
-                                            size: 18,
-                                            color: Color(0xFFF6C104),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 9),
-                              Text(
-                                req.jobs?.join(', ') ?? "",
-                                style: TextStyle(color: Colors.grey[700]),
-                              ),
-                            ],
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 9),
+                                Text(
+                                  req.jobs?.join(', ') ?? "",
+                                  style: TextStyle(color: Colors.grey[700]),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -406,11 +440,28 @@ class _CustomreqstScreenState extends State<CustomreqstScreen> {
                           //     },
                           //   ),
                           // ),
-                          ElevatedButton(
-                            onPressed: () {
-                              _showbottomsheet(context, req);
+                          FutureBuilder<bool>(
+                            future: Provider.of<ReviewProvider>(
+                              context,
+                              listen: false,
+                            ).hasUserReviewedJob(
+                              providerId: req.providerid,
+                              jobId: req.jobId,
+                            ),
+                            builder: (context, snapshot) {
+                              final alreadyReviewed = snapshot.data ?? false;
+                              return ElevatedButton(
+                                onPressed:
+                                    alreadyReviewed
+                                        ? null
+                                        : () {
+                                          _showbottomsheet(context, req);
+                                        },
+                                child: Text(
+                                  alreadyReviewed ? "Reviewed" : "Review",
+                                ),
+                              );
                             },
-                            child: Text("Review"),
                           ),
                         ],
                       ),

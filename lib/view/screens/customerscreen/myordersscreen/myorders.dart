@@ -92,7 +92,7 @@ class _MyOrdersState extends State<MyOrders>
                       context,
                       listen: false,
                     );
-                    await reviewProvider.addReview(
+                    final success = await reviewProvider.addReview(
                       providerId: booking.providerId,
                       jobId: booking.bookingId,
                       reviewText: reviewText,
@@ -100,11 +100,20 @@ class _MyOrdersState extends State<MyOrders>
                     );
 
                     Navigator.pop(context);
-                    Fluttertoast.showToast(
-                      msg: 'Review submitted',
-                      backgroundColor: Colors.green,
-                      textColor: Colors.white,
-                    );
+                    if (success) {
+                      Fluttertoast.showToast(
+                        msg: 'Review submitted',
+                        backgroundColor: Colors.green,
+                        textColor: Colors.white,
+                      );
+                      setState(() {});
+                    } else {
+                      Fluttertoast.showToast(
+                        msg: 'You have already reviewed this task',
+                        backgroundColor: Colors.orange,
+                        textColor: Colors.white,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -208,21 +217,43 @@ class _MyOrdersState extends State<MyOrders>
                 Text("Time: ${booking.bookingTime}"),
               ],
             ),
-            trailing: GestureDetector(
-              onTap:
-                  isCompleted
-                      ? () {
-                        showReviewDialog(context, booking);
-                      }
-                      : null,
-              child: Chip(
-                label: Text(
-                  isCompleted ? "Review" : status.toUpperCase(),
-                  style: const TextStyle(color: Colors.white),
-                ),
-                backgroundColor: chipColor,
-              ),
-            ),
+            trailing:
+                isCompleted
+                    ? FutureBuilder<bool>(
+                      future: Provider.of<ReviewProvider>(
+                        context,
+                        listen: false,
+                      ).hasUserReviewedJob(
+                        providerId: booking.providerId,
+                        jobId: booking.bookingId,
+                      ),
+                      builder: (context, snapshot) {
+                        final alreadyReviewed = snapshot.data ?? false;
+                        return GestureDetector(
+                          onTap:
+                              alreadyReviewed
+                                  ? null
+                                  : () {
+                                    showReviewDialog(context, booking);
+                                  },
+                          child: Chip(
+                            label: Text(
+                              alreadyReviewed ? "Reviewed" : "Review",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor:
+                                alreadyReviewed ? Colors.grey : Colors.blue,
+                          ),
+                        );
+                      },
+                    )
+                    : Chip(
+                      label: Text(
+                        status.toUpperCase(),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: chipColor,
+                    ),
           ),
         );
       },

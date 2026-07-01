@@ -9,6 +9,7 @@ import 'package:svareign/view/screens/settings/Privacy_policy_screen.dart';
 import 'package:svareign/view/screens/settings/about_screen.dart';
 import 'package:svareign/view/screens/settings/customer_agreements_screen.dart';
 import 'package:svareign/view/screens/settings/customer_support_screen.dart';
+import 'package:svareign/view/screens/settings/provider_addendum_screen.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/viewmodel/service_provider/booknndfetchprovider/ordersfromuserprovider.dart';
 import 'package:svareign/viewmodel/service_provider/jobpost/jobpost.dart';
@@ -121,6 +122,20 @@ class SettingsScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => const CustomerAgreementsScreen(),
+                    ),
+                  ),
+            ),
+            buildDivider(),
+            buildSettingsTile(
+              icon: Icons.assignment_outlined,
+              iconBg: Colors.purple.shade100,
+              iconColor: Colors.purple.shade700,
+              title: "Provider Addendum",
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ProviderAddendumScreen(),
                     ),
                   ),
             ),
@@ -240,19 +255,23 @@ class SettingsScreen extends StatelessWidget {
 
   /// Card Container
   Widget buildSettingsCard(BuildContext context, List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    return Material(
+      color: Theme.of(context).cardTheme.color,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 0,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(children: children),
       ),
-      child: Column(children: children),
     );
   }
 

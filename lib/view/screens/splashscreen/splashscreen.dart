@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:lottie/lottie.dart';
@@ -8,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svareign/view/screens/customerscreen/bottomnavbar/bottomnav_screen.dart';
 import 'package:svareign/view/screens/Authentication/loginscreen/loginscreen.dart';
 import 'package:svareign/view/screens/providerscreen/bottomnavbar/bottomnavbarscreen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
@@ -52,29 +49,16 @@ class _SplashscreenState extends State<Splashscreen> {
       Widget nextScreen;
 
       if (isLoggedIn && role != null) {
-        // Session exists - check if Firebase user is still valid
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user == null) {
-          // Wait for Firebase to restore auth state (can take time on cold start)
-          user = await FirebaseAuth.instance.authStateChanges().first.timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => null,
-          );
-        }
-
-        if (user != null) {
-          if (role == 'customer') {
-            nextScreen = const HomeContainer();
-          } else if (role == 'service provider') {
-            nextScreen = const Servicehomecontainer();
-          } else {
-            nextScreen = const Loginscreen();
-          }
+        // Trust local session for routing.
+        // Firebase Auth restores its state from local storage automatically —
+        // it will be ready by the time home screens make Firestore calls.
+        // If the session is truly invalid, Firestore security rules will
+        // reject requests and individual screens can handle that gracefully.
+        if (role == 'customer') {
+          nextScreen = const HomeContainer();
+        } else if (role == 'service provider') {
+          nextScreen = const Servicehomecontainer();
         } else {
-          // Firebase session truly expired - clear local session
-          await prefs.remove('IsloggedIn');
-          await prefs.remove('uid');
-          await prefs.remove('role');
           nextScreen = const Loginscreen();
         }
       } else {
