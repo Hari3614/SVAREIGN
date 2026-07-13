@@ -287,42 +287,43 @@ class ProfileWidget extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () {
-              showAccountSwitcher(context);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.switch_account,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    'Switch account',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const Spacer(),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        // TODO: Switch account feature hidden for now
+        // const SizedBox(height: 16),
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 20),
+        //   child: InkWell(
+        //     borderRadius: BorderRadius.circular(12),
+        //     onTap: () {
+        //       showAccountSwitcher(context);
+        //     },
+        //     child: Container(
+        //       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        //       decoration: BoxDecoration(
+        //         border: Border.all(color: Colors.grey.shade300),
+        //         borderRadius: BorderRadius.circular(12),
+        //       ),
+        //       child: Row(
+        //         children: [
+        //           Icon(
+        //             Icons.switch_account,
+        //             color: Theme.of(context).colorScheme.onSurface,
+        //           ),
+        //           const SizedBox(width: 16),
+        //           const Text(
+        //             'Switch account',
+        //             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        //           ),
+        //           const Spacer(),
+        //           const Icon(
+        //             Icons.arrow_forward_ios,
+        //             size: 16,
+        //             color: Colors.grey,
+        //           ),
+        //         ],
+        //       ),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
