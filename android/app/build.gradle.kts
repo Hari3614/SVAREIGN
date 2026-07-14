@@ -33,8 +33,8 @@ android {
         applicationId = "com.svareign.app"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 11
-        versionName = "1.0.7"
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {
